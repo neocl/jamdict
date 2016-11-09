@@ -1,0 +1,1 @@
+Copy JMDict dictionary file (JMdict_e.xml) here
