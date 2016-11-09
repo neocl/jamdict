@@ -52,6 +52,7 @@ __status__ = "Prototype"
 
 import sys
 import os
+import logging
 import argparse
 import unittest
 from jamdict import JMDict
@@ -59,7 +60,7 @@ from jamdict import JMDParser
 
 ########################################################################
 
-MINI_DATA_FILE = 'data/JMDict_mini.xml'
+MINI_DATA_FILE = 'data/JMdict_mini.xml'
 
 class TestDemoLib(unittest.TestCase):
 
@@ -72,6 +73,7 @@ class TestDemoLib(unittest.TestCase):
 ########################################################################
 
 def main():
+    logging.getLogger('jamdict').setLevel(logging.DEBUG)
     unittest.main()
 
 if __name__ == "__main__":
