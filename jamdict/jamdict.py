@@ -55,10 +55,13 @@ __status__ = "Prototype"
 
 ########################################################################
 
+import os
 import logging
 from lxml import etree
 from collections import defaultdict as dd
 import codecs
+
+logger = logging.getLogger(__jamdict__)
 
 ########################################################################
 
@@ -409,6 +412,8 @@ class JMDParser(object):
     def parse_file(self, jmdict_file_path):
         ''' Parse JMDict_e.xml file and return a list of JMDEntry objects
         '''
+        logger.debug('Loading data from file: %s' % (os.path.abspath(jmdict_file_path)))
+                                                                      
         tree = etree.iterparse(jmdict_file_path)
         entries = []
         for event, element in tree:
