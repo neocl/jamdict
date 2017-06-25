@@ -47,7 +47,7 @@ References:
 
 __author__ = "Le Tuan Anh <tuananh.ke@gmail.com>"
 __copyright__ = "Copyright 2016, jamdict"
-__credits__ = [ "Le Tuan Anh" ]
+__credits__ = []
 __license__ = "MIT"
 __version__ = "0.1"
 __maintainer__ = "Le Tuan Anh"
@@ -56,22 +56,28 @@ __status__ = "Prototype"
 
 ########################################################################
 
+import os
 from jamdict import JMDict
 from jamdict import JMDParser
 
+
 ########################################################################
+
+JM_PATH = os.path.abspath('data/JMdict_mini.xml')
+
 
 def lookup(q):
     results = jmd.lookup(q)
     if results:
-        print u'\n'.join([u'=> ' + unicode(r) for r in results])
+        print('\n'.join(['=> ' + str(r) for r in results]))
     return results
 
-entries = JMDParser().parse_file('data/JMDict_mini.xml')
+
+entries = JMDParser().parse_file(JM_PATH)
 jmd = JMDict(entries)
-    
-p = lookup(u'おてんき')
-p = lookup(u'はし')
+
+p = lookup('おてんき')
+p = lookup('はし')
 p = lookup('1565560')
 if p:
-    print u' '.join([x.text for x in p[0].kana_forms])
+    print(' '.join([x.text for x in p[0].kana_forms]))

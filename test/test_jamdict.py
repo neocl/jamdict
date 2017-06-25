@@ -41,7 +41,7 @@ References:
 
 __author__ = "Le Tuan Anh <tuananh.ke@gmail.com>"
 __copyright__ = "Copyright 2016, jamdict"
-__credits__ = [ "Le Tuan Anh" ]
+__credits__ = []
 __license__ = "MIT"
 __version__ = "0.1"
 __maintainer__ = "Le Tuan Anh"
@@ -50,10 +50,7 @@ __status__ = "Prototype"
 
 ########################################################################
 
-import sys
-import os
 import logging
-import argparse
 import unittest
 from jamdict import JMDict
 from jamdict import JMDParser
@@ -61,6 +58,7 @@ from jamdict import JMDParser
 ########################################################################
 
 MINI_DATA_FILE = 'data/JMdict_mini.xml'
+
 
 class TestDemoLib(unittest.TestCase):
 
@@ -70,11 +68,13 @@ class TestDemoLib(unittest.TestCase):
         jmd = JMDict(entries)
         self.assertTrue(jmd.lookup(u'おてんき'))
 
+
 ########################################################################
 
 def main():
     logging.getLogger('jamdict').setLevel(logging.DEBUG)
     unittest.main()
+
 
 if __name__ == "__main__":
     main()
