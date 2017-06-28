@@ -47,7 +47,7 @@ References:
 
 __author__ = "Le Tuan Anh <tuananh.ke@gmail.com>"
 __copyright__ = "Copyright 2016, jamdict"
-__credits__ = [ "Le Tuan Anh" ]
+__credits__ = []
 __license__ = "MIT"
 __version__ = "0.1"
 __maintainer__ = "Le Tuan Anh"
@@ -57,7 +57,6 @@ __status__ = "Prototype"
 ########################################################################
 
 from collections import defaultdict as dd
-import codecs
 from .jamdict import JMDParser
 
 ########################################################################
@@ -94,12 +93,14 @@ class JMDict(object):
         parser = JMDParser()
         return JMDict(parser.parse_file(filename))
 
+
 ########################################################################
 
 def main():
     ''' Main enntry point. This should NOT be run anyway.
     '''
     print("This is a library, not an application.")
-    
+
+
 if __name__ == '__main__':
     main()

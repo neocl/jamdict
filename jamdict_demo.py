@@ -75,6 +75,7 @@ def lookup(q):
 
 entries = JMDParser().parse_file(JM_PATH)
 jmd = JMDict(entries)
+# alt: jmd = JMDict.fromfile(JM_PATH)
 
 p = lookup('おてんき')
 p = lookup('はし')

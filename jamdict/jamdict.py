@@ -46,7 +46,7 @@ References:
 
 __author__ = "Le Tuan Anh <tuananh.ke@gmail.com>"
 __copyright__ = "Copyright 2016, jamdict"
-__credits__ = []
+vvv__credits__ = []
 __license__ = "MIT"
 __version__ = "0.1"
 __maintainer__ = "Le Tuan Anh"
@@ -89,8 +89,8 @@ class JMDEntry(object):
             tmp.append(self.kana_forms[0].text)
         if self.kanji_forms:
             tmp.append(self.kanji_forms[0].text)
-        for sense in self.senses:
-            tmp.append(str(sense))
+        for sense, idx in zip(self.senses, range(len(self.senses))):
+            tmp.append('{i}. {s}'.format(i=idx + 1, s=sense))
         return '|'.join(tmp)
 
 
@@ -272,10 +272,10 @@ class Sense(object):
     def __init__(self):
         '''These elements, if present, indicate that the sense is restricted
         to the lexeme represented by the keb and/or reb.'''
-        self.stagk = [] # <!ELEMENT stagk (#PCDATA)>
-        self.stagr = [] # <!ELEMENT stagr (#PCDATA)>
-        
-        '''Part-of-speech information about the entry/sense. Should use 
+        self.stagk = []  # <!ELEMENT stagk (#PCDATA)>
+        self.stagr = []  # <!ELEMENT stagr (#PCDATA)>
+
+        '''Part-of-speech information about the entry/sense. Should use
         appropriate entity codes. In general where there are multiple senses
         in an entry, the part-of-speech of an earlier sense will apply to
         later senses unless there is a new part-of-speech indicated.'''
@@ -286,51 +286,55 @@ class Sense(object):
         this element is typically a keb or reb element in another entry. In some
         cases a keb will be followed by a reb and/or a sense number to provide
         a precise target for the cross-reference. Where this happens, a JIS
-        "centre-dot" (0x2126) is placed between the components of the 
+        "centre-dot" (0x2126) is placed between the components of the
         cross-reference.
         <!ELEMENT xref (#PCDATA)*>'''
-        self.xref = [] # xref
-        
+        self.xref = []  # xref
+
         '''This element is used to indicate another entry which is an
         antonym of the current entry/sense. The content of this element
         must exactly match that of a keb or reb element in another entry.'''
-        self.antonym = [] # <!ELEMENT ant (#PCDATA)*>
-        
-        '''Information about the field of application of the entry/sense. 
-        When absent, general application is implied. Entity coding for 
+        self.antonym = []  # <!ELEMENT ant (#PCDATA)*>
+
+        '''Information about the field of application of the entry/sense.
+        When absent, general application is implied. Entity coding for
         specific fields of application.'''
-        self.field = [] # <!ELEMENT field (#PCDATA)>
-        
-        '''This element is used for other relevant information about 
+        self.field = []  # <!ELEMENT field (#PCDATA)>
+
+        '''This element is used for other relevant information about
         the entry/sense. As with part-of-speech, information will usually
         apply to several senses.'''
-        self.misc = [] # <!ELEMENT misc (#PCDATA)>
-        
+        self.misc = []  # <!ELEMENT misc (#PCDATA)>
+
         '''The sense-information elements provided for additional
         information to be recorded about a sense. Typical usage would
         be to indicate such things as level of currency of a sense, the
         regional variations, etc.'''
-        self.info = [] # <!ELEMENT s_inf (#PCDATA)>
-        
-        self.lsource = [] # <!ELEMENT lsource (#PCDATA)>
-        
+        self.info = []  # <!ELEMENT s_inf (#PCDATA)>
+
+        self.lsource = []  # <!ELEMENT lsource (#PCDATA)>
+
         '''For words specifically associated with regional dialects in
         Japanese, the entity code for that dialect, e.g. ksb for Kansaiben.'''
-        self.dialect = [] # <!ELEMENT dial (#PCDATA)>
-        
-        self.gloss = [] # <!ELEMENT gloss (#PCDATA | pri)*>
-        
+        self.dialect = []  # <!ELEMENT dial (#PCDATA)>
+
+        self.gloss = []  # <!ELEMENT gloss (#PCDATA | pri)*>
+
         '''The example elements provide for pairs of short Japanese and
-        target-language phrases or sentences which exemplify the usage of the 
-        Japanese head-word and the target-language gloss. Words in example 
+        target-language phrases or sentences which exemplify the usage of the
+        Japanese head-word and the target-language gloss. Words in example
         fields would typically not be indexed by a dictionary application.'''
-        self.examples = [] # <!ELEMENT example (#PCDATA)>
+        self.examples = []  # <!ELEMENT example (#PCDATA)>
+
+    def __repr__(self):
+        return str(self)
 
     def __str__(self):
         tmp = [str(x) for x in self.gloss]
         if self.pos:
-            tmp.append('(%s)' % '|'.join(self.pos))
-        return ', '.join(tmp)
+            return '{gloss} ({pos})'.format(gloss='/'.join(tmp), pos=('(%s)' % '|'.join(self.pos)))
+        else:
+            return '/'.join(tmp)
 
 
 class SenseGloss(object):
@@ -581,12 +585,14 @@ class JMDParser(object):
         sense.lsource.append(lsource)
         return lsource
 
+
 ########################################################################
 
 def main():
     ''' Main enntry point. This should NOT be run anyway.
     '''
     print("This is a library, not an application.")
-    
+
+
 if __name__ == '__main__':
     main()
