@@ -1,0 +1,3 @@
+[submodule "modules/puchikarui"]
+	path = modules/puchikarui
+	url = https://github.com/letuananh/puchikarui

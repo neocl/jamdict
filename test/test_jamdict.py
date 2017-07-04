@@ -60,7 +60,7 @@ from jamdict import JMDParser
 MINI_DATA_FILE = 'data/JMdict_mini.xml'
 
 
-class TestDemoLib(unittest.TestCase):
+class TestJamdictXML(unittest.TestCase):
 
     def test_load_mini_dictionary(self):
         print("Test lookup from mini dictionary")

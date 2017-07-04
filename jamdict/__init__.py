@@ -46,7 +46,7 @@ References:
 
 __author__ = "Le Tuan Anh <tuananh.ke@gmail.com>"
 __copyright__ = "Copyright 2016, jamdict"
-__credits__ = [ "Le Tuan Anh" ]
+__credits__ = []
 __license__ = "MIT"
 __version__ = "0.1"
 __maintainer__ = "Le Tuan Anh"
@@ -57,7 +57,8 @@ __status__ = "Prototype"
 
 from .jamdict import JMDParser
 from .util import JMDict
+from .jamdict_sqlite import JMDSQLite
 
 ########################################################################
 
-__all__ = [ 'JMDParser', 'JMDict' ]
+__all__ = ['JMDParser', 'JMDict', 'JMDSQLite']

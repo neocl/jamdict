@@ -198,39 +198,38 @@ class KanaReading(object):
     def set_text(self, text):
         if self.text:
             logging.warning("WARNING: duplicated text for k_ele")
-        self.text = text        
+        self.text = text
 
 
 class EntryInfo(object):
     '''General coded information relating to the entry as a whole.
-    DTD: <!ELEMENT info (links*, bibl*, etym*, audit*)> 
+    DTD: <!ELEMENT info (links*, bibl*, etym*, audit*)>
     '''
     def __init__(self):
-        self.links = []   # link* => Link[]
-        self.bibinfo = [] # bibl* => BibInfo[]
-        
+        self.links = []    # link* => Link[]
+        self.bibinfo = []  # bibl* => BibInfo[]
         '''This field is used to hold information about the etymology
         of the kanji or kana parts of the entry. For gairaigo,
         etymological information may also be in the <lsource> element.'''
-        self.etym = []    # <!ELEMENT etym (#PCDATA)>*
-        self.audit = []   # 
+        self.etym = []     # <!ELEMENT etym (#PCDATA)>*
+        self.audit = []    #
 
 
 class Link(object):
-    '''This element holds details of linking information to 
+    '''This element holds details of linking information to
     entries in other electronic repositories. The link_tag will be
-    coded to indicate the type of link (text, image, sound), the 
-    link_desc will provided a textual label for the link, and the 
+    coded to indicate the type of link (text, image, sound), the
+    link_desc will provided a textual label for the link, and the
     link_uri contains the actual URI.
     <!ELEMENT links (link_tag, link_desc, link_uri)>'''
     def __init__(self, tag, desc, uri):
-        self.tag = tag   # <!ELEMENT link_tag (#PCDATA)>
-        self.desc = desc # <!ELEMENT link_desc (#PCDATA)>
-        self.uri = uri   # <!ELEMENT link_uri (#PCDATA)>
+        self.tag = tag    # <!ELEMENT link_tag (#PCDATA)>
+        self.desc = desc  # <!ELEMENT link_desc (#PCDATA)>
+        self.uri = uri    # <!ELEMENT link_uri (#PCDATA)>
 
 
 class BibInfo(object):
-    '''Bibliographic information about the entry. The bib_tag will a 
+    '''Bibliographic information about the entry. The bib_tag will a
     coded reference to an entry in an external bibliographic database.
     The bib_txt field may be used for brief (local) descriptions.
     <!ELEMENT bibl (bib_tag?, bib_txt?)>
@@ -240,12 +239,12 @@ class BibInfo(object):
     def __init__(self, tag='', text=''):
         self.tag = tag
         self.text = text
-        
+
     def set_tag(self, tag):
         if self.tag:
             logging.warning("WARNING: duplicate tag in bibinfo")
         self.tag = tag
-        
+
     def set_text(self, text):
         if self.text:
             logging.warning("WARNING: duplicate text in bibinfo")
@@ -254,12 +253,12 @@ class BibInfo(object):
 
 class Audit(object):
     '''The audit element will contain the date and other information
-    about updates to the entry. Can be used to record the source of 
+    about updates to the entry. Can be used to record the source of
     the material.
     <!ELEMENT audit (upd_date, upd_detl)>'''
     def __init__(self, upd_date, upd_detl):
-        self.upd_date = upd_date # <!ELEMENT upd_date (#PCDATA)>
-        self.upd_detl = upd_detl # <!ELEMENT upd_detl (#PCDATA)>
+        self.upd_date = upd_date  # <!ELEMENT upd_date (#PCDATA)>
+        self.upd_detl = upd_detl  # <!ELEMENT upd_detl (#PCDATA)>
 
 
 class Sense(object):
@@ -280,7 +279,7 @@ class Sense(object):
         in an entry, the part-of-speech of an earlier sense will apply to
         later senses unless there is a new part-of-speech indicated.'''
         self.pos = []   # <!ELEMENT pos (#PCDATA)>
-        
+
         '''This element is used to indicate a cross-reference to another
         entry with a similar or related meaning or sense. The content of
         this element is typically a keb or reb element in another entry. In some
@@ -338,13 +337,12 @@ class Sense(object):
 
 
 class SenseGloss(object):
-    
-    '''Within each sense will be one or more "glosses", i.e. 
-        target-language words or phrases which are equivalents to the 
-        Japanese word. This element would normally be present, however it 
+    '''Within each sense will be one or more "glosses", i.e.
+        target-language words or phrases which are equivalents to the
+        Japanese word. This element would normally be present, however it
         may be omitted in entries which are purely for a cross-reference.
         DTD: <!ELEMENT gloss (#PCDATA | pri)*>
-        
+
         <!ATTLIST gloss xml:lang CDATA "eng">
         The xml:lang attribute defines the target language of the
         gloss. It will be coded using the three-letter language code from
@@ -355,21 +353,20 @@ class SenseGloss(object):
         a noun in the target language. When absent, the gender is either
         not relevant or has yet to be provided.
         <!ELEMENT pri (#PCDATA)>
-        These elements highlight particular target-language words which 
-        are strongly associated with the Japanese word. The purpose is to 
-        establish a set of target-language words which can effectively be 
+        These elements highlight particular target-language words which
+        are strongly associated with the Japanese word. The purpose is to
+        establish a set of target-language words which can effectively be
         used as head-words in a reverse target-language/Japanese relationship.'''
-    
-    def __init__(self, lang, gend, pri):
+    def __init__(self, lang, gend, text):
         self.lang = lang
         self.gend = gend
-        self.pri = pri
+        self.text = text
 
     def __repr__(self):
         return str(self)
-    
+
     def __str__(self):
-        tmp = [self.pri]
+        tmp = [self.text]
         if self.lang:
             tmp.append('(lang:%s)' % self.lang)
         if self.gend:
@@ -379,14 +376,14 @@ class SenseGloss(object):
 
 class LSource:
     '''This element records the information about the source
-    language(s) of a loan-word/gairaigo. If the source language is other 
+    language(s) of a loan-word/gairaigo. If the source language is other
     than English, the language is indicated by the xml:lang attribute.
     The element value (if any) is the source word or phrase.
     <!ATTLIST lsource xml:lang CDATA "eng">
     The xml:lang attribute defines the language(s) from which
-    a loanword is drawn.  It will be coded using the three-letter language 
-    code from the ISO 639-2 standard. When absent, the value "eng" (i.e. 
-    English) is the default value. The bibliographic (B) codes are used. 
+    a loanword is drawn.  It will be coded using the three-letter language
+    code from the ISO 639-2 standard. When absent, the value "eng" (i.e.
+    English) is the default value. The bibliographic (B) codes are used.
     <!ATTLIST lsource ls_type CDATA #IMPLIED>
     The ls_type attribute indicates whether the lsource element
     fully or partially describes the source word or phrase of the
@@ -398,10 +395,11 @@ class LSource:
     not from an actual phrase in that language. Most commonly used to
     indicate "waseieigo".'''
 
-    def __init__(self, lang, lstype, wasei):
+    def __init__(self, lang, lstype, wasei, text):
         self.lang = lang
         self.lstype = lstype
         self.wasei = wasei
+        self.text = text
 
 
 class JMDParser(object):
@@ -410,12 +408,12 @@ class JMDParser(object):
 
     def __init__(self):
         pass
-        
+
     def parse_file(self, jmdict_file_path):
         ''' Parse JMDict_e.xml file and return a list of JMDEntry objects
         '''
         logger.debug('Loading data from file: %s' % (os.path.abspath(jmdict_file_path)))
-                                                                      
+
         tree = etree.iterparse(jmdict_file_path)
         entries = []
         for event, element in tree:
@@ -505,7 +503,7 @@ class JMDParser(object):
             elif child.tag == 'audit':
                 self.parse_audit(child, einfo)
             else:
-                raise Exception("WARNING: invalid tag in info tag (child.tag = %s)" % child.tag)    
+                raise Exception("WARNING: invalid tag in info tag (child.tag = %s)" % child.tag)
         entry.set_info(einfo)
         return einfo
 
@@ -572,8 +570,8 @@ class JMDParser(object):
     def parse_sensegloss(self, gloss_tag, sense):
         lang = self.get_attrib(gloss_tag, 'xml:lang')
         gend = self.get_attrib(gloss_tag, 'g_gend')
-        pri = gloss_tag.text
-        gloss = SenseGloss(lang, gend, pri)
+        text = gloss_tag.text  # TODO: pri tag? raw text?
+        gloss = SenseGloss(lang, gend, text)
         sense.gloss.append(gloss)
         return gloss
 
@@ -581,7 +579,7 @@ class JMDParser(object):
         lang = self.get_attrib(lsource_tag, 'xml:lang')
         lstype = self.get_attrib(lsource_tag, 'ls_type')
         wasei = self.get_attrib(lsource_tag, 'ls_wasei')
-        lsource = LSource(lang, lstype, wasei)
+        lsource = LSource(lang, lstype, wasei, lsource_tag.text)
         sense.lsource.append(lsource)
         return lsource
 
