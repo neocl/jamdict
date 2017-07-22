@@ -85,6 +85,14 @@ class JMDict(object):
         if self.jmd_sqlite and self.jmd_xml:
             self.jmd_sqlite.insert(*self.jmd_xml.entries)
 
+    def get_entry(self, idseq):
+        if self.jmd_sqlite:
+            return self.jmd_sqlite.get_entry(idseq)
+        elif self.jmd_xml:
+            return self.jmd_xml.lookup(idseq)[0]
+        else:
+            raise Exception("There is no backend data available")
+
     def lookup(self, query):
         if self.jmd_sqlite:
             return self.jmd_sqlite.search(query)

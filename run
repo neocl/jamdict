@@ -1,0 +1,4 @@
+#!/bin/bash
+
+export FLASK_APP=jamdol-flask.py
+flask run --port 5002
