@@ -2,17 +2,15 @@
 # -*- coding: utf-8 -*-
 
 '''
-Test script for jamdict_sqlite
+Jamdict toolkit
 Latest version can be found at https://github.com/neocl/jamdict
 
 References:
-    Python unittest documentation:
-        https://docs.python.org/3/library/unittest.html
     Python documentation:
         https://docs.python.org/
     PEP 0008 - Style Guide for Python Code
         https://www.python.org/dev/peps/pep-0008/
-    PEP 0257 - Python Docstring Conventions:
+    PEP 257 - Python Docstring Conventions:
         https://www.python.org/dev/peps/pep-0257/
 
 @author: Le Tuan Anh <tuananh.ke@gmail.com>
@@ -51,74 +49,82 @@ __credits__ = []
 
 import sys
 import os
-import unittest
 import logging
-
+import argparse
 from jamdict import JMDict
-from jamdict import JMDictXML
-from jamdict import JMDSQLite
-
 
 #-------------------------------------------------------------------------------
 # CONFIGURATION
 #-------------------------------------------------------------------------------
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler(sys.stdout))
-TEST_DIR = os.path.dirname(os.path.realpath(__file__))
-TEST_DB = os.path.join(TEST_DIR, 'data', 'test.db')
-RAM_DB = ':memory:'
-MINI_DATA_FILE = 'data/JMdict_mini.xml'
+DATA_FOLDER = os.path.abspath(os.path.expanduser('./data'))
+JMD_XML = os.path.join(DATA_FOLDER, 'JMdict')
+JMD_DB = os.path.join(DATA_FOLDER, 'jamdict.db')
 
 
 #-------------------------------------------------------------------------------
-# DATA STRUCTURES
+# FUNCTIONS
 #-------------------------------------------------------------------------------
 
-class TestJamdictSQLite(unittest.TestCase):
+def import_data(args):
+    print("Importing data: from {} ==to==> {}".format(args.xml, args.sqlite))
+    print("Reading XML file ...")
+    jmd = JMDict(args.xml, args.sqlite)
+    print("writing to SQLite ...")
+    jmd.import_data()
+    print("Done!")
 
-    db = JMDSQLite(TEST_DB)
-    xdb = JMDictXML.fromfile(MINI_DATA_FILE)
-    ramdb = JMDSQLite(RAM_DB)
 
-    def test_xml2sqlite(self):
-        try:
-            self.db.insert(*self.xdb)
-        except:
-            pass
-        entries = self.db.Entry.select()
-        self.assertEqual(len(entries), len(self.xdb))
-
-    def test_xml2ramdb(self):
-        noe = len(self.xdb)
-        with self.ramdb.ds.open() as exe:
-            self.ramdb.insert(*self.xdb, context=exe)
-            self.assertEqual(len(self.ramdb.Entry.select(exe=exe)), noe)
-
-    def test_import_function(self):
-        jd = JMDict(MINI_DATA_FILE, RAM_DB)
-        jd.import_data()
-
-    def test_search(self):
-        # Search by kana
-        es = self.db.search('あの')
-        self.assertEqual(len(es), 2)
-        logger.info('あの: {}'.format('|'.join([str(x) for x in es])))
-        # Search by kanji
-        es = self.db.search('%子%')
-        self.assertEqual(len(es), 4)
-        logger.info('%子%: {}'.format('|'.join([str(x) for x in es])))
-
-    def test_select_entry(self):
-        e = self.db.get_entry(1001710)
-        logger.info(e.to_json())
-        pass
+def lookup(args):
+    jmd = JMDict(dbfile=args.sqlite)
+    entries = jmd.lookup(args.query)
+    if args.format == 'json':
+        print([e.to_json() for e in entries])
+    else:
+        for e in entries:
+            print("Entry: {}".format(e))
+            for idx, s in enumerate(e.senses):
+                print("{}. {}".format(idx, s))
+            print('')
 
 
 #-------------------------------------------------------------------------------
 # MAIN
 #-------------------------------------------------------------------------------
 
+def main():
+    '''Main entry of jamtk
+    '''
+
+    # It's easier to create a user-friendly console application by using argparse
+    # See reference at the top of this script
+    parser = argparse.ArgumentParser(description="Jamdict toolkit")
+
+    # Positional argument(s)
+    task = parser.add_subparsers(help='Task to be done')
+
+    # Optional arguments
+    parser.add_argument('-x', '--xml', help='Path to JMdict XML file', default=JMD_XML)
+    parser.add_argument('-s', '--sqlite', help='Path to JMdict SQLite file', default=JMD_DB)
+
+    # import task
+    import_task = task.add_parser('import', help='Import XML data into SQLite database')
+    import_task.set_defaults(func=import_data)
+
+    # look up task
+    lookup_task = task.add_parser('lookup', help='Lookup words by kanji/kana')
+    lookup_task.add_argument('query', help='kanji/kana')
+    lookup_task.add_argument('-f', '--format', help='json or text')
+    lookup_task.set_defaults(func=lookup)
+
+    # Main script
+    if len(sys.argv) == 1:
+        # User didn't pass any value in, show help
+        parser.print_help()
+    else:
+        args = parser.parse_args()
+        args.func(args)
+
+
 if __name__ == "__main__":
-    unittest.main()
+    main()

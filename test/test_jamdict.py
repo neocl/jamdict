@@ -52,8 +52,8 @@ __status__ = "Prototype"
 
 import logging
 import unittest
-from jamdict import JMDict
-from jamdict import JMDParser
+from jamdict import JMDict, JMDictXML
+from jamdict import JMDictXMLParser
 
 ########################################################################
 
@@ -62,11 +62,20 @@ MINI_DATA_FILE = 'data/JMdict_mini.xml'
 
 class TestJamdictXML(unittest.TestCase):
 
-    def test_load_mini_dictionary(self):
+    def test_jmd_xml(self):
         print("Test lookup from mini dictionary")
-        entries = JMDParser().parse_file(MINI_DATA_FILE)
-        jmd = JMDict(entries)
+        parser = JMDictXMLParser()
+        entries = parser.parse_file(MINI_DATA_FILE)
+        jmd = JMDictXML(entries)
         self.assertTrue(jmd.lookup(u'おてんき'))
+
+    def test_json(self):
+        # Load mini dict data
+        jmd = JMDictXML.fromfile(MINI_DATA_FILE)
+        e = jmd[10]
+        print(e)
+        print(e.to_json())
+        print(jmd[-1].to_json())
 
 
 ########################################################################

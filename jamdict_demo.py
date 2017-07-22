@@ -58,7 +58,6 @@ __status__ = "Prototype"
 
 import os
 from jamdict import JMDict
-from jamdict import JMDParser
 
 
 ########################################################################
@@ -73,9 +72,7 @@ def lookup(q):
     return results
 
 
-entries = JMDParser().parse_file(JM_PATH)
-jmd = JMDict(entries)
-# alt: jmd = JMDict.fromfile(JM_PATH)
+jmd = JMDict(JM_PATH)
 
 p = lookup('おてんき')
 p = lookup('はし')

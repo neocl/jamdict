@@ -57,13 +57,45 @@ __status__ = "Prototype"
 ########################################################################
 
 from collections import defaultdict as dd
-from .jamdict import JMDParser
+from .jamdict import JMDictXMLParser
+from .jamdict_sqlite import JMDSQLite
 
 ########################################################################
 
 
 class JMDict(object):
-    ''' JMDict API for look up information
+
+    def __init__(self, xmlfile=None, dbfile=None):
+        if xmlfile:
+            self.read_xml(xmlfile)
+        else:
+            self.jmd_xml = None
+        if dbfile:
+            self.read_db(dbfile)
+        else:
+            self.jmd_sqlite = None
+
+    def read_db(self, filename):
+        self.jmd_sqlite = JMDSQLite(filename)
+
+    def read_xml(self, filename):
+        self.jmd_xml = JMDictXML.fromfile(filename)
+
+    def import_data(self):
+        if self.jmd_sqlite and self.jmd_xml:
+            self.jmd_sqlite.insert(*self.jmd_xml.entries)
+
+    def lookup(self, query):
+        if self.jmd_sqlite:
+            return self.jmd_sqlite.search(query)
+        elif self.jmd_xml:
+            return self.jmd_xml.lookup(query)
+        else:
+            raise Exception("There is no backend data available")
+
+
+class JMDictXML(object):
+    ''' JMDict API for looking up information in XML
     '''
     def __init__(self, entries):
         self.entries = entries
@@ -80,6 +112,9 @@ class JMDict(object):
     def __len__(self):
         return len(self.entries)
 
+    def __getitem__(self, idx):
+        return self.entries[idx]
+
     def lookup(self, a_query):
         if a_query in self._textmap:
             return tuple(self._textmap[a_query])
@@ -90,8 +125,8 @@ class JMDict(object):
 
     @staticmethod
     def fromfile(filename):
-        parser = JMDParser()
-        return JMDict(parser.parse_file(filename))
+        parser = JMDictXMLParser()
+        return JMDictXML(parser.parse_file(filename))
 
 
 ########################################################################

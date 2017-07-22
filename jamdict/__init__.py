@@ -55,10 +55,10 @@ __status__ = "Prototype"
 
 ########################################################################
 
-from .jamdict import JMDParser
-from .util import JMDict
+from .jamdict import JMDictXMLParser
+from .util import JMDict, JMDictXML
 from .jamdict_sqlite import JMDSQLite
 
 ########################################################################
 
-__all__ = ['JMDParser', 'JMDict', 'JMDSQLite']
+__all__ = ['JMDict', 'JMDictXML', 'JMDictXMLParser', 'JMDSQLite']

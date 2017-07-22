@@ -93,6 +93,15 @@ class JMDEntry(object):
             tmp.append('{i}. {s}'.format(i=idx + 1, s=sense))
         return '|'.join(tmp)
 
+    def to_json(self):
+        ed = {'idseq': self.idseq,
+              'kanji': [x.to_json() for x in self.kanji_forms],
+              'kana': [x.to_json() for x in self.kana_forms],
+              'senses': [x.to_json() for x in self.senses]}
+        if self.info:
+            ed['info'] = self.info.to_json()
+        return ed
+
 
 class KanjiReading(object):
     ''' The kanji element, or in its absence, the reading element, is
@@ -108,14 +117,14 @@ class KanjiReading(object):
     DTD <!ELEMENT k_ele (keb, ke_inf*, ke_pri*)>
     '''
 
-    def __init__(self):
+    def __init__(self, text=''):
         '''This element will contain a word or short phrase in Japanese
         which is written using at least one non-kana character (usually kanji,
         but can be other characters). The valid characters are
         kanji, kana, related characters such as chouon and kurikaeshi, and
         in exceptional cases, letters from other alphabets.
         '''
-        self.text = ''  # <!ELEMENT keb (#PCDATA)>
+        self.text = text  # <!ELEMENT keb (#PCDATA)>
 
         '''This is a coded information field related specifically to the
         orthography of the keb, and will typically indicate some unusual
@@ -157,6 +166,14 @@ class KanjiReading(object):
             logging.warning("WARNING: duplicated text for k_ele")
         self.text = text
 
+    def to_json(self):
+        kjd = {'text': self.text}
+        if self.info:
+            kjd['info'] = self.info
+        if self.pri:
+            kjd['pri'] = self.pri
+        return kjd
+
 
 class KanaReading(object):
     '''<!ELEMENT r_ele (reb, re_nokanji?, re_restr*, re_inf*, re_pri*)>
@@ -167,38 +184,49 @@ class KanaReading(object):
     kanji element, i.e. in the case of a word or phrase written
     entirely in kana, these elements will define the entry.'''
 
-    def __init__(self):
+    def __init__(self, text='', nokanji=False):
         '''this element content is restricted to kana and related
         characters such as chouon and kurikaeshi. Kana usage will be
         consistent between the keb and reb elements; e.g. if the keb
         contains katakana, so too will the reb.'''
-        self.text = ''  # <!ELEMENT reb (#PCDATA)>
-        
+        self.text = text  # <!ELEMENT reb (#PCDATA)>
+
         '''This element, which will usually have a null value, indicates
         that the reb, while associated with the keb, cannot be regarded
         as a true reading of the kanji. It is typically used for words
         such as foreign place names, gairaigo which can be in kanji or
         katakana, etc.'''
-        self.nokanji = ''  # <!ELEMENT re_nokanji (#PCDATA)>?
-        
+        self.nokanji = nokanji  # <!ELEMENT re_nokanji (#PCDATA)>?
+
         '''This element is used to indicate when the reading only applies
         to a subset of the keb elements in the entry. In its absence, all
         readings apply to all kanji elements. The contents of this element
         must exactly match those of one of the keb elements.'''
-        self.restr = [] # <!ELEMENT re_restr (#PCDATA)>*
-        
+        self.restr = []  # <!ELEMENT re_restr (#PCDATA)>*
+
         '''General coded information pertaining to the specific reading.
-        Typically it will be used to indicate some unusual aspect of 
+        Typically it will be used to indicate some unusual aspect of
         the reading.'''
-        self.info = [] # <!ELEMENT re_inf (#PCDATA)>* 
-        
+        self.info = []  # <!ELEMENT re_inf (#PCDATA)>*
+
         '''See the comment on ke_pri above.'''
-        self.pri = [] # <!ELEMENT re_pri (#PCDATA)>*
+        self.pri = []  # <!ELEMENT re_pri (#PCDATA)>*
 
     def set_text(self, text):
         if self.text:
             logging.warning("WARNING: duplicated text for k_ele")
         self.text = text
+
+    def to_json(self):
+        knd = {'text': self.text,
+               'nokanji': self.nokanji}
+        if self.restr:
+            knd['restr'] = self.restr
+        if self.info:
+            knd['info'] = self.info
+        if self.pri:
+            knd['pri'] = self.pri
+        return knd
 
 
 class EntryInfo(object):
@@ -212,7 +240,13 @@ class EntryInfo(object):
         of the kanji or kana parts of the entry. For gairaigo,
         etymological information may also be in the <lsource> element.'''
         self.etym = []     # <!ELEMENT etym (#PCDATA)>*
-        self.audit = []    #
+        self.audit = []    # audit* => Audit[]
+
+    def to_json(self):
+        return {'links': [x.to_json() for x in self.links],
+                'bibinfo': [x.to_json() for x in self.bibinfo],
+                'etym': self.etym,
+                'audit': [x.to_json() for x in self.audit]}
 
 
 class Link(object):
@@ -226,6 +260,11 @@ class Link(object):
         self.tag = tag    # <!ELEMENT link_tag (#PCDATA)>
         self.desc = desc  # <!ELEMENT link_desc (#PCDATA)>
         self.uri = uri    # <!ELEMENT link_uri (#PCDATA)>
+
+    def to_json(self):
+        return {'tag': self.tag,
+                'desc': self.desc,
+                'uri': self.uri}
 
 
 class BibInfo(object):
@@ -250,6 +289,9 @@ class BibInfo(object):
             logging.warning("WARNING: duplicate text in bibinfo")
         self.text = text
 
+    def to_json(self):
+        return {'tag': self.tag, 'text': self.text}
+
 
 class Audit(object):
     '''The audit element will contain the date and other information
@@ -259,6 +301,9 @@ class Audit(object):
     def __init__(self, upd_date, upd_detl):
         self.upd_date = upd_date  # <!ELEMENT upd_date (#PCDATA)>
         self.upd_detl = upd_detl  # <!ELEMENT upd_detl (#PCDATA)>
+
+    def to_json(self):
+        return {'upd_date': self.upd_date, 'upd_detl': self.upd_detl}
 
 
 class Sense(object):
@@ -323,6 +368,7 @@ class Sense(object):
         target-language phrases or sentences which exemplify the usage of the
         Japanese head-word and the target-language gloss. Words in example
         fields would typically not be indexed by a dictionary application.'''
+        # It seems that this field is not used anymore!
         self.examples = []  # <!ELEMENT example (#PCDATA)>
 
     def __repr__(self):
@@ -334,6 +380,32 @@ class Sense(object):
             return '{gloss} ({pos})'.format(gloss='/'.join(tmp), pos=('(%s)' % '|'.join(self.pos)))
         else:
             return '/'.join(tmp)
+
+    def to_json(self):
+        sd = {}
+        if self.stagk:
+            sd['stagk'] = self.stagk
+        if self.stagr:
+            sd['stagr'] = self.stagr
+        if self.pos:
+            sd['pos'] = self.pos
+        if self.xref:
+            sd['xref'] = self.xref
+        if self.antonym:
+            sd['antonym'] = self.antonym
+        if self.field:
+            sd['field'] = self.field
+        if self.misc:
+            sd['misc'] = self.misc
+        if self.info:
+            sd['SenseInfo'] = self.info
+        if self.lsource:
+            sd['SenseSource'] = [x.to_json() for x in self.lsource]
+        if self.dialect:
+            sd['dialect'] = self.dialect
+        if self.gloss:
+            sd['SenseGloss'] = [x.to_json() for x in self.gloss]
+        return sd
 
 
 class SenseGloss(object):
@@ -373,6 +445,16 @@ class SenseGloss(object):
             tmp.append('(gend:%s)' % self.gend)
         return ' '.join(tmp)
 
+    def to_json(self):
+        gd = {}
+        if self.lang:
+            gd['lang'] = self.lang
+        if self.gend:
+            gd['gend'] = self.gend
+        if self.text:
+            gd['text'] = self.text
+        return gd
+
 
 class LSource:
     '''This element records the information about the source
@@ -401,8 +483,14 @@ class LSource:
         self.wasei = wasei
         self.text = text
 
+    def to_json(self):
+        return {'lang': self.lang,
+                'lstype': self.lstype,
+                'wasei': self.wasei,
+                'text': self.text}
 
-class JMDParser(object):
+
+class JMDictXMLParser(object):
     '''JMDict XML parser
     '''
 
@@ -478,7 +566,7 @@ class JMDParser(object):
             if child.tag == 'reb':
                 kr.set_text(child.text)
             elif child.tag == 're_nokanji':
-                kr.nokanji = child.text
+                kr.nokanji = True
             elif child.tag == 're_restr':
                 kr.restr.append(child.text)
             elif child.tag == 're_inf':
