@@ -52,12 +52,14 @@ __status__ = "Prototype"
 
 import logging
 import unittest
-from jamdict import JMDict, JMDictXML
+from jamdict.jamcha import Kanjidic2XMLParser
+from jamdict import JMDictXML
 from jamdict import JMDictXMLParser
 
 ########################################################################
 
 MINI_DATA_FILE = 'data/JMdict_mini.xml'
+MINI_KJD2 = 'data/kanjidic2.mini.xml'
 
 
 class TestJamdictXML(unittest.TestCase):
@@ -76,6 +78,22 @@ class TestJamdictXML(unittest.TestCase):
         print(e)
         print(e.to_json())
         print(jmd[-1].to_json())
+
+    def test_jamcha(self):
+        # test module read kanjidic XML
+        parser = Kanjidic2XMLParser()
+        kd2 = parser.parse_file(MINI_KJD2)
+        print(kd2.characters)
+        for c in kd2:
+            print(c)
+            for g in c.rm_groups:
+                print(g)
+
+    def test_jamcha_json(self):
+        parser = Kanjidic2XMLParser()
+        kd2 = parser.parse_file(MINI_KJD2)
+        for c in kd2:
+            self.assertIsNotNone(c.to_json())
 
 
 ########################################################################
