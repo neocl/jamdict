@@ -63,7 +63,7 @@ from .jamdict import JMDEntry, EntryInfo, Link, BibInfo, Audit, KanjiReading, Ka
 
 MY_FOLDER = os.path.dirname(os.path.abspath(__file__))
 SCRIPT_FOLDER = os.path.join(MY_FOLDER, 'scripts')
-JMD_SETUP_SCRIPT = os.path.join(SCRIPT_FOLDER, 'setup.sql')
+JMD_SETUP_FILE = os.path.join(SCRIPT_FOLDER, 'setup.sql')
 JMDICT_VERSION = '1.08'
 JMDICT_URL = 'http://www.csse.monash.edu.au/~jwb/edict.html'
 JAMDICT_URL = 'https://github.com/neocl/jamdict'
@@ -81,8 +81,8 @@ SETUP_SCRIPT = '''INSERT INTO meta VALUES ('{jv}', '{ju}', 'jamdict', '{gv}', '{
 
 class JMDSchema(Schema):
 
-    def __init__(self, data_source, setup_script=SETUP_SCRIPT, setup_file=JMD_SETUP_SCRIPT):
-        Schema.__init__(self, data_source, setup_script=setup_script, setup_file=setup_file)
+    def __init__(self, data_source):
+        Schema.__init__(self, data_source, setup_script=SETUP_SCRIPT, setup_file=JMD_SETUP_FILE)
         self.add_table('Entry', ['idseq'])
         self.add_table('Link', ['ID', 'idseq', 'tag', 'desc', 'uri'])
         self.add_table('Bib', ['ID', 'idseq', 'tag', 'text'])
@@ -117,31 +117,31 @@ class JMDSchema(Schema):
 class JMDSQLite(JMDSchema):
 
     def __init__(self, db_path):
-        JMDSchema.__init__(self, db_path, setup_file=JMD_SETUP_SCRIPT)
+        JMDSchema.__init__(self, db_path)
 
     def search(self, query):
         eids = self.Entry.select("idseq IN (SELECT idseq FROM Kanji WHERE text like ?) OR idseq IN (SELECT idseq FROM Kana WHERE text like ?)", (query, query))
         entries = []
-        with self.ds.open() as exe:
+        with self.ds.open() as ctx:
             for e in eids:
-                entries.append(self.get_entry_with_context(e.idseq, exe=exe))
+                entries.append(self.get_entry_with_context(e.idseq, ctx=ctx))
         return entries
 
-    def get_entry(self, idseq, exe=None):
-        if exe:
-            return self.get_entry_with_context(idseq, exe)
+    def get_entry(self, idseq, ctx=None):
+        if ctx:
+            return self.get_entry_with_context(idseq, ctx)
         else:
             with self.ds.open() as new_context:
                 return self.get_entry_with_context(idseq, new_context)
 
-    def get_entry_with_context(self, idseq, exe):
+    def get_entry_with_context(self, idseq, ctx):
         # select entry & info
         entry = JMDEntry(idseq)
         # links, bibs, etym, audit ...
-        dblinks = self.Link.select('idseq=?', (idseq,), exe=exe)
-        dbbibs = self.Bib.select('idseq=?', (idseq,), exe=exe)
-        dbetym = self.Etym.select('idseq=?', (idseq,), exe=exe)
-        dbaudit = self.Audit.select('idseq=?', (idseq,), exe=exe)
+        dblinks = self.Link.select('idseq=?', (idseq,), ctx=ctx)
+        dbbibs = self.Bib.select('idseq=?', (idseq,), ctx=ctx)
+        dbetym = self.Etym.select('idseq=?', (idseq,), ctx=ctx)
+        dbaudit = self.Audit.select('idseq=?', (idseq,), ctx=ctx)
         if dblinks or dbbibs or dbetym or dbaudit:
             entry.info = EntryInfo()
             if dblinks:
@@ -158,78 +158,78 @@ class JMDSQLite(JMDSchema):
                     entry.info.audit.append(Audit(e.upd_date, e.upd_detl))
 
         # select kanji
-        kanjis = self.Kanji.select('idseq=?', (idseq,), exe=exe)
+        kanjis = self.Kanji.select('idseq=?', (idseq,), ctx=ctx)
         for dbkj in kanjis:
             kj = KanjiReading(dbkj.text)
-            kjis = self.KJI.select('kid=?', (dbkj.ID,), exe=exe)
+            kjis = self.KJI.select('kid=?', (dbkj.ID,), ctx=ctx)
             for i in kjis:
                 kj.info.append(i.text)
-            kjps = self.KJP.select('kid=?', (dbkj.ID,), exe=exe)
+            kjps = self.KJP.select('kid=?', (dbkj.ID,), ctx=ctx)
             for p in kjps:
                 kj.pri.append(p.text)
             entry.kanji_forms.append(kj)
 
         # select kana
-        kanas = self.Kana.select('idseq=?', (idseq,), exe=exe)
+        kanas = self.Kana.select('idseq=?', (idseq,), ctx=ctx)
         for dbkn in kanas:
             kn = KanaReading(dbkn.text, dbkn.nokanji)
-            knis = self.KNI.select('kid=?', (dbkn.ID,), exe=exe)
+            knis = self.KNI.select('kid=?', (dbkn.ID,), ctx=ctx)
             for i in knis:
                 kn.info.append(i.text)
-            knps = self.KNP.select('kid=?', (dbkn.ID,), exe=exe)
+            knps = self.KNP.select('kid=?', (dbkn.ID,), ctx=ctx)
             for p in knps:
                 kn.pri.append(p.text)
-            knrs = self.KNR.select('kid=?', (dbkn.ID,), exe=exe)
+            knrs = self.KNR.select('kid=?', (dbkn.ID,), ctx=ctx)
             for r in knrs:
                 kn.restr.append(r.text)
             entry.kana_forms.append(kn)
 
         # select senses
-        senses = self.Sense.select('idseq=?', (idseq,), exe=exe)
+        senses = self.Sense.select('idseq=?', (idseq,), ctx=ctx)
         for dbs in senses:
             s = Sense()
             # stagk
-            ks = self.stagk.select('sid=?', (dbs.ID,), exe=exe)
+            ks = self.stagk.select('sid=?', (dbs.ID,), ctx=ctx)
             for k in ks:
                 s.stagk.append(k.text)
             # stagr
-            rs = self.stagr.select('sid=?', (dbs.ID,), exe=exe)
+            rs = self.stagr.select('sid=?', (dbs.ID,), ctx=ctx)
             for r in rs:
                 s.stagr.append(r.text)
             # pos
-            ps = self.pos.select('sid=?', (dbs.ID,), exe=exe)
+            ps = self.pos.select('sid=?', (dbs.ID,), ctx=ctx)
             for p in ps:
                 s.pos.append(p.text)
             # xref
-            xs = self.xref.select('sid=?', (dbs.ID,), exe=exe)
+            xs = self.xref.select('sid=?', (dbs.ID,), ctx=ctx)
             for x in xs:
                 s.xref.append(x.text)
             # antonym
-            ans = self.antonym.select('sid=?', (dbs.ID,), exe=exe)
+            ans = self.antonym.select('sid=?', (dbs.ID,), ctx=ctx)
             for a in ans:
                 s.antonym.append(a.text)
             # field
-            fs = self.field.select('sid=?', (dbs.ID,), exe=exe)
+            fs = self.field.select('sid=?', (dbs.ID,), ctx=ctx)
             for f in fs:
                 s.field.append(f.text)
             # misc
-            ms = self.misc.select('sid=?', (dbs.ID,), exe=exe)
+            ms = self.misc.select('sid=?', (dbs.ID,), ctx=ctx)
             for m in ms:
                 s.misc.append(m.text)
             # SenseInfo
-            sis = self.SenseInfo.select('sid=?', (dbs.ID,), exe=exe)
+            sis = self.SenseInfo.select('sid=?', (dbs.ID,), ctx=ctx)
             for si in sis:
                 s.info.append(si.text)
             # SenseSource
-            lss = self.SenseSource.select('sid=?', (dbs.ID,), exe=exe)
+            lss = self.SenseSource.select('sid=?', (dbs.ID,), ctx=ctx)
             for ls in lss:
                 s.lsource.append(LSource(ls.lang, ls.lstype, ls.wasei, ls.text))
             # dialect
-            ds = self.dialect.select('sid=?', (dbs.ID,), exe=exe)
+            ds = self.dialect.select('sid=?', (dbs.ID,), ctx=ctx)
             for d in ds:
                 s.dialect.append(d.text)
             # SenseGloss
-            gs = self.SenseGloss.select('sid=?', (dbs.ID,), exe=exe)
+            gs = self.SenseGloss.select('sid=?', (dbs.ID,), ctx=ctx)
             for g in gs:
                 s.gloss.append(SenseGloss(g.lang, g.gend, g.text))
             entry.senses.append(s)
@@ -244,78 +244,78 @@ class JMDSQLite(JMDSchema):
                 for entry in entries:
                     self.insert_with_context(entry, new_context)
 
-    def insert_with_context(self, entry, exe):
-        self.Entry.insert((entry.idseq,), exe=exe)
+    def insert_with_context(self, entry, ctx):
+        self.Entry.insert(entry.idseq, ctx=ctx)
         # insert info
         if entry.info:
             # links
             for lnk in entry.info.links:
-                self.Link.insert((entry.idseq, lnk.tag, lnk.desc, lnk.uri), exe=exe)
+                self.Link.insert(entry.idseq, lnk.tag, lnk.desc, lnk.uri, ctx=ctx)
             # bibs
             for bib in entry.info.bibinfo:
-                self.Bib.insert((entry.idseq, bib.tag, bib.text), exe=exe)
+                self.Bib.insert(entry.idseq, bib.tag, bib.text, ctx=ctx)
             # etym
             for e in entry.info.etym:
-                self.Etym.insert((entry.idseq, e), exe=exe)
+                self.Etym.insert(entry.idseq, e, ctx=ctx)
             # audit
             for a in entry.info.audit:
-                self.Audit.insert((entry.idseq, a.upd_date, a.upd_detl), exe=exe)
+                self.Audit.insert(entry.idseq, a.upd_date, a.upd_detl, ctx=ctx)
         # insert kanji
         for kj in entry.kanji_forms:
-            kjid = self.Kanji.insert((entry.idseq, kj.text), exe=exe)
+            kjid = self.Kanji.insert(entry.idseq, kj.text, ctx=ctx)
             # KJI
             for kji in kj.info:
-                self.KJI.insert((kjid, kji), exe=exe)
+                self.KJI.insert(kjid, kji, ctx=ctx)
             # KJP
             for kjp in kj.pri:
-                self.KJP.insert((kjid, kjp), exe=exe)
+                self.KJP.insert(kjid, kjp, ctx=ctx)
             pass
         # insert kana
         for kn in entry.kana_forms:
-            knid = self.Kana.insert((entry.idseq, kn.text, kn.nokanji), exe=exe)
+            knid = self.Kana.insert(entry.idseq, kn.text, kn.nokanji, ctx=ctx)
             # KNI
             for kni in kn.info:
-                self.KNI.insert((knid, kni), exe=exe)
+                self.KNI.insert(knid, kni, ctx=ctx)
             # KNP
             for knp in kn.pri:
-                self.KNP.insert((knid, knp), exe=exe)
+                self.KNP.insert(knid, knp, ctx=ctx)
             # KNR
             for knr in kn.restr:
-                self.KNR.insert((knid, knr), exe=exe)
+                self.KNR.insert(knid, knr, ctx=ctx)
             pass
         # insert senses
         for s in entry.senses:
-            sid = self.Sense.insert((entry.idseq,), exe=exe)
+            sid = self.Sense.insert(entry.idseq, ctx=ctx)
             # stagk
             for sk in s.stagk:
-                self.stagk.insert((sid, sk), exe=exe)
+                self.stagk.insert(sid, sk, ctx=ctx)
             # stagr
             for sr in s.stagr:
-                self.stagr.insert((sid, sr), exe=exe)
+                self.stagr.insert(sid, sr, ctx=ctx)
             # pos
             for pos in s.stagr:
-                self.pos.insert((sid, pos), exe=exe)
+                self.pos.insert(sid, pos, ctx=ctx)
             # xref
             for xr in s.xref:
-                self.xref.insert((sid, xr), exe=exe)
+                self.xref.insert(sid, xr, ctx=ctx)
             # antonym
             for a in s.antonym:
-                self.antonym.insert((sid, a), exe=exe)
+                self.antonym.insert(sid, a, ctx=ctx)
             # field
             for f in s.field:
-                self.field.insert((sid, f), exe=exe)
+                self.field.insert(sid, f, ctx=ctx)
             # misc
             for m in s.misc:
-                self.misc.insert((sid, m), exe=exe)
+                self.misc.insert(sid, m, ctx=ctx)
             # SenseInfo
             for i in s.info:
-                self.SenseInfo.insert((sid, i), exe=exe)
+                self.SenseInfo.insert(sid, i, ctx=ctx)
             # SenseSource
             for l in s.lsource:
-                self.SenseSource.insert((sid, l.text, l.lang, l.lstype, l.wasei), exe=exe)
+                self.SenseSource.insert(sid, l.text, l.lang, l.lstype, l.wasei, ctx=ctx)
             # dialect
             for d in s.dialect:
-                self.dialect.insert((sid, d), exe=exe)
+                self.dialect.insert(sid, d, ctx=ctx)
             # SenseGloss
             for g in s.gloss:
-                self.SenseGloss.insert((sid, g.lang, g.gend, g.text), exe=exe)
+                self.SenseGloss.insert(sid, g.lang, g.gend, g.text, ctx=ctx)

@@ -67,7 +67,10 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 TEST_DIR = os.path.dirname(os.path.realpath(__file__))
-TEST_DB = os.path.join(TEST_DIR, 'data', 'test.db')
+TEST_DATA = os.path.join(TEST_DIR, 'data')
+if not os.path.isdir(TEST_DATA):
+    os.makedirs(TEST_DATA)
+TEST_DB = os.path.join(TEST_DATA, 'test.db')
 RAM_DB = ':memory:'
 MINI_DATA_FILE = 'data/JMdict_mini.xml'
 
@@ -92,15 +95,16 @@ class TestJamdictSQLite(unittest.TestCase):
 
     def test_xml2ramdb(self):
         noe = len(self.xdb)
-        with self.ramdb.ds.open() as exe:
-            self.ramdb.insert(*self.xdb, context=exe)
-            self.assertEqual(len(self.ramdb.Entry.select(exe=exe)), noe)
+        with self.ramdb.ds.open() as ctx:
+            self.ramdb.insert(*self.xdb, context=ctx)
+            self.assertEqual(len(self.ramdb.Entry.select(ctx=ctx)), noe)
 
     def test_import_function(self):
         jd = JMDict(MINI_DATA_FILE, RAM_DB)
         jd.import_data()
 
     def test_search(self):
+        self.test_xml2sqlite()
         # Search by kana
         es = self.db.search('あの')
         self.assertEqual(len(es), 2)
