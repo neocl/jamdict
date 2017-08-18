@@ -51,14 +51,17 @@ import sys
 import os
 import logging
 import argparse
-from jamdict import JMDict
+from jamdict import Jamdict
 
 #-------------------------------------------------------------------------------
 # CONFIGURATION
 #-------------------------------------------------------------------------------
 
-DATA_FOLDER = os.path.abspath(os.path.expanduser('./data'))
-JMD_XML = os.path.join(DATA_FOLDER, 'JMdict')
+logger = logging.getLogger(__name__)
+MY_DIR = os.path.abspath(os.path.dirname(__file__))
+DATA_FOLDER = os.path.join(MY_DIR, 'data')
+JMD_XML = os.path.join(DATA_FOLDER, 'JMdict.xml')
+KD2_XML = os.path.join(DATA_FOLDER, 'kanjidic2.xml')
 JMD_DB = os.path.join(DATA_FOLDER, 'jamdict.db')
 
 
@@ -66,26 +69,46 @@ JMD_DB = os.path.join(DATA_FOLDER, 'jamdict.db')
 # FUNCTIONS
 #-------------------------------------------------------------------------------
 
+def get_jam(args):
+    if args.jdb == args.kd2 or not args.kd2:
+        jmd = Jamdict(db_file=args.jdb, jmd_xml_file=args.jmdxml, kd2_xml_file=args.kd2xml)
+    else:
+        jmd = Jamdict(db_file=args.jdb, kd2_file=args.kd2, jmd_xml_file=args.jmdxml, kd2_xml_file=args.kd2xml)
+    return jmd
+
+
 def import_data(args):
-    print("Importing data: from {} ==to==> {}".format(args.xml, args.sqlite))
-    print("Reading XML file ...")
-    jmd = JMDict(args.xml, args.sqlite)
-    print("writing to SQLite ...")
-    jmd.import_data()
+    if not args.jdb and not args.kd2:
+        print("Database paths were not provided. Process aborted.")
+        exit()
+    # perform input
+    jam = get_jam(args)
+    print("Importing data. This process may take very long time ...")
+    jam.import_data()
     print("Done!")
 
 
 def lookup(args):
-    jmd = JMDict(dbfile=args.sqlite)
-    entries = jmd.lookup(args.query)
+    jam = get_jam(args)
+    results = jam.lookup(args.query)
     if args.format == 'json':
-        print([e.to_json() for e in entries])
+        print(results.to_json())
     else:
-        for e in entries:
+        for e in results.entries:
+            print("-" * 40)
+            print("Found entries")
+            print("-" * 40)
             print("Entry: {}".format(e))
+            print("-" * 40)
             for idx, s in enumerate(e.senses):
                 print("{}. {}".format(idx, s))
             print('')
+        for c in results.chars:
+            print("Char: {} | Strokes: {}".format(c, c.stroke_count))
+            print("-" * 40)
+            for rmg in c.rm_groups:
+                print(", ".join([r.value for r in rmg.readings]))
+                print(", ".join([m.value for m in rmg.meanings]))
 
 
 #-------------------------------------------------------------------------------
@@ -104,8 +127,10 @@ def main():
     task = parser.add_subparsers(help='Task to be done')
 
     # Optional arguments
-    parser.add_argument('-x', '--xml', help='Path to JMdict XML file', default=JMD_XML)
-    parser.add_argument('-s', '--sqlite', help='Path to JMdict SQLite file', default=JMD_DB)
+    parser.add_argument('-j', '--jmdxml', help='Path to JMdict XML file', default=JMD_XML)
+    parser.add_argument('-k', '--kd2xml', help='Path to KanjiDic2 XML file', default=KD2_XML)
+    parser.add_argument('-J', '--jdb', help='Path to JMDict SQLite file', default=JMD_DB)
+    parser.add_argument('-K', '--kd2', help='Path to KanjiDic2 SQLite file', default=JMD_DB)
 
     # import task
     import_task = task.add_parser('import', help='Import XML data into SQLite database')

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 '''
@@ -46,12 +45,8 @@ References:
 
 __author__ = "Le Tuan Anh <tuananh.ke@gmail.com>"
 __copyright__ = "Copyright 2016, jamdict"
-vvv__credits__ = []
 __license__ = "MIT"
-__version__ = "0.1"
-__maintainer__ = "Le Tuan Anh"
-__email__ = "<tuananh.ke@gmail.com>"
-__status__ = "Prototype"
+
 
 ########################################################################
 
@@ -78,12 +73,18 @@ class JMDEntry(object):
         self.info = None       # info?   => EntryInfo
         self.senses = []       # sense+
 
+    def __len__(self):
+        return len(self.senses)
+
+    def __getitem__(self, idx):
+        return self.senses[idx]
+
     def set_info(self, info):
         if self.info:
             logging.warning("WARNING: multiple info tag")
         self.info = info
 
-    def __str__(self):
+    def __repr__(self):
         tmp = ['ID:%s' % self.idseq]
         if self.kana_forms:
             tmp.append(self.kana_forms[0].text)
@@ -92,6 +93,9 @@ class JMDEntry(object):
         for sense, idx in zip(self.senses, range(len(self.senses))):
             tmp.append('{i}. {s}'.format(i=idx + 1, s=sense))
         return '|'.join(tmp)
+
+    def __str__(self):
+        return repr(self)
 
     def to_json(self):
         ed = {'idseq': self.idseq,
@@ -490,6 +494,19 @@ class LSource:
                 'text': self.text}
 
 
+class Meta(object):
+
+    def __init__(self, key='', value=''):
+        self.key = key
+        self.value = value
+
+    def __repr__(self):
+        return "{{{}: {}}}".format(self.key, self.value)
+
+    def __str__(self):
+        return repr(self)
+
+
 class JMDictXMLParser(object):
     '''JMDict XML parser
     '''
@@ -674,11 +691,5 @@ class JMDictXMLParser(object):
 
 ########################################################################
 
-def main():
-    ''' Main enntry point. This should NOT be run anyway.
-    '''
-    print("This is a library, not an application.")
-
-
 if __name__ == '__main__':
-    main()
+    print("This is a library, not an application.")

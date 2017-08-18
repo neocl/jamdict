@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 '''
-Test script for jamdict_sqlite
+Test script for Jamcha SQLite
 Latest version can be found at https://github.com/neocl/jamdict
 
 References:
@@ -38,14 +38,9 @@ References:
 #OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #THE SOFTWARE.
 
-__author__ = "Le Tuan Anh"
-__email__ = "<tuananh.ke@gmail.com>"
+__author__ = "Le Tuan Anh <tuananh.ke@gmail.com>"
 __copyright__ = "Copyright 2017, jamdict"
 __license__ = "MIT"
-__maintainer__ = "Le Tuan Anh"
-__version__ = "0.1"
-__status__ = "Prototype"
-__credits__ = []
 
 ########################################################################
 
@@ -54,9 +49,8 @@ import os
 import unittest
 import logging
 
-from jamdict import JMDict
-from jamdict import JMDictXML
-from jamdict import JMDSQLite
+from jamdict import KanjiDic2SQLite
+from jamdict import KanjiDic2XML
 
 
 #-------------------------------------------------------------------------------
@@ -70,9 +64,9 @@ TEST_DIR = os.path.dirname(os.path.realpath(__file__))
 TEST_DATA = os.path.join(TEST_DIR, 'data')
 if not os.path.isdir(TEST_DATA):
     os.makedirs(TEST_DATA)
-TEST_DB = os.path.join(TEST_DATA, 'test.db')
+TEST_DB = os.path.join(TEST_DATA, 'jamcha.db')
 RAM_DB = ':memory:'
-MINI_DATA_FILE = 'data/JMdict_mini.xml'
+MINI_DATA_FILE = 'data/kanjidic2.mini.xml'
 
 
 #-------------------------------------------------------------------------------
@@ -81,43 +75,46 @@ MINI_DATA_FILE = 'data/JMdict_mini.xml'
 
 class TestJamdictSQLite(unittest.TestCase):
 
-    db = JMDSQLite(TEST_DB)
-    xdb = JMDictXML.fromfile(MINI_DATA_FILE)
-    ramdb = JMDSQLite(RAM_DB)
+    db = KanjiDic2SQLite(TEST_DB)
+    ramdb = KanjiDic2SQLite(RAM_DB)
+    xdb = KanjiDic2XML.from_file(MINI_DATA_FILE)
+
+    @classmethod
+    def setUpClass(cls):
+        if os.path.isfile(TEST_DB):
+            logger.info("Removing previous database file at {}".format(TEST_DB))
+            os.unlink(TEST_DB)
 
     def test_xml2sqlite(self):
-        try:
-            self.db.insert(*self.xdb)
-        except:
-            pass
-        entries = self.db.Entry.select()
-        self.assertEqual(len(entries), len(self.xdb))
+        print("Test KanjiDic2 - XML to SQLite DB in RAM")
+        print(len(self.xdb))
+        db = self.ramdb
+        with db.ctx() as ctx:
+            fv = self.xdb.kd2.file_version
+            dv = self.xdb.kd2.database_version
+            doc = self.xdb.kd2.date_of_creation
+            db.update_meta(fv, dv, doc, ctx)
+            metas = ctx.meta.select()
+            logger.debug("KanjiDic2 meta: {}".format(metas))
+            for c in self.xdb:
+                db.insert_char(c, ctx)
+                c2 = db.char_by_id(c.ID, ctx)
+                logger.debug("c-xml", c.to_json())
+                logger.debug("c-sqlite", c2.to_json())
+                self.assertEqual(c.to_json(), c2.to_json())
+            # test searching
+            # by id
+            c = ctx.char.select_single()
+            c = db.char_by_id(c.ID, ctx=ctx)
+            self.assertIsNotNone(c)
+            self.assertTrue(c.rm_groups[0].readings)
+            self.assertTrue(c.rm_groups[0].meanings)
+            # by literal
+            c = db.get_char('持', ctx=ctx)
+            self.assertEqual(c.literal, '持')
+            self.assertTrue(c.rm_groups[0].readings)
+            self.assertTrue(c.rm_groups[0].meanings)
 
-    def test_xml2ramdb(self):
-        noe = len(self.xdb)
-        with self.ramdb.ds.open() as ctx:
-            self.ramdb.insert(*self.xdb, context=ctx)
-            self.assertEqual(len(self.ramdb.Entry.select(ctx=ctx)), noe)
-
-    def test_import_function(self):
-        jd = JMDict(MINI_DATA_FILE, RAM_DB)
-        jd.import_data()
-
-    def test_search(self):
-        self.test_xml2sqlite()
-        # Search by kana
-        es = self.db.search('あの')
-        self.assertEqual(len(es), 2)
-        logger.info('あの: {}'.format('|'.join([str(x) for x in es])))
-        # Search by kanji
-        es = self.db.search('%子%')
-        self.assertEqual(len(es), 4)
-        logger.info('%子%: {}'.format('|'.join([str(x) for x in es])))
-
-    def test_select_entry(self):
-        e = self.db.get_entry(1001710)
-        logger.info(e.to_json())
-        pass
 
 
 #-------------------------------------------------------------------------------

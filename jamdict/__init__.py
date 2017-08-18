@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 '''
-Python library for manipulating Jim Breen's JMdict
+Python library for manipulating Jim Breen's JMdict and KanjiDic2
 Latest version can be found at https://github.com/neocl/jamdict
 
 This package uses the [EDICT][1] and [KANJIDIC][2] dictionary files.
@@ -49,16 +48,17 @@ __copyright__ = "Copyright 2016, jamdict"
 __credits__ = []
 __license__ = "MIT"
 __version__ = "0.1"
+__url__ = "https://github.com/neocl/jamdict"
 __maintainer__ = "Le Tuan Anh"
 __email__ = "<tuananh.ke@gmail.com>"
 __status__ = "Prototype"
 
 ########################################################################
 
-from .jamdict import JMDictXMLParser
-from .util import JMDict, JMDictXML
-from .jamdict_sqlite import JMDSQLite
+from .jmdict_sqlite import JMDictSQLite
+from .kanjidic2_sqlite import KanjiDic2SQLite
+from .util import Jamdict, JMDictXML, KanjiDic2XML
 
 ########################################################################
 
-__all__ = ['JMDict', 'JMDictXML', 'JMDictXMLParser', 'JMDSQLite']
+__all__ = ['Jamdict', 'JMDictSQLite', 'JMDictXML', 'KanjiDic2SQLite', 'KanjiDic2XML']

@@ -1,3 +1,13 @@
+/* Add meta info */
+CREATE TABLE IF NOT EXISTS meta (
+       key TEXT UNIQUE,
+       value TEXT NOT NULL
+);
+
+-------------------------------------------------------------------------------------
+-- JMDict
+-------------------------------------------------------------------------------------
+
 CREATE TABLE Entry (
        idseq INTEGER NOT NULL UNIQUE
 );
@@ -172,16 +182,10 @@ CREATE TABLE SenseGloss (
        ,FOREIGN KEY (sid) REFERENCES Sense(id)
 );
 
-/* Add meta info */
-CREATE TABLE meta (
-       jmdict_version TEXT,
-       jmdict_url TEXT,
-       generator TEXT,
-       generator_version TEXT,
-       generator_url TEXT
-);
+-------------------------------------------------------------------------------------
+-- INDICES - JMDict
+-------------------------------------------------------------------------------------
 
-/* Create indices */
 CREATE INDEX Link_idseq ON Link(idseq);
 CREATE INDEX Link_tag ON Link(tag);
 CREATE INDEX Bib_idseq ON Link(idseq);

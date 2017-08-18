@@ -41,67 +41,92 @@ References:
 
 __author__ = "Le Tuan Anh <tuananh.ke@gmail.com>"
 __copyright__ = "Copyright 2016, jamdict"
-__credits__ = []
 __license__ = "MIT"
-__version__ = "0.1"
-__maintainer__ = "Le Tuan Anh"
-__email__ = "<tuananh.ke@gmail.com>"
-__status__ = "Prototype"
 
 ########################################################################
 
+import os
 import logging
 import unittest
-from jamdict.jamcha import Kanjidic2XMLParser
-from jamdict import JMDictXML
-from jamdict import JMDictXMLParser
+from jamdict.jmdict import JMDictXMLParser
+from jamdict.kanjidic2 import Kanjidic2XMLParser
+from jamdict import Jamdict, JMDictXML
 
 ########################################################################
 
-MINI_DATA_FILE = 'data/JMdict_mini.xml'
-MINI_KJD2 = 'data/kanjidic2.mini.xml'
+MINI_JMD = 'data/JMdict_mini.xml'
+MINI_KD2 = 'data/kanjidic2.mini.xml'
+MY_DIR = os.path.abspath(os.path.dirname(__file__))
+TEST_DATA = os.path.join(MY_DIR, 'data')
+TEST_DB = os.path.join(TEST_DATA, 'jamdict_test.db')
 
 
 class TestJamdictXML(unittest.TestCase):
 
-    def test_jmd_xml(self):
-        print("Test lookup from mini dictionary")
+    @classmethod
+    def setUpClass(cls):
+        if os.path.isfile(TEST_DB):
+            os.unlink(TEST_DB)
+
+    def test_jmdict_xml(self):
+        print("Test JMDict - lookup from XML")
         parser = JMDictXMLParser()
-        entries = parser.parse_file(MINI_DATA_FILE)
+        entries = parser.parse_file(MINI_JMD)
         jmd = JMDictXML(entries)
         self.assertTrue(jmd.lookup(u'おてんき'))
 
-    def test_json(self):
+    def test_jmdict_json(self):
+        print("Test JMDict - XML to JSON")
         # Load mini dict data
-        jmd = JMDictXML.fromfile(MINI_DATA_FILE)
+        jmd = JMDictXML.from_file(MINI_JMD)
         e = jmd[10]
-        print(e)
-        print(e.to_json())
-        print(jmd[-1].to_json())
+        self.assertIsNotNone(e)
+        self.assertTrue(e.to_json())
+        self.assertTrue(jmd[-1].to_json())
 
-    def test_jamcha(self):
+    def test_kanjidic2_xml(self):
+        print("Test KanjiDic2 XML")
         # test module read kanjidic XML
         parser = Kanjidic2XMLParser()
-        kd2 = parser.parse_file(MINI_KJD2)
-        print(kd2.characters)
+        kd2 = parser.parse_file(MINI_KD2)
         for c in kd2:
-            print(c)
+            self.assertIsNotNone(c)
             for g in c.rm_groups:
-                print(g)
+                self.assertIsNotNone(g)
+                self.assertTrue(g.readings)
+                self.assertTrue(g.meanings)
 
-    def test_jamcha_json(self):
+    def test_kanjidic2_json(self):
+        print("Test KanjiDic2 XML to JSON")
         parser = Kanjidic2XMLParser()
-        kd2 = parser.parse_file(MINI_KJD2)
+        kd2 = parser.parse_file(MINI_KD2)
         for c in kd2:
             self.assertIsNotNone(c.to_json())
+
+    def test_jamdict_xml(self):
+        print("Test Jamdict search in XML files")
+        jam = Jamdict(jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2)
+        result = jam.lookup('おみやげ')
+        self.assertEqual(len(result.entries), 1)
+        self.assertEqual(len(result.chars), 2)
+        self.assertEqual({c.literal for c in result.chars}, {'土', '産'})
+
+    def test_jamdict_import(self):
+        jam = Jamdict(db_file=":memory:", jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2)
+        jam.import_data()
+
+    def test_jamdict_sqlite_all(self):
+        jam = Jamdict(db_file=TEST_DB, jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2)
+        jam.import_data()
+        # test lookup
+        result = jam.lookup('おみやげ')
+        self.assertEqual(len(result.entries), 1)
+        self.assertEqual(len(result.chars), 2)
+        self.assertEqual({c.literal for c in result.chars}, {'土', '産'})
 
 
 ########################################################################
 
-def main():
+if __name__ == "__main__":
     logging.getLogger('jamdict').setLevel(logging.DEBUG)
     unittest.main()
-
-
-if __name__ == "__main__":
-    main()

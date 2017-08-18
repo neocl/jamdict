@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 '''
-jamdict demo application
+Jamdict demo application
 
 Latest version can be found at https://github.com/neocl/jamdict
 
@@ -57,25 +57,36 @@ __status__ = "Prototype"
 ########################################################################
 
 import os
-from jamdict import JMDict
-
+from jamdict import Jamdict
 
 ########################################################################
 
+# Path to JMDict XML file
+# You might want to change this to something like
+# JM_PATH = "/path/to/JMdict.xml"
 JM_PATH = os.path.abspath('data/JMdict_mini.xml')
 
+# Create an instance of Jamdict
+jam = Jamdict(JM_PATH)
 
-def lookup(q):
-    results = jmd.lookup(q)
-    if results:
-        print('\n'.join(['=> ' + str(r) for r in results]))
-    return results
+# Lookup by kana
+entries = jam.lookup('おかえし')
+for entry in entries:
+    print(entry)
+print("-----------------")
+
+# Lookup by kanji
+entries = jam.lookup('御土産')
+for entry in entries:
+    print(entry)
+print("-----------------")
 
 
-jmd = JMDict(JM_PATH)
-
-p = lookup('おてんき')
-p = lookup('はし')
-p = lookup('1565560')
-if p:
-    print(' '.join([x.text for x in p[0].kana_forms]))
+# lookup entry by idseq
+otenki = jam.lookup('1002470')[0]
+kana_forms = ' '.join([x.text for x in otenki.kana_forms])
+kanji_forms = ' '.join([x.text for x in otenki.kanji_forms])
+print("Entry #{id}: Kanji: {kj} - Kana: {kn}".format(id=otenki.idseq, kj=kanji_forms, kn=kana_forms))
+print("---------------------")
+for idx, sense in enumerate(otenki):
+    print("{i}. {s}".format(i=idx, s=sense))

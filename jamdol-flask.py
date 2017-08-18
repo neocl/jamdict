@@ -53,15 +53,18 @@ from flask import Flask, Response
 # from flask import abort
 from functools import wraps
 from flask import request
-from jamdict import JMDict
+from jamdict import Jamdict
 
 # ---------------------------------------------------------------------
 # CONFIGURATION
 # ---------------------------------------------------------------------
 logger = logging.getLogger(__name__)
 app = Flask(__name__, static_url_path="")
+# Prefer to use jmdict.en
 DB_FILE = os.path.abspath('./data/jamdict.en.db')
-jmd = JMDict(dbfile=DB_FILE)
+if not os.path.isfile(DB_FILE):
+    DB_FILE = os.path.abspath('./data/jamdict.db')
+jmd = Jamdict(dbfile=DB_FILE)
 
 
 def jsonp(func):
@@ -105,4 +108,4 @@ def version():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()

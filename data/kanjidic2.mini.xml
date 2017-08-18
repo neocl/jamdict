@@ -3667,4 +3667,180 @@
 <nanori>よし</nanori>
 </reading_meaning>
 </character>
+<!-- Entry for Kanji: 土 -->
+<character>
+<literal>土</literal>
+<codepoint>
+<cp_value cp_type="ucs">571f</cp_value>
+<cp_value cp_type="jis208">37-58</cp_value>
+</codepoint>
+<radical>
+<rad_value rad_type="classical">32</rad_value>
+</radical>
+<misc>
+<grade>1</grade>
+<stroke_count>3</stroke_count>
+<freq>307</freq>
+<jlpt>4</jlpt>
+</misc>
+<dic_number>
+<dic_ref dr_type="nelson_c">1050</dic_ref>
+<dic_ref dr_type="nelson_n">966</dic_ref>
+<dic_ref dr_type="halpern_njecd">3403</dic_ref>
+<dic_ref dr_type="halpern_kkd">4211</dic_ref>
+<dic_ref dr_type="halpern_kkld">2127</dic_ref>
+<dic_ref dr_type="halpern_kkld_2ed">2875</dic_ref>
+<dic_ref dr_type="heisig">150</dic_ref>
+<dic_ref dr_type="heisig6">161</dic_ref>
+<dic_ref dr_type="gakken">316</dic_ref>
+<dic_ref dr_type="oneill_names">42</dic_ref>
+<dic_ref dr_type="oneill_kk">19</dic_ref>
+<dic_ref dr_type="moro" m_vol="3" m_page="0108">4867</dic_ref>
+<dic_ref dr_type="henshall">60</dic_ref>
+<dic_ref dr_type="sh_kk">24</dic_ref>
+<dic_ref dr_type="sh_kk2">24</dic_ref>
+<dic_ref dr_type="sakade">17</dic_ref>
+<dic_ref dr_type="jf_cards">37</dic_ref>
+<dic_ref dr_type="henshall3">19</dic_ref>
+<dic_ref dr_type="tutt_cards">22</dic_ref>
+<dic_ref dr_type="crowley">360</dic_ref>
+<dic_ref dr_type="kanji_in_context">22</dic_ref>
+<dic_ref dr_type="busy_people">1.A</dic_ref>
+<dic_ref dr_type="kodansha_compact">347</dic_ref>
+<dic_ref dr_type="maniette">152</dic_ref>
+</dic_number>
+<query_code>
+<q_code qc_type="skip">4-3-2</q_code>
+<q_code qc_type="sh_desc">3b0.1</q_code>
+<q_code qc_type="four_corner">4010.0</q_code>
+<q_code qc_type="deroo">1472</q_code>
+</query_code>
+<reading_meaning>
+<rmgroup>
+<reading r_type="pinyin">tu3</reading>
+<reading r_type="korean_r">to</reading>
+<reading r_type="korean_r">du</reading>
+<reading r_type="korean_h">토</reading>
+<reading r_type="korean_h">두</reading>
+<reading r_type="vietnam">Thổ</reading>
+<reading r_type="vietnam">Độ</reading>
+<reading r_type="vietnam">Đỗ</reading>
+<reading r_type="ja_on">ド</reading>
+<reading r_type="ja_on">ト</reading>
+<reading r_type="ja_kun">つち</reading>
+<meaning>soil</meaning>
+<meaning>earth</meaning>
+<meaning>ground</meaning>
+<meaning>Turkey</meaning>
+<meaning m_lang="fr">sol</meaning>
+<meaning m_lang="fr">terre</meaning>
+<meaning m_lang="fr">terrain</meaning>
+<meaning m_lang="fr">Turquie</meaning>
+<meaning m_lang="es">suelo</meaning>
+<meaning m_lang="es">tierra</meaning>
+<meaning m_lang="es">Turquía</meaning>
+<meaning m_lang="pt">solo</meaning>
+<meaning m_lang="pt">terra</meaning>
+<meaning m_lang="pt">chão</meaning>
+<meaning m_lang="pt">Turquia</meaning>
+</rmgroup>
+<nanori>つ</nanori>
+<nanori>つく</nanori>
+<nanori>は</nanori>
+<nanori>ひじ</nanori>
+</reading_meaning>
+</character>
+<!-- Entry for Kanji: 産 -->
+<character>
+<literal>産</literal>
+<codepoint>
+<cp_value cp_type="ucs">7523</cp_value>
+<cp_value cp_type="jis208">27-26</cp_value>
+</codepoint>
+<radical>
+<rad_value rad_type="classical">100</rad_value>
+<rad_value rad_type="nelson_c">117</rad_value>
+</radical>
+<misc>
+<grade>4</grade>
+<stroke_count>11</stroke_count>
+<freq>161</freq>
+<jlpt>3</jlpt>
+</misc>
+<dic_number>
+<dic_ref dr_type="nelson_c">3354</dic_ref>
+<dic_ref dr_type="nelson_n">3716</dic_ref>
+<dic_ref dr_type="halpern_njecd">3298</dic_ref>
+<dic_ref dr_type="halpern_kkd">4089</dic_ref>
+<dic_ref dr_type="halpern_kkld">2075</dic_ref>
+<dic_ref dr_type="halpern_kkld_2ed">2812</dic_ref>
+<dic_ref dr_type="heisig">1560</dic_ref>
+<dic_ref dr_type="heisig6">1681</dic_ref>
+<dic_ref dr_type="gakken">142</dic_ref>
+<dic_ref dr_type="oneill_names">1520</dic_ref>
+<dic_ref dr_type="oneill_kk">317</dic_ref>
+<dic_ref dr_type="moro" m_vol="7" m_page="1041">21684P</dic_ref>
+<dic_ref dr_type="henshall">491</dic_ref>
+<dic_ref dr_type="sh_kk">278</dic_ref>
+<dic_ref dr_type="sh_kk2">278</dic_ref>
+<dic_ref dr_type="sakade">408</dic_ref>
+<dic_ref dr_type="jf_cards">218</dic_ref>
+<dic_ref dr_type="henshall3">518</dic_ref>
+<dic_ref dr_type="tutt_cards">567</dic_ref>
+<dic_ref dr_type="crowley">92</dic_ref>
+<dic_ref dr_type="kanji_in_context">574</dic_ref>
+<dic_ref dr_type="kodansha_compact">1328</dic_ref>
+<dic_ref dr_type="maniette">1574</dic_ref>
+</dic_number>
+<query_code>
+<q_code qc_type="skip">3-6-5</q_code>
+<q_code qc_type="sh_desc">5b6.4</q_code>
+<q_code qc_type="four_corner">0021.4</q_code>
+<q_code qc_type="deroo">472</q_code>
+<q_code qc_type="skip" skip_misclass="posn">2-2-9</q_code>
+<q_code qc_type="skip" skip_misclass="posn">2-4-7</q_code>
+</query_code>
+<reading_meaning>
+<rmgroup>
+<reading r_type="pinyin">chan3</reading>
+<reading r_type="korean_r">san</reading>
+<reading r_type="korean_h">산</reading>
+<reading r_type="vietnam">Sản</reading>
+<reading r_type="vietnam">Sẵn</reading>
+<reading r_type="vietnam">Sởn</reading>
+<reading r_type="ja_on">サン</reading>
+<reading r_type="ja_kun">う.む</reading>
+<reading r_type="ja_kun">う.まれる</reading>
+<reading r_type="ja_kun">うぶ-</reading>
+<reading r_type="ja_kun">む.す</reading>
+<meaning>products</meaning>
+<meaning>bear</meaning>
+<meaning>give birth</meaning>
+<meaning>yield</meaning>
+<meaning>childbirth</meaning>
+<meaning>native</meaning>
+<meaning>property</meaning>
+<meaning m_lang="fr">production</meaning>
+<meaning m_lang="fr">porter (fruits)</meaning>
+<meaning m_lang="fr">donner naissance</meaning>
+<meaning m_lang="fr">produire</meaning>
+<meaning m_lang="fr">natal</meaning>
+<meaning m_lang="fr">propriété</meaning>
+<meaning m_lang="es">producto</meaning>
+<meaning m_lang="es">producir</meaning>
+<meaning m_lang="es">propiedad</meaning>
+<meaning m_lang="es">dar a luz</meaning>
+<meaning m_lang="es">nacer</meaning>
+<meaning m_lang="pt">produtos</meaning>
+<meaning m_lang="pt">dar a luz</meaning>
+<meaning m_lang="pt">nascer</meaning>
+<meaning m_lang="pt">dar crias</meaning>
+<meaning m_lang="pt">nascimento</meaning>
+<meaning m_lang="pt">nativo</meaning>
+<meaning m_lang="pt">bens</meaning>
+</rmgroup>
+<nanori>もと</nanori>
+</reading_meaning>
+</character>
+
 </kanjidic2>

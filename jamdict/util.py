@@ -47,59 +47,148 @@ References:
 
 __author__ = "Le Tuan Anh <tuananh.ke@gmail.com>"
 __copyright__ = "Copyright 2016, jamdict"
-__credits__ = []
 __license__ = "MIT"
-__version__ = "0.1"
-__maintainer__ = "Le Tuan Anh"
-__email__ = "<tuananh.ke@gmail.com>"
-__status__ = "Prototype"
 
 ########################################################################
 
+import logging
+import threading
+from collections import namedtuple
 from collections import defaultdict as dd
-from .jamdict import JMDictXMLParser
-from .jamdict_sqlite import JMDSQLite
+from .jmdict import JMDictXMLParser
+from .jmdict_sqlite import JMDictSQLite
+from .kanjidic2 import Kanjidic2XMLParser
+from .kanjidic2_sqlite import KanjiDic2SQLite
+
+
+########################################################################
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 ########################################################################
 
 
-class JMDict(object):
+class LookupResult(object):
 
-    def __init__(self, xmlfile=None, dbfile=None):
-        if xmlfile:
-            self.read_xml(xmlfile)
-        else:
-            self.jmd_xml = None
-        if dbfile:
-            self.read_db(dbfile)
-        else:
-            self.jmd_sqlite = None
+    def __init__(self, entries, chars):
+        self.entries = entries if entries else []
+        self.chars = chars if chars else []
 
-    def read_db(self, filename):
-        self.jmd_sqlite = JMDSQLite(filename)
+    def to_json(self):
+        return {'entries': [e.to_json() for e in self.entries],
+                'chars': [c.to_json() for c in self.chars]}
 
-    def read_xml(self, filename):
-        self.jmd_xml = JMDictXML.fromfile(filename)
+
+class JamdictSQLite(KanjiDic2SQLite, JMDictSQLite):
+
+    def __init__(self, data_source, setup_script=None, setup_file=None):
+        super().__init__(data_source, setup_script=setup_script, setup_file=setup_file)
+
+
+class Jamdict(object):
+
+    def __init__(self, db_file=None, kd2_file=None, jmd_xml_file=None, kd2_xml_file=None):
+        # file paths configuration
+        self.db_file = db_file
+        self.kd2_file = kd2_file
+        self.jmd_xml_file = jmd_xml_file
+        self.kd2_xml_file = kd2_xml_file
+        # data sources
+        self._db_sqlite = None
+        self._kd2_sqlite = None
+        self._jmd_xml = None
+        self._kd2_xml = None
+
+    @property
+    def jmdict(self):
+        if not self._db_sqlite and self.db_file:
+            with threading.Lock():
+                if not self.kd2_file:
+                    # Use 1 DB for both
+                    self._db_sqlite = JamdictSQLite(self.db_file)
+                else:
+                    # use 2 separated files
+                    self._db_sqlite = JMDictSQLite(self.db_file)
+        return self._db_sqlite
+
+    @property
+    def kd2(self):
+        if not self._kd2_sqlite:
+            if self.kd2_file:
+                with threading.Lock():
+                    self.kd2_sqlite = KanjiDic2SQLite(self.kd2_file)
+            else:
+                self._kd2_sqlite = self.jmdict
+        return self._kd2_sqlite
+
+    @property
+    def jmdict_xml(self):
+        if not self._jmd_xml and self.jmd_xml_file:
+            with threading.Lock():
+                self._jmd_xml = JMDictXML.from_file(self.jmd_xml_file)
+        return self._jmd_xml
+
+    @property
+    def kd2_xml(self):
+        if not self._kd2_xml and self.kd2_xml_file:
+            with threading.Lock():
+                self._kd2_xml = KanjiDic2XML.from_file(self.kd2_xml_file)
+        return self._kd2_xml
+
+    def is_available(self):
+        return (self.db_file is not None or self.jmd_xml_file is not None or
+                self.kd2_file is not None or self.kd2_xml_file is not None)
 
     def import_data(self):
-        if self.jmd_sqlite and self.jmd_xml:
-            self.jmd_sqlite.insert(*self.jmd_xml.entries)
+        ''' Import JMDict and KanjiDic2 data from XML to SQLite '''
+        if self.jmdict and self.jmdict_xml:
+            logger.info("Importing JMDict data")
+            self.jmdict.insert_entries(self.jmdict_xml)
+        if self.kd2 and self.kd2_xml:
+            logger.info("Importing KanjiDic2 data")
+            self.kd2.insert_chars(self.kd2_xml)
+
+    def get_char(self, literal):
+        if self.kd2:
+            return self.kd2.get_char(literal)
+        elif self.kd2_xml:
+            return self.kd2_xml.lookup(literal)
+        else:
+            raise LookupError("There is no KanjiDic2 data source available")
 
     def get_entry(self, idseq):
-        if self.jmd_sqlite:
-            return self.jmd_sqlite.get_entry(idseq)
-        elif self.jmd_xml:
-            return self.jmd_xml.lookup(idseq)[0]
+        if self.jmdict:
+            return self.jmdict.get_entry(idseq)
+        elif self.jmdict_xml:
+            return self.jmdict_xml.lookup(idseq)[0]
         else:
-            raise Exception("There is no backend data available")
+            raise LookupError("There is no backend data available")
 
     def lookup(self, query):
-        if self.jmd_sqlite:
-            return self.jmd_sqlite.search(query)
-        elif self.jmd_xml:
-            return self.jmd_xml.lookup(query)
-        else:
-            raise Exception("There is no backend data available")
+        if not self.is_available():
+            raise LookupError("There is no backend data available")
+        elif not query:
+            raise ValueError("Query cannot be empty")
+        # Lookup words
+        entries = []
+        if self.jmdict:
+            entries = self.jmdict.search(query)
+        elif self.jmdict_xml:
+            entries = self.jmdict_xml.lookup(query)
+        # lookup each character in query and kanji readings of each found entries
+        chars_to_search = set(query)
+        if entries:
+            for e in entries:
+                for k in e.kanji_forms:
+                    chars_to_search.update(k.text)
+        # lookup chars
+        chars = []
+        for c in chars_to_search:
+            result = self.get_char(c)
+            if result is not None:
+                chars.append(result)
+        return LookupResult(entries, chars)
 
 
 class JMDictXML(object):
@@ -132,9 +221,39 @@ class JMDictXML(object):
             return ()
 
     @staticmethod
-    def fromfile(filename):
+    def from_file(filename):
         parser = JMDictXMLParser()
         return JMDictXML(parser.parse_file(filename))
+
+
+class KanjiDic2XML(object):
+
+    def __init__(self, kd2):
+        """
+        """
+        self.kd2 = kd2
+        self.char_map = {}
+        for char in self.kd2:
+            if char.literal in self.char_map:
+                logger.warning("Duplicate character entry: {}".format(char.literal))
+            self.char_map[char.literal] = char
+
+    def __len__(self):
+        return len(self.kd2)
+
+    def __getitem__(self, idx):
+        return self.kd2[idx]
+
+    def lookup(self, char):
+        if char in self.char_map:
+            return self.char_map[char]
+        else:
+            return None
+
+    @staticmethod
+    def from_file(filename):
+        parser = Kanjidic2XMLParser()
+        return KanjiDic2XML(parser.parse_file(filename))
 
 
 ########################################################################

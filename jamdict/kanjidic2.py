@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 '''
-Python library for manipulating Jim Breen's Kanjidict
+Python library for manipulating Jim Breen's KanjiDic2
 Latest version can be found at https://github.com/neocl/jamdict
 
 This package uses the [EDICT][1] and [KANJIDIC][2] dictionary files.
@@ -47,12 +46,8 @@ References:
 
 __author__ = "Le Tuan Anh <tuananh.ke@gmail.com>"
 __copyright__ = "Copyright 2016, jamdict"
-vvv__credits__ = []
 __license__ = "MIT"
-__version__ = "0.1"
-__maintainer__ = "Le Tuan Anh"
-__email__ = "<tuananh.ke@gmail.com>"
-__status__ = "Prototype"
+
 
 ########################################################################
 
@@ -107,6 +102,7 @@ class Character(object):
         """
 
         """
+        self.ID = None
         self.literal = ''  # <!ELEMENT literal (#PCDATA)> The character itself in UTF8 coding.
         self.codepoints = []  # <!ELEMENT codepoint (cp_value+)>
         self.radicals = []  # <!ELEMENT radical (rad_value+)>
@@ -137,7 +133,7 @@ class Character(object):
                 'stroke_miscounts': self.stroke_miscounts,
                 'variants': [v.to_json() for v in self.variants],
                 'freq': self.freq if self.freq else 0,
-                'rad_names': [r.to_json() for r in self.rad_names],
+                'rad_names': self.rad_names,
                 'jlpt': self.jlpt if self.jlpt else '',
                 'dic_refs': [r.to_json() for r in self.dic_refs],
                 'q_codes': [q.to_json() for q in self.query_codes],
@@ -147,15 +143,25 @@ class Character(object):
 
 class CodePoint(object):
 
-    def __init__(self, cp_type, value):
+    def __init__(self, cp_type='', value=''):
         """<!ELEMENT cp_value (#PCDATA)>
     <!--
     The cp_value contains the codepoint of the character in a particular
     standard. The standard will be identified in the cp_type attribute.
     -->
         """
+        self.cid = None
         self.cp_type = cp_type
         self.value = value
+
+    def __repr__(self):
+        if self.r_type:
+            return "({t}) {v}".format(t=self.cp_type, v=self.value)
+        else:
+            return self.value
+
+    def __str__(self):
+        return self.value
 
     def to_json(self):
         return {'type': self.cp_type, 'value': self.value}
@@ -163,15 +169,25 @@ class CodePoint(object):
 
 class Radical(object):
 
-    def __init__(self, rad_type, value):
+    def __init__(self, rad_type='', value=''):
         """<!ELEMENT radical (rad_value+)>
         <!ELEMENT rad_value (#PCDATA)>
         <!--
         The radical number, in the range 1 to 214. The particular
         classification type is stated in the rad_type attribute.
         -->"""
+        self.cid = None
         self.rad_type = rad_type
         self.value = value
+
+    def __repr__(self):
+        if self.rad_type:
+            return "({t}) {v}".format(t=self.rad_type, v=self.value)
+        else:
+            return self.value
+
+    def __str__(self):
+        return self.value
 
     def to_json(self):
         return {'type': self.rad_type, 'value': self.value}
@@ -179,7 +195,7 @@ class Radical(object):
 
 class Variant(object):
 
-    def __init__(self, var_type, value):
+    def __init__(self, var_type='', value=''):
         """<!ELEMENT variant (#PCDATA)>
         <!--
         Either a cross-reference code to another kanji, usually regarded as a
@@ -202,8 +218,18 @@ class Variant(object):
         oneill - Japanese Names (O'Neill) - numeric
         ucs - Unicode codepoint- hex
         --> """
+        self.cid = None
         self.var_type = var_type
         self.value = value
+
+    def __repr__(self):
+        if self.var_type:
+            return "({t}) {v}".format(t=self.var_type, v=self.value)
+        else:
+            return self.value
+
+    def __str__(self):
+        return self.value
 
     def to_json(self):
         return {'type': self.var_type, 'value': self.value}
@@ -211,7 +237,7 @@ class Variant(object):
 
 class DicRef(object):
 
-    def __init__(self, dr_type, value, m_vol='', m_page=''):
+    def __init__(self, dr_type='', value='', m_vol='', m_page=''):
         """<!ELEMENT dic_ref (#PCDATA)>
     <!--
     Each dic_ref contains an index number. The particular dictionary,
@@ -256,10 +282,20 @@ class DicRef(object):
       kodansha_compact - the "Kodansha Compact Kanji Guide".
       maniette - codes from Yves Maniette's "Les Kanjis dans la tete" French adaptation of Heisig.
     -->"""
+        self.cid = None
         self.dr_type = dr_type
         self.value = value
         self.m_vol = m_vol
         self.m_page = m_page
+
+    def __repr__(self):
+        if self.dr_type:
+            return "({t}) {v}".format(t=self.dr_type, v=self.value)
+        else:
+            return self.value
+
+    def __str__(self):
+        return self.value
 
     def to_json(self):
         return {'type': self.dr_type,
@@ -270,7 +306,7 @@ class DicRef(object):
 
 class QueryCode(object):
 
-    def __init__(self, qc_type, value, skip_misclass=""):
+    def __init__(self, qc_type='', value='', skip_misclass=""):
         """<!ELEMENT query_code (q_code+)>
     <!--
     These codes contain information relating to the glyph, and can be used
@@ -320,9 +356,19 @@ class QueryCode(object):
     - stroke_and_posn - mistakes in both division and strokes
     - stroke_diff - ambiguous stroke counts depending on glyph
     --> """
+        self.cid = None
         self.qc_type = qc_type
         self.value = value
         self.skip_misclass = skip_misclass
+
+    def __repr__(self):
+        if self.qc_type:
+            return "({t}) {v}".format(t=self.qc_type, v=self.value)
+        else:
+            return self.value
+
+    def __str__(self):
+        return self.value
 
     def to_json(self):
         return {'type': self.qc_type, 'value': self.value, "skip_misclass": self.skip_misclass}
@@ -340,22 +386,27 @@ class RMGroup(object):
         -->
         <!ELEMENT rmgroup (reading*, meaning*)>
         """
+        self.ID = None
+        self.cid = None
         self.readings = readings if readings else []
         self.meanings = meanings if meanings else []
 
-    def __str__(self):
+    def __repr__(self):
         return "R: {} | M: {}".format(
             ", ".join([r.value for r in self.readings]),
             ", ".join(m.value for m in self.meanings))
 
+    def __str__(self):
+        return repr(self)
+
     def to_json(self):
-        return {'readings': [r.to_json() for r in self.meanings],
+        return {'readings': [r.to_json() for r in self.readings],
                 'meanings': [m.to_json() for m in self.meanings]}
 
 
 class Reading(object):
 
-    def __init__(self, r_type, value, on_type="", r_status=""):
+    def __init__(self, r_type='', value='', on_type="", r_status=""):
         """<!ELEMENT reading (#PCDATA)>
         <!--
         The reading element contains the reading or pronunciation
@@ -394,10 +445,20 @@ class Reading(object):
         <!--
         See under ja_on and ja_kun above.
         -->"""
+        self.gid = None
         self.r_type = r_type
         self.value = value
         self.on_type = on_type
         self.r_status = r_status
+
+    def __repr__(self):
+        if self.r_type:
+            return "({t}) {v}".format(t=self.r_type, v=self.value)
+        else:
+            return self.value
+
+    def __str__(self):
+        return self.value
 
     def to_json(self):
         return {'type': self.r_type,
@@ -408,7 +469,7 @@ class Reading(object):
 
 class Meaning(object):
 
-    def __init__(self, value, m_lang=''):
+    def __init__(self, value='', m_lang=''):
         """<!ELEMENT meaning (#PCDATA)>
         <!--
         The meaning associated with the kanji.
@@ -419,8 +480,18 @@ class Meaning(object):
         will be coded using the two-letter language code from the ISO 639-1
         standard. When absent, the value "en" (i.e. English) is implied. [{}]
         -->"""
+        self.gid = None
         self.m_lang = m_lang
         self.value = value
+
+    def __repr__(self):
+        if self.m_lang:
+            return "({l}) {v}".format(l=self.m_lang, v=self.value)
+        else:
+            return self.value
+
+    def __str__(self):
+        return self.value
 
     def to_json(self):
         return {'m_lang': self.m_lang, 'value': self.value}
