@@ -1,4 +1,5 @@
 #!/bin/bash
 
-python3 jamtk.py lookup $1
+export JAMDICT_HOME=~/local/jamdict
+python3 ${JAMDICT_HOME}/jamtk.py lookup $1
 
