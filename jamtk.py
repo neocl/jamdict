@@ -94,21 +94,24 @@ def lookup(args):
     if args.format == 'json':
         print(results.to_json())
     else:
+        print("=" * 40)
+        print("Found entries")
+        print("=" * 40)
         for e in results.entries:
-            print("-" * 40)
-            print("Found entries")
-            print("-" * 40)
             print("Entry: {}".format(e))
-            print("-" * 40)
+            print("-" * 20)
             for idx, s in enumerate(e.senses):
                 print("{}. {}".format(idx, s))
             print('')
+        print("=" * 40)
+        print("Found characters")
+        print("=" * 40)
         for c in results.chars:
             print("Char: {} | Strokes: {}".format(c, c.stroke_count))
-            print("-" * 40)
+            print("-" * 20)
             for rmg in c.rm_groups:
-                print(", ".join([r.value for r in rmg.readings]))
-                print(", ".join([m.value for m in rmg.meanings]))
+                print("Readings:", ", ".join([r.value for r in rmg.readings]))
+                print("Meanings:", ", ".join([m.value for m in rmg.meanings if not m.m_lang or m.m_lang == 'en']))
 
 
 #-------------------------------------------------------------------------------
