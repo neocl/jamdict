@@ -323,7 +323,7 @@ class JMDictSQLite(JMDictSchema):
             for sr in s.stagr:
                 ctx.stagr.insert(sid, sr)
             # pos
-            for pos in s.stagr:
+            for pos in s.pos:
                 ctx.pos.insert(sid, pos)
             # xref
             for xr in s.xref:
