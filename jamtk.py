@@ -98,10 +98,12 @@ def lookup(args):
         print("Found entries")
         print("=" * 40)
         for e in results.entries:
-            print("Entry: {}".format(e))
+            kj = ', '.join([k.text for k in e.kanji_forms])
+            kn = ', '.join([k.text for k in e.kana_forms])
+            print("Entry: {} | Kj:  {} | Kn: {}".format(e.idseq, kj, kn))
             print("-" * 20)
             for idx, s in enumerate(e.senses):
-                print("{}. {}".format(idx, s))
+                print("{idx}. {s}".format(idx=idx + 1, s=s))
             print('')
         print("=" * 40)
         print("Found characters")

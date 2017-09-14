@@ -75,6 +75,13 @@ class TestJamdictXML(unittest.TestCase):
         jmd = JMDictXML(entries)
         self.assertTrue(jmd.lookup(u'おてんき'))
 
+    def test_jmdict_fields(self):
+        parser = JMDictXMLParser()
+        entries = parser.parse_file(MINI_JMD)
+        jmd = JMDictXML(entries)
+        results = jmd.lookup(u'おてんき')
+        print(results)
+
     def test_jmdict_json(self):
         print("Test JMDict - XML to JSON")
         # Load mini dict data
@@ -117,9 +124,12 @@ class TestJamdictXML(unittest.TestCase):
 
     def test_jamdict_sqlite_all(self):
         jam = Jamdict(db_file=TEST_DB, jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2)
+        result = jam.jmdict_xml.lookup('おみやげ')
+        print(result)
         jam.import_data()
         # test lookup
         result = jam.lookup('おみやげ')
+        print(result.entries)
         self.assertEqual(len(result.entries), 1)
         self.assertEqual(len(result.chars), 2)
         self.assertEqual({c.literal for c in result.chars}, {'土', '産'})
