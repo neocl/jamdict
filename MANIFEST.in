@@ -1,0 +1,4 @@
+include README.rst
+include CHANGES.md
+include LICENSE
+recursive-include jamdict/scripts/ *.sql

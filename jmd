@@ -1,0 +1,6 @@
+#!/bin/bash
+
+export JAMDICT_HOME=~/local/jamdict
+cd ${JAMDICT_HOME}
+python3 -m jamdict.tools lookup $1
+
