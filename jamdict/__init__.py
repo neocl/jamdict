@@ -54,16 +54,18 @@ __description__ = "Python library for manipulating Jim Breen's JMdict & KanjiDic
 __url__ = "https://github.com/neocl/jamdict"
 __maintainer__ = "Le Tuan Anh"
 __version_major__ = "0.1"
-__version__ = "{}a1".format(__version_major__)
+__version__ = "{}a2".format(__version_major__)
 __version_long__ = "{} - Alpha".format(__version_major__)
 __status__ = "Prototype"
 
 ########################################################################
 
-from .jmdict_sqlite import JMDictSQLite
-from .kanjidic2_sqlite import KanjiDic2SQLite
-from .util import Jamdict, JMDictXML, KanjiDic2XML
+import logging
 
-########################################################################
-
-__all__ = ['Jamdict', 'JMDictSQLite', 'JMDictXML', 'KanjiDic2SQLite', 'KanjiDic2XML']
+try:
+    from .jmdict_sqlite import JMDictSQLite
+    from .kanjidic2_sqlite import KanjiDic2SQLite
+    from .util import Jamdict, JMDictXML, KanjiDic2XML
+    __all__ = ['Jamdict', 'JMDictSQLite', 'JMDictXML', 'KanjiDic2SQLite', 'KanjiDic2XML']
+except:
+    logging.getLogger(__name__).exception("jamdict package was not loaded properly")
