@@ -50,7 +50,6 @@ import json
 import logging
 import flask
 from flask import Flask, Response
-# from flask import abort
 from functools import wraps
 from flask import request
 from jamdict import Jamdict
@@ -58,14 +57,22 @@ from jamdict import Jamdict
 # ---------------------------------------------------------------------
 # CONFIGURATION
 # ---------------------------------------------------------------------
-logger = logging.getLogger(__name__)
+
 app = Flask(__name__, static_url_path="")
 # Prefer to use jmdict.en
 DB_FILE = os.path.abspath('./data/jamdict.en.db')
 if not os.path.isfile(DB_FILE):
     DB_FILE = os.path.abspath('./data/jamdict.db')
-jmd = Jamdict(dbfile=DB_FILE)
+jmd = Jamdict(db_file=DB_FILE)
 
+
+def get_logger():
+    logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------
 
 def jsonp(func):
     @wraps(func)
@@ -81,17 +88,22 @@ def jsonp(func):
     return decorated_function
 
 
+# ---------------------------------------------------------------------
+# Views
+# ---------------------------------------------------------------------
+
 @app.route('/jamdol/entry/<idseq>', methods=['GET'])
 @jsonp
 def get_entry(idseq):
-    return jmd.get_entry(idseq).to_json()
+    results = {'entries': [jmd.get_entry(idseq).to_json()], 'chars': []}
+    return results
 
 
 @app.route('/jamdol/search/<query>', methods=['GET'])
 @jsonp
 def search(query):
-    entries = jmd.lookup(query)
-    return [e.to_json() for e in entries]
+    results = jmd.lookup(query)
+    return results.to_json()
 
 
 @app.route('/jamdol/', methods=['GET'])
@@ -106,6 +118,10 @@ def version():
             'version': __version__,
             'server': 'jamdol-flask/Flask-{}'.format(flask.__version__)}
 
+
+# ---------------------------------------------------------------------
+# Views
+# ---------------------------------------------------------------------
 
 if __name__ == '__main__':
     app.run()

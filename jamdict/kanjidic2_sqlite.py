@@ -13,31 +13,28 @@ References:
         https://www.python.org/dev/peps/pep-0257/
 
 @author: Le Tuan Anh <tuananh.ke@gmail.com>
+@license: MIT
 '''
 
 # Copyright (c) 2017, Le Tuan Anh <tuananh.ke@gmail.com>
 #
-#Permission is hereby granted, free of charge, to any person obtaining a copy
-#of this software and associated documentation files (the "Software"), to deal
-#in the Software without restriction, including without limitation the rights
-#to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#copies of the Software, and to permit persons to whom the Software is
-#furnished to do so, subject to the following conditions:
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-#The above copyright notice and this permission notice shall be included in
-#all copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
-#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-#THE SOFTWARE.
-
-__author__ = "Le Tuan Anh <tuananh.ke@gmail.com>"
-__copyright__ = "Copyright 2016, jamdict"
-__license__ = "MIT"
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
 
 ########################################################################
 
@@ -48,12 +45,10 @@ from . import __version__ as JAMDICT_VERSION, __url__ as JAMDICT_URL
 from .jmdict import Meta
 from .kanjidic2 import Character, CodePoint, Radical, Variant, DicRef, QueryCode, RMGroup, Reading, Meaning
 
-#-------------------------------------------------------------------------------
-# CONFIGURATION
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Configuration
+# ------------------------------------------------------------------------------
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 MY_FOLDER = os.path.dirname(os.path.abspath(__file__))
 SCRIPT_FOLDER = os.path.join(MY_FOLDER, 'scripts')
 KANJIDIC2_SETUP_FILE = os.path.join(SCRIPT_FOLDER, 'setup_kanjidic2.sql')
@@ -69,9 +64,13 @@ WHERE NOT EXISTS (SELECT 1 FROM meta WHERE key='generator_url');'''.format(
 )
 
 
-#-------------------------------------------------------------------------------
-# MODELS
-#-------------------------------------------------------------------------------
+def getLogger():
+    return logging.getLogger(__name__)
+
+
+# ------------------------------------------------------------------------------
+# Models
+# ------------------------------------------------------------------------------
 
 class KanjiDic2Schema(Schema):
 
@@ -197,7 +196,7 @@ class KanjiDic2SQLite(KanjiDic2Schema):
         # context was ensured
         c = ctx.char.select_single('literal=?', (literal,))
         if not c:
-            logger.info("character {} could not be found".format(literal))
+            getLogger().info("character {} could not be found".format(literal))
             return None
         else:
             return self.char_by_id(c.ID, ctx)

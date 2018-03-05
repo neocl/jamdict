@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 '''
@@ -23,37 +22,33 @@ References:
         https://www.python.org/dev/peps/pep-0257/
 
 @author: Le Tuan Anh <tuananh.ke@gmail.com>
+@license: MIT
 '''
 
 # Copyright (c) 2016, Le Tuan Anh <tuananh.ke@gmail.com>
 #
-#Permission is hereby granted, free of charge, to any person obtaining a copy
-#of this software and associated documentation files (the "Software"), to deal
-#in the Software without restriction, including without limitation the rights
-#to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#copies of the Software, and to permit persons to whom the Software is
-#furnished to do so, subject to the following conditions:
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-#The above copyright notice and this permission notice shall be included in
-#all copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
-#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-#THE SOFTWARE.
-
-__author__ = "Le Tuan Anh <tuananh.ke@gmail.com>"
-__copyright__ = "Copyright 2016, jamdict"
-__license__ = "MIT"
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
 
 ########################################################################
 
 import logging
 import threading
-from collections import namedtuple
 from collections import defaultdict as dd
 from .jmdict import JMDictXMLParser
 from .jmdict_sqlite import JMDictSQLite
@@ -136,6 +131,9 @@ class Jamdict(object):
                 self._kd2_xml = KanjiDic2XML.from_file(self.kd2_xml_file)
         return self._kd2_xml
 
+    def has_kd2(self):
+        return self.db_file is not None or self.kd2_file is not None or self.kd2_xml_file is not None
+
     def is_available(self):
         return (self.db_file is not None or self.jmd_xml_file is not None or
                 self.kd2_file is not None or self.kd2_xml_file is not None)
@@ -172,22 +170,22 @@ class Jamdict(object):
             raise ValueError("Query cannot be empty")
         # Lookup words
         entries = []
+        chars = []
         if self.jmdict:
             entries = self.jmdict.search(query)
         elif self.jmdict_xml:
             entries = self.jmdict_xml.lookup(query)
-        # lookup each character in query and kanji readings of each found entries
-        chars_to_search = set(query)
-        if entries:
-            for e in entries:
-                for k in e.kanji_forms:
-                    chars_to_search.update(k.text)
-        # lookup chars
-        chars = []
-        for c in chars_to_search:
-            result = self.get_char(c)
-            if result is not None:
-                chars.append(result)
+        if self.has_kd2():
+            # lookup each character in query and kanji readings of each found entries
+            chars_to_search = set(query)
+            if entries:
+                for e in entries:
+                    for k in e.kanji_forms:
+                        chars_to_search.update(k.text)
+            for c in chars_to_search:
+                result = self.get_char(c)
+                if result is not None:
+                    chars.append(result)
         return LookupResult(entries, chars)
 
 
@@ -254,15 +252,3 @@ class KanjiDic2XML(object):
     def from_file(filename):
         parser = Kanjidic2XMLParser()
         return KanjiDic2XML(parser.parse_file(filename))
-
-
-########################################################################
-
-def main():
-    ''' Main enntry point. This should NOT be run anyway.
-    '''
-    print("This is a library, not an application.")
-
-
-if __name__ == '__main__':
-    main()

@@ -22,32 +22,28 @@ References:
         https://www.python.org/dev/peps/pep-0257/
 
 @author: Le Tuan Anh <tuananh.ke@gmail.com>
+@license: MIT
 '''
 
 # Copyright (c) 2016, Le Tuan Anh <tuananh.ke@gmail.com>
 #
-#Permission is hereby granted, free of charge, to any person obtaining a copy
-#of this software and associated documentation files (the "Software"), to deal
-#in the Software without restriction, including without limitation the rights
-#to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#copies of the Software, and to permit persons to whom the Software is
-#furnished to do so, subject to the following conditions:
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-#The above copyright notice and this permission notice shall be included in
-#all copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
-#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-#THE SOFTWARE.
-
-__author__ = "Le Tuan Anh <tuananh.ke@gmail.com>"
-__copyright__ = "Copyright 2016, jamdict"
-__license__ = "MIT"
-
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
 
 ########################################################################
 
@@ -55,10 +51,18 @@ import os
 import logging
 from lxml import etree
 
-logger = logging.getLogger(__name__)
+
+# ------------------------------------------------------------------------------
+# Configuration
+# ------------------------------------------------------------------------------
+
+def getLogger():
+    return logging.getLogger(__name__)
 
 
-########################################################################
+# ------------------------------------------------------------------------------
+# Models
+# ------------------------------------------------------------------------------
 
 class KanjiDic2(object):
 
@@ -515,7 +519,7 @@ class Kanjidic2XMLParser(object):
     def parse_file(self, jmdict_file_path):
         ''' Parse JMDict_e.xml file and return a list of JMDEntry objects
         '''
-        logger.debug('Loading data from file: %s' % (os.path.abspath(jmdict_file_path)))
+        getLogger().debug('Loading data from file: %s' % (os.path.abspath(jmdict_file_path)))
 
         tree = etree.iterparse(jmdict_file_path)
         kd2 = None
@@ -560,7 +564,7 @@ class Kanjidic2XMLParser(object):
             elif child.tag == 'reading_meaning':
                 self.parse_reading_meaning(child, char)
             else:
-                logger.warning("Unknown tag in child: {}".format(child.tag))
+                getLogger().warning("Unknown tag in child: {}".format(child.tag))
         return char
 
     def parse_codepoint(self, e, char):
@@ -569,7 +573,7 @@ class Kanjidic2XMLParser(object):
                 cp = CodePoint(self.get_attrib(child, 'cp_type'), child.text)
                 char.codepoints.append(cp)
             else:
-                logger.warning("Unknown tag: {}".format(child.tag))
+                getLogger().warning("Unknown tag: {}".format(child.tag))
 
     def parse_radical(self, e, char):
         for child in e:
@@ -577,7 +581,7 @@ class Kanjidic2XMLParser(object):
                 rad = Radical(self.get_attrib(child, "rad_type"), child.text)
                 char.radicals.append(rad)
             else:
-                logger.warning("Unknown tag: {}".format(child.tag))
+                getLogger().warning("Unknown tag: {}".format(child.tag))
 
     def parse_misc(self, e, char):
         for child in e:
@@ -599,7 +603,7 @@ class Kanjidic2XMLParser(object):
             elif child.tag == 'jlpt':
                 char.jlpt = child.text
             else:
-                logger.warning("Unknown tag: {}".format(child.tag))
+                getLogger().warning("Unknown tag: {}".format(child.tag))
 
     def parse_dic_refs(self, e, char):
         for child in e:
@@ -610,7 +614,7 @@ class Kanjidic2XMLParser(object):
                 dr = DicRef(dr_type, child.text, m_vol, m_page)
                 char.dic_refs.append(dr)
             else:
-                logger.warning("Unknown tag: {}".format(child.tag))
+                getLogger().warning("Unknown tag: {}".format(child.tag))
 
     def parse_query_code(self, e, char):
         for child in e:
@@ -619,7 +623,7 @@ class Kanjidic2XMLParser(object):
                 skip_misclass = self.get_attrib(child, "skip_misclass")
                 char.query_codes.append(QueryCode(qc_type, child.text, skip_misclass))
             else:
-                logger.warning("Unknown tag: {}".format(child.tag))
+                getLogger().warning("Unknown tag: {}".format(child.tag))
 
     def parse_reading_meaning(self, e, char):
         for child in e:
@@ -639,12 +643,6 @@ class Kanjidic2XMLParser(object):
                         m = Meaning(grandchild.text, self.get_attrib(grandchild, "m_lang"))
                         rmgroup.meanings.append(m)
                     else:
-                        logger.warning("Unknown tag: {}".format(grandchild.tag))
+                        getLogger().warning("Unknown tag: {}".format(grandchild.tag))
             else:
-                logger.warning("Unknown tag: {}".format(child.tag))
-
-
-########################################################################
-
-if __name__ == '__main__':
-    print("This is a library, not an application.")
+                getLogger().warning("Unknown tag: {}".format(child.tag))

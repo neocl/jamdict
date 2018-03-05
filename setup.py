@@ -18,48 +18,34 @@ References:
 
 # Copyright (c) 2016, Le Tuan Anh <tuananh.ke@gmail.com>
 #
-#Permission is hereby granted, free of charge, to any person obtaining a copy
-#of this software and associated documentation files (the "Software"), to deal
-#in the Software without restriction, including without limitation the rights
-#to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#copies of the Software, and to permit persons to whom the Software is
-#furnished to do so, subject to the following conditions:
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-#The above copyright notice and this permission notice shall be included in
-#all copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
-#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-#THE SOFTWARE.
-
-__author__ = "Le Tuan Anh <tuananh.ke@gmail.com>"
-__copyright__ = "Copyright 2016, jamdict"
-__credits__ = [ "Le Tuan Anh" ]
-__license__ = "MIT"
-__version__ = "0.1"
-__maintainer__ = "Le Tuan Anh"
-__email__ = "<tuananh.ke@gmail.com>"
-__status__ = "Prototype"
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
 
 ########################################################################
 
-from setuptools import setup, find_packages
-from setuptools.command.test import test as TestCommand
 import io
-import codecs
 import os
-import sys
+from setuptools import setup
 
-from jamdict import JMDict
+import jamdict
+
 
 ########################################################################
-
-
-here = os.path.abspath(os.path.dirname(__file__))
 
 def read(*filenames, **kwargs):
     encoding = kwargs.get('encoding', 'utf-8')
@@ -70,34 +56,41 @@ def read(*filenames, **kwargs):
             buf.append(f.read())
     return sep.join(buf)
 
-long_description = read('README.md', 'CHANGES.md')
+
+readme_file = 'README.rst' if os.path.isfile('README.rst') else 'README.md'
+print("README file: {}".format(readme_file))
+long_description = read(readme_file)
 
 setup(
     name='jamdict',
     version=jamdict.__version__,
-    url='https://github.com/neocl/jamdict',
-    license='MIT License',
-    author='Le Tuan Anh',
-    tests_require=[],
-    install_requires=[],
-    author_email='tuananh.ke@gmail.com',
-    description="Python library for manipulating Jim Breen's JMdict",
+    url=jamdict.__url__,
+    project_urls={
+        "Bug Tracker": "https://github.com/neocl/jamdict/issues",
+        "Source Code": "https://github.com/neocl/jamdict/"
+    },
+    keywords="japanese dictionary sqlite xml",
+    license=jamdict.__license__,
+    author=jamdict.__author__,
+    tests_require=['lxml', 'puchikarui'],
+    install_requires=['lxml', 'puchikarui'],
+    author_email=jamdict.__email__,
+    description=jamdict.__description__,
     long_description=long_description,
     packages=['jamdict'],
+    package_data={'jamdict': ['scripts/*.sql']},
     include_package_data=True,
     platforms='any',
     test_suite='test',
-    classifiers = [
-        'Programming Language :: Python',
-        'Development Status :: 0.1 - Alpha',
-        'Natural Language :: English',
-        'Environment :: Console Application',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
-        'Operating System :: OS Independent',
-        'Topic :: Software Development :: Libraries :: Python Modules',
-        ]#,
-    #extras_require={
-        # 'testing': ['pytest'],
-    #}
+    # Reference: https://pypi.python.org/pypi?%3Aaction=list_classifiers
+    classifiers=['Programming Language :: Python',
+                 'Development Status :: 2 - Pre-Alpha',
+                 'Natural Language :: Japanese',
+                 'Environment :: Plugins',
+                 'Intended Audience :: Developers',
+                 'License :: OSI Approved :: {}'.format(jamdict.__license__),
+                 'Operating System :: OS Independent',
+                 'Topic :: Database',
+                 'Topic :: Text Processing :: Linguistic',
+                 'Topic :: Software Development :: Libraries :: Python Modules']
 )
