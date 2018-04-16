@@ -8,6 +8,8 @@ Python library for manipulating Jim Breen's JMdict & KanjiDic2
 
 # Installation
 
+Homepage: [https://github.com/neocl/jamdict](https://github.com/neocl/jamdict)
+
 ```bash
 pip install jamdict
 # pip script sometimes doesn't work properly, so you may want to try this instead
