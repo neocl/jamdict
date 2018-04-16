@@ -80,8 +80,8 @@ class JMDictSchema(Schema):
     KEY_JMD_VER = "jmdict.version"
     KEY_JMD_URL = "jmdict.url"
 
-    def __init__(self, data_source=":memory:", setup_script=None, setup_file=None):
-        super().__init__(data_source, setup_script=setup_script, setup_file=setup_file)
+    def __init__(self, data_source=":memory:", setup_script=None, setup_file=None, *args, **kwargs):
+        super().__init__(data_source, setup_script=setup_script, setup_file=setup_file, *args, **kwargs)
         self.add_script(SETUP_SCRIPT)
         self.add_file(JMDICT_SETUP_FILE)
         # Meta
@@ -117,8 +117,8 @@ class JMDictSchema(Schema):
 
 class JMDictSQLite(JMDictSchema):
 
-    def __init__(self, db_path, setup_script=None, setup_file=None):
-        super().__init__(db_path, setup_script=setup_script, setup_file=setup_file)
+    def __init__(self, db_path, setup_script=None, setup_file=None, *args, **kwargs):
+        super().__init__(db_path, setup_script=setup_script, setup_file=setup_file, *args, **kwargs)
 
     def update_meta(self, version, url, ctx=None):
         # create a default context if none was provided
@@ -146,8 +146,19 @@ class JMDictSQLite(JMDictSchema):
         if ctx is None:
             with self.ctx() as ctx:
                 return self.search(query, ctx=ctx)
+        where = "idseq IN (SELECT idseq FROM Kanji WHERE text like ?) OR idseq IN (SELECT idseq FROM Kana WHERE text like ?)"
+        params = [query, query]
+        try:
+            if query.startswith('id#'):
+                query_int = int(query[3:])
+                if query_int >= 0:
+                    print("Searching by ID: {}".format(query_int))
+                    where = "idseq = ?"
+                    params = [query_int]
+        except:
+            pass
         # else (a context is provided)
-        eids = self.Entry.select("idseq IN (SELECT idseq FROM Kanji WHERE text like ?) OR idseq IN (SELECT idseq FROM Kana WHERE text like ?)", (query, query), ctx=ctx)
+        eids = self.Entry.select(where, params, ctx=ctx)
         entries = []
         for e in eids:
             entries.append(self.get_entry(e.idseq, ctx=ctx))
