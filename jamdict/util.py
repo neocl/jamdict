@@ -103,8 +103,8 @@ class LookupResult(object):
 
 class JamdictSQLite(KanjiDic2SQLite, JMDictSQLite):
 
-    def __init__(self, data_source, setup_script=None, setup_file=None):
-        super().__init__(data_source, setup_script=setup_script, setup_file=setup_file)
+    def __init__(self, data_source, setup_script=None, setup_file=None, *args, **kwargs):
+        super().__init__(data_source, setup_script=setup_script, setup_file=setup_file, *args, **kwargs)
 
 
 class Jamdict(object):
