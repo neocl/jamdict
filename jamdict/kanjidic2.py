@@ -125,7 +125,12 @@ class Character(object):
         self.nanoris = []  # a list of strings
 
     def __repr__(self):
-        return "{l}:{sc}".format(l=self.literal, sc=self.stroke_count)
+        meanings = []
+        for rm in self.rm_groups:
+            for m in rm.meanings:
+                if m.m_lang == '':
+                    meanings.append(m.value)
+        return "{l}:{sc}:{meanings}".format(l=self.literal, sc=self.stroke_count, meanings=','.join(meanings))
 
     def __str__(self):
         return self.literal
