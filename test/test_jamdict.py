@@ -21,23 +21,23 @@ References:
 
 # Copyright (c) 2016, Le Tuan Anh <tuananh.ke@gmail.com>
 #
-#Permission is hereby granted, free of charge, to any person obtaining a copy
-#of this software and associated documentation files (the "Software"), to deal
-#in the Software without restriction, including without limitation the rights
-#to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#copies of the Software, and to permit persons to whom the Software is
-#furnished to do so, subject to the following conditions:
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-#The above copyright notice and this permission notice shall be included in
-#all copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
-#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-#THE SOFTWARE.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
 
 __author__ = "Le Tuan Anh <tuananh.ke@gmail.com>"
 __copyright__ = "Copyright 2016, jamdict"
@@ -48,17 +48,46 @@ __license__ = "MIT"
 import os
 import logging
 import unittest
+from jamdict import config
 from jamdict.jmdict import JMDictXMLParser
 from jamdict.kanjidic2 import Kanjidic2XMLParser
 from jamdict import Jamdict, JMDictXML
 
 ########################################################################
 
-MINI_JMD = 'data/JMdict_mini.xml'
-MINI_KD2 = 'data/kanjidic2.mini.xml'
 MY_DIR = os.path.abspath(os.path.dirname(__file__))
 TEST_DATA = os.path.join(MY_DIR, 'data')
+MINI_JMD = os.path.join(TEST_DATA, 'JMdict_mini.xml')
+MINI_KD2 = os.path.join(TEST_DATA, 'kanjidic2_mini.xml')
 TEST_DB = os.path.join(TEST_DATA, 'jamdict_test.db')
+
+
+def getLogger():
+    return logging.getLogger(__name__)
+
+
+class TestConfig(unittest.TestCase):
+
+    def test_config(self):
+        cfg = config.read_config()
+        self.assertIn('KD2_XML', cfg)
+        self.assertTrue(config.get_file('KD2_XML'))
+        getLogger().info("jamdict log file location: {}".format(config._get_config_manager().locate_config()))
+
+
+class TestModels(unittest.TestCase):
+
+    def test_basic_models(self):
+        parser = JMDictXMLParser()
+        entries = parser.parse_file(MINI_JMD)
+        self.assertEqual(len(entries), 230)  # there are 230 test entries
+        e = entries[0]
+        self.assertEqual(len(e), 1)  # there is only 1 sense
+        self.assertEqual(len(e[0].gloss), 1)  # there is only 1 sense
+        # first sense in entry e to string -> with POS
+        self.assertEqual(str(e[0]), 'repetition mark in katakana ((noun (common) (futsuumeishi)))')
+        self.assertEqual(str(e[0].text()), 'repetition mark in katakana')  # compact is enabled by default
+        self.assertEqual(str(e[0].gloss[0]), 'repetition mark in katakana')
 
 
 class TestJamdictXML(unittest.TestCase):
@@ -118,14 +147,17 @@ class TestJamdictXML(unittest.TestCase):
         self.assertEqual(len(result.chars), 2)
         self.assertEqual({c.literal for c in result.chars}, {'土', '産'})
 
-    def test_jamdict_import(self):
-        jam = Jamdict(db_file=":memory:", jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2)
-        jam.import_data()
+
+class TestJamdictSQLite(unittest.TestCase):
 
     def test_jamdict_sqlite_all(self):
-        jam = Jamdict(db_file=TEST_DB, jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2)
+        if os.path.isfile(TEST_DB):
+            os.unlink(TEST_DB)
+        jam = Jamdict(db_file=TEST_DB, kd2_file=TEST_DB, jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2)
+        # Lookup using XML
         result = jam.jmdict_xml.lookup('おみやげ')
-        print(result)
+        getLogger().debug("Results: {}".format(result))
+        # Lookup using SQLite
         jam.import_data()
         # test lookup
         result = jam.lookup('おみやげ')
