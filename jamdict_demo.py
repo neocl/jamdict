@@ -53,13 +53,9 @@ from jamdict import Jamdict
 
 ########################################################################
 
-# Path to JMDict XML file
-# You might want to change this to something like
-# JM_PATH = "/path/to/JMdict.xml"
-JM_PATH = os.path.abspath('data/JMdict_mini.xml')
-
 # Create an instance of Jamdict
-jam = Jamdict(jmd_xml_file=JM_PATH)
+jam = Jamdict()
+print("Jamdict DB file: {}".format(jam.db_file))
 
 # Lookup by kana
 result = jam.lookup('おかえし')
@@ -75,7 +71,7 @@ print("-----------------")
 
 
 # lookup entry by idseq
-otenki = jam.lookup('1002470').entries[0]
+otenki = jam.lookup('id#1002470').entries[0]
 kana_forms = ' '.join([x.text for x in otenki.kana_forms])
 kanji_forms = ' '.join([x.text for x in otenki.kanji_forms])
 print("Entry #{id}: Kanji: {kj} - Kana: {kn}".format(id=otenki.idseq, kj=kanji_forms, kn=kana_forms))
