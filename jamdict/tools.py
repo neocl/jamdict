@@ -99,13 +99,8 @@ def import_data(cli, args):
         print("Database paths were not provided. Process aborted.")
 
 
-def lookup(cli, args):
-    '''Lookup words by kanji/kana'''
-    jam = get_jam(cli, args)
-    results = jam.lookup(args.query)
-    if args.format == 'json':
-        print(results.to_json())
-    else:
+def dump_result(results):
+    if results.entries:
         print("=" * 40)
         print("Found entries")
         print("=" * 40)
@@ -117,6 +112,9 @@ def lookup(cli, args):
             for idx, s in enumerate(e.senses):
                 print("{idx}. {s}".format(idx=idx + 1, s=s))
             print('')
+    else:
+        print("No dictionary entry was found.")
+    if results.chars:
         print("=" * 40)
         print("Found characters")
         print("=" * 40)
@@ -126,14 +124,35 @@ def lookup(cli, args):
             for rmg in c.rm_groups:
                 print("Readings:", ", ".join([r.value for r in rmg.readings]))
                 print("Meanings:", ", ".join([m.value for m in rmg.meanings if not m.m_lang or m.m_lang == 'en']))
+    else:
+        print("No character was found.")
+
+
+def lookup(cli, args):
+    '''Lookup words by kanji/kana'''
+    jam = get_jam(cli, args)
+    results = jam.lookup(args.query)
+    if args.format == 'json':
+        print(results.to_json())
+    else:
+        if args.compact:
+            print(results.text(separator='\n------\n', entry_sep='\n'))
+        else:
+            dump_result(results)
+
+
+def file_status(file_path):
+    real_path = os.path.abspath(os.path.expanduser(file_path))
+    return '[NOT FOUND]' if not os.path.isfile(real_path) else '[OK]'
 
 
 def show_info(cli, args):
     ''' Show jamdict configuration (data folder, configuration file location, etc.) '''
     print("Configuration location: {}".format(config._get_config_manager().locate_config()))
-    print("Jamdict DB location: {}".format(JMD_DB))
-    print("JMDict XML file: {}".format(JMD_XML))
-    print("KanjiDic2 XML file: {}".format(KD2_XML))
+    print("-" * 40)
+    print("Jamdict DB location   : {} - {}".format(args.jdb, file_status(args.jdb)))
+    print("JMDict XML file       : {} - {}".format(args.jmdxml, file_status(args.jmdxml)))
+    print("KanjiDic2 XML file    : {} - {}".format(args.kd2xml, file_status(args.kd2xml)))
 
 
 # -------------------------------------------------------------------------------
@@ -165,6 +184,7 @@ def main():
     lookup_task = app.add_task('lookup', func=lookup)
     lookup_task.add_argument('query', help='kanji/kana')
     lookup_task.add_argument('-f', '--format', help='json or text')
+    lookup_task.add_argument('--compact', action='store_true')
     lookup_task.set_defaults(func=lookup)
     add_data_config(lookup_task)
 
