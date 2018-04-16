@@ -112,7 +112,7 @@ class TestJamdictSQLite(unittest.TestCase):
 
     def test_import_function(self):
         print("Testing JMDict import function")
-        jd = Jamdict(MINI_JMD, RAM_DB)
+        jd = Jamdict(db_file=RAM_DB, jmd_xml_file=MINI_JMD, auto_config=False)
         jd.import_data()
 
     def test_search(self):

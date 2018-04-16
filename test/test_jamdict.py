@@ -141,7 +141,7 @@ class TestJamdictXML(unittest.TestCase):
 
     def test_jamdict_xml(self):
         print("Test Jamdict search in XML files")
-        jam = Jamdict(jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2)
+        jam = Jamdict(jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2, auto_config=False)
         result = jam.lookup('おみやげ')
         self.assertEqual(len(result.entries), 1)
         self.assertEqual(len(result.chars), 2)
