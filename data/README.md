@@ -1,1 +1,1 @@
-Copy JMDict dictionary file (JMdict_e.xml) here
+Copy dictionary files (JMdict_e.xml, kanjidic2.xml, kradfile, etc.) here

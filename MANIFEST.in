@@ -1,4 +1,5 @@
 include README.rst
 include CHANGES.md
 include LICENSE
-recursive-include jamdict/scripts/ *.sql
+recursive-include jamdict/data/ *.sql
+recursive-include jamdict/data/ *.json
