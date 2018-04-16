@@ -82,18 +82,28 @@ class JMDEntry(object):
             logging.warning("WARNING: multiple info tag")
         self.info = info
 
-    def __repr__(self):
-        tmp = ['ID:%s' % self.idseq]
+    def text(self, compact=True, separator=' '):
+        tmp = []
+        if not compact:
+            tmp.append('ID:%s' % self.idseq)
         if self.kana_forms:
             tmp.append(self.kana_forms[0].text)
         if self.kanji_forms:
-            tmp.append(self.kanji_forms[0].text)
-        for sense, idx in zip(self.senses, range(len(self.senses))):
-            tmp.append('{i}. {s}'.format(i=idx + 1, s=sense))
-        return '|'.join(tmp)
+            tmp.append("({})".format(self.kanji_forms[0].text))
+        if self.senses:
+            tmp.append(':')
+            if len(self.senses) == 1:
+                tmp.append(self.senses[0].text(compact=compact))
+            else:
+                for sense, idx in zip(self.senses, range(len(self.senses))):
+                    tmp.append('{i}. {s}'.format(i=idx + 1, s=sense.text(compact=compact)))
+        return separator.join(tmp)
+
+    def __repr__(self):
+        return self.text(compact=True)
 
     def __str__(self):
-        return repr(self)
+        return self.text(compact=False)
 
     def to_json(self):
         ed = {'idseq': self.idseq,
