@@ -37,52 +37,71 @@ References:
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-import sys
 import os
-import logging
-import argparse
+
+from chirptext import confirm, TextReport, Timer
+from chirptext.cli import CLIApp, setup_logging
+
 from jamdict import Jamdict
+from jamdict import config
 
 # -------------------------------------------------------------------------------
 # Configuration
 # -------------------------------------------------------------------------------
 
-DEFAULT_HOME = os.path.abspath(os.path.expanduser('~/local/jamdict'))
-DATA_FOLDER = os.path.join(os.environ.get('JAMDICT_HOME', DEFAULT_HOME), 'data')
-JMD_XML = os.path.join(DATA_FOLDER, 'JMdict.xml')
-KD2_XML = os.path.join(DATA_FOLDER, 'kanjidic2.xml')
-JMD_DB = os.path.join(DATA_FOLDER, 'jamdict.db')
 
-
-def getLogger():
-    return logging.getLogger(__name__)
+JMD_XML = config.get_file('JMDICT_XML')
+KD2_XML = config.get_file('KD2_XML')
+JMD_DB = config.get_file('JAMDICT_DB')
+setup_logging('logging.json', 'logs')
 
 
 # -------------------------------------------------------------------------------
 # Functions
 # -------------------------------------------------------------------------------
 
-def get_jam(args):
-    if args.jdb == args.kd2 or not args.kd2:
-        jmd = Jamdict(db_file=args.jdb, jmd_xml_file=args.jmdxml, kd2_xml_file=args.kd2xml)
-    else:
+def get_jam(cli, args):
+    if not args.jdb:
+        args.jdb = None
+    if args.kd2:
+        cli.logger.warning("Jamdict database location: {}".format(args.jdb))
+        cli.logger.warning("Kanjidic2 database location: {}".format(args.kd2))
         jmd = Jamdict(db_file=args.jdb, kd2_file=args.kd2, jmd_xml_file=args.jmdxml, kd2_xml_file=args.kd2xml)
+    else:
+        cli.logger.info("Using the same database for both JMDict and Kanjidic2")
+        jmd = Jamdict(db_file=args.jdb, kd2_file=args.jdb, jmd_xml_file=args.jmdxml, kd2_xml_file=args.kd2xml)
+    if jmd.kd2 is None:
+        cli.logger.warning("Kanjidic2 database could not be found")
     return jmd
 
 
-def import_data(args):
+def import_data(cli, args):
+    '''Import XML data into SQLite database'''
+    rp = TextReport()
+    t = Timer(report=rp)
+    db_loc = os.path.abspath(os.path.expanduser(args.jdb))
+    rp.print("Jamdict DB location        : {}".format(db_loc))
+    rp.print("JMDict XML file location   : {}".format(args.jmdxml))
+    rp.print("Kanjidic2 XML file location: {}".format(args.kd2xml))
+    jam = get_jam(cli, args)
     if args and (args.jdb or args.kd2):
+        if os.path.isfile(db_loc):
+            if not confirm("Database file exists. Do you want to overwite (This action cannot be undone! yes/no?) "):
+                cli.logger.warning("Program aborted.")
+                exit()
+            else:
+                os.unlink(db_loc)
         # perform input
-        jam = get_jam(args)
-        print("Importing data. This process may take very long time ...")
+        t.start("Creating Jamdict SQLite database. This process may take very long time ...")
         jam.import_data()
-        print("Done!")
+        t.stop()
     else:
         print("Database paths were not provided. Process aborted.")
 
 
-def lookup(args):
-    jam = get_jam(args)
+def lookup(cli, args):
+    '''Lookup words by kanji/kana'''
+    jam = get_jam(cli, args)
     results = jam.lookup(args.query)
     if args.format == 'json':
         print(results.to_json())
@@ -109,44 +128,48 @@ def lookup(args):
                 print("Meanings:", ", ".join([m.value for m in rmg.meanings if not m.m_lang or m.m_lang == 'en']))
 
 
+def show_info(cli, args):
+    ''' Show jamdict configuration (data folder, configuration file location, etc.) '''
+    print("Configuration location: {}".format(config._get_config_manager().locate_config()))
+    print("Jamdict DB location: {}".format(JMD_DB))
+    print("JMDict XML file: {}".format(JMD_XML))
+    print("KanjiDic2 XML file: {}".format(KD2_XML))
+
+
 # -------------------------------------------------------------------------------
-# MAIN
+# Main
 # -------------------------------------------------------------------------------
+
+def add_data_config(parser):
+    parser.add_argument('-j', '--jmdxml', help='Path to JMdict XML file', default=JMD_XML)
+    parser.add_argument('-k', '--kd2xml', help='Path to KanjiDic2 XML file', default=KD2_XML)
+    parser.add_argument('-J', '--jdb', help='Path to JMDict SQLite file', default=JMD_DB)
+    parser.add_argument('-K', '--kd2', help='Path to KanjiDic2 SQLite file', default=None)
+
 
 def main():
     '''Main entry of jamtk
     '''
-
-    # It's easier to create a user-friendly console application by using argparse
-    # See reference at the top of this script
-    parser = argparse.ArgumentParser(description="Jamdict toolkit")
-
-    # Positional argument(s)
-    task = parser.add_subparsers(help='Task to be done')
-
-    # Optional arguments
-    parser.add_argument('-j', '--jmdxml', help='Path to JMdict XML file', default=JMD_XML)
-    parser.add_argument('-k', '--kd2xml', help='Path to KanjiDic2 XML file', default=KD2_XML)
-    parser.add_argument('-J', '--jdb', help='Path to JMDict SQLite file', default=JMD_DB)
-    parser.add_argument('-K', '--kd2', help='Path to KanjiDic2 SQLite file', default=JMD_DB)
+    app = CLIApp(desc='Jamdict toolkit', logger=__name__)
+    add_data_config(app.parser)
 
     # import task
-    import_task = task.add_parser('import', help='Import XML data into SQLite database')
-    import_task.set_defaults(func=import_data)
+    import_task = app.add_task('import', func=import_data)
+    add_data_config(import_task)
+
+    # show info
+    info_task = app.add_task('info', func=show_info)
+    add_data_config(info_task)
 
     # look up task
-    lookup_task = task.add_parser('lookup', help='Lookup words by kanji/kana')
+    lookup_task = app.add_task('lookup', func=lookup)
     lookup_task.add_argument('query', help='kanji/kana')
     lookup_task.add_argument('-f', '--format', help='json or text')
     lookup_task.set_defaults(func=lookup)
+    add_data_config(lookup_task)
 
-    # Main script
-    if len(sys.argv) == 1:
-        # User didn't pass any value in, show help
-        parser.print_help()
-    else:
-        args = parser.parse_args()
-        args.func(args)
+    # run app
+    app.run()
 
 
 if __name__ == "__main__":
