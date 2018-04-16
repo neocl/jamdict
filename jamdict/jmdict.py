@@ -85,7 +85,7 @@ class JMDEntry(object):
     def text(self, compact=True, separator=' '):
         tmp = []
         if not compact:
-            tmp.append('ID:%s' % self.idseq)
+            tmp.append('[id#%s]' % self.idseq)
         if self.kana_forms:
             tmp.append(self.kana_forms[0].text)
         if self.kanji_forms:
