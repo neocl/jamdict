@@ -20,23 +20,23 @@ References:
 
 # Copyright (c) 2017, Le Tuan Anh <tuananh.ke@gmail.com>
 #
-#Permission is hereby granted, free of charge, to any person obtaining a copy
-#of this software and associated documentation files (the "Software"), to deal
-#in the Software without restriction, including without limitation the rights
-#to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#copies of the Software, and to permit persons to whom the Software is
-#furnished to do so, subject to the following conditions:
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-#The above copyright notice and this permission notice shall be included in
-#all copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
-#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-#THE SOFTWARE.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
 
 __author__ = "Le Tuan Anh <tuananh.ke@gmail.com>"
 __copyright__ = "Copyright 2017, jamdict"
@@ -44,7 +44,6 @@ __license__ = "MIT"
 
 ########################################################################
 
-import sys
 import os
 import unittest
 import logging
@@ -53,36 +52,37 @@ from jamdict import KanjiDic2SQLite
 from jamdict import KanjiDic2XML
 
 
-#-------------------------------------------------------------------------------
-# CONFIGURATION
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
+# Configuration
+# -------------------------------------------------------------------------------
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler(sys.stdout))
 TEST_DIR = os.path.dirname(os.path.realpath(__file__))
 TEST_DATA = os.path.join(TEST_DIR, 'data')
 if not os.path.isdir(TEST_DATA):
     os.makedirs(TEST_DATA)
 TEST_DB = os.path.join(TEST_DATA, 'jamcha.db')
 RAM_DB = ':memory:'
-MINI_DATA_FILE = 'data/kanjidic2.mini.xml'
+MINI_KD2 = os.path.join(TEST_DATA, 'kanjidic2_mini.xml')
 
 
-#-------------------------------------------------------------------------------
-# DATA STRUCTURES
-#-------------------------------------------------------------------------------
+def getLogger():
+    return logging.getLogger(__name__)
+
+
+# -------------------------------------------------------------------------------
+# Test cases
+# -------------------------------------------------------------------------------
 
 class TestJamdictSQLite(unittest.TestCase):
 
     db = KanjiDic2SQLite(TEST_DB)
     ramdb = KanjiDic2SQLite(RAM_DB)
-    xdb = KanjiDic2XML.from_file(MINI_DATA_FILE)
+    xdb = KanjiDic2XML.from_file(MINI_KD2)
 
     @classmethod
     def setUpClass(cls):
         if os.path.isfile(TEST_DB):
-            logger.info("Removing previous database file at {}".format(TEST_DB))
+            getLogger().info("Removing previous database file at {}".format(TEST_DB))
             os.unlink(TEST_DB)
 
     def test_xml2sqlite(self):
@@ -95,12 +95,12 @@ class TestJamdictSQLite(unittest.TestCase):
             doc = self.xdb.kd2.date_of_creation
             db.update_meta(fv, dv, doc, ctx)
             metas = ctx.meta.select()
-            logger.debug("KanjiDic2 meta: {}".format(metas))
+            getLogger().debug("KanjiDic2 meta: {}".format(metas))
             for c in self.xdb:
                 db.insert_char(c, ctx)
                 c2 = db.char_by_id(c.ID, ctx)
-                logger.debug("c-xml", c.to_json())
-                logger.debug("c-sqlite", c2.to_json())
+                getLogger().debug("c-xml", c.to_json())
+                getLogger().debug("c-sqlite", c2.to_json())
                 self.assertEqual(c.to_json(), c2.to_json())
             # test searching
             # by id
@@ -116,10 +116,9 @@ class TestJamdictSQLite(unittest.TestCase):
             self.assertTrue(c.rm_groups[0].meanings)
 
 
-
-#-------------------------------------------------------------------------------
-# MAIN
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
+# Main
+# -------------------------------------------------------------------------------
 
 if __name__ == "__main__":
     unittest.main()
