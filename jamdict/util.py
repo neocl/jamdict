@@ -52,8 +52,6 @@ import logging
 import threading
 from collections import defaultdict as dd
 
-from chirptext import io as chio
-
 from . import config
 from .jmdict import JMDictXMLParser
 from .jmdict_sqlite import JMDictSQLite
@@ -111,13 +109,14 @@ class JamdictSQLite(KanjiDic2SQLite, JMDictSQLite):
 
 class Jamdict(object):
 
-    def __init__(self, db_file=None, kd2_file=None, jmd_xml_file=None, kd2_xml_file=None, auto_config=True):
+    def __init__(self, db_file=None, kd2_file=None, jmd_xml_file=None, kd2_xml_file=None, auto_config=True, auto_expand=True):
         # file paths configuration
+        self.auto_expand = auto_expand
         self.db_file = db_file if db_file else config.get_file('JAMDICT_DB') if auto_config else None
         self.kd2_file = kd2_file if kd2_file else config.get_file('JAMDICT_DB') if auto_config else None
-        if not self.db_file:
+        if not self.db_file or not os.path.isfile(self.db_file):
             getLogger().warning("JAMDICT_DB could NOT be found. Searching will be extremely slow. Please run `python3 -m jamdict.tools import` first")
-        if not self.kd2_file:
+        if not self.kd2_file or os.path.isfile(self.kd2_file):
             getLogger().warning("Kanjidic2 database could NOT be found. Searching will be extremely slow. Please run `python3 -m jamdict.tools import` first")
         self.jmd_xml_file = jmd_xml_file if jmd_xml_file else config.get_file('JMDICT_XML') if auto_config else None
         self.kd2_xml_file = kd2_xml_file if kd2_xml_file else config.get_file('KD2_XML') if auto_config else None
@@ -128,16 +127,27 @@ class Jamdict(object):
         self._kd2_xml = None
 
     @property
+    def db_file(self):
+        return self.__db_file
+
+    @db_file.setter
+    def db_file(self, value):
+        if self.auto_expand and value:
+            self.__db_file = os.path.abspath(os.path.expanduser(value))
+        else:
+            self.__db_file = None
+
+    @property
     def jmdict(self):
         if not self._db_sqlite and self.db_file:
             with threading.Lock():
                 if not self.kd2_file or self.kd2_file == self.db_file:
                     # Use 1 DB for both
-                    self._db_sqlite = JamdictSQLite(self.db_file)
+                    self._db_sqlite = JamdictSQLite(self.db_file, auto_expand_path=self.auto_expand)
                     self._kd2_sqlite = self._db_sqlite
                 else:
                     # use 2 separated files
-                    self._db_sqlite = JMDictSQLite(self.db_file)
+                    self._db_sqlite = JMDictSQLite(self.db_file, auto_expand_path=self.auto_expand)
         return self._db_sqlite
 
     @property
@@ -145,7 +155,7 @@ class Jamdict(object):
         if self._kd2_sqlite is None:
             if self.kd2_file is not None:
                 with threading.Lock():
-                    self._kd2_sqlite = KanjiDic2SQLite(self.kd2_file)
+                    self._kd2_sqlite = KanjiDic2SQLite(self.kd2_file, auto_expand_path=self.auto_expand)
             else:
                 self._kd2_sqlite = self.jmdict
         return self._kd2_sqlite
@@ -204,7 +214,7 @@ class Jamdict(object):
         # Lookup words
         entries = []
         chars = []
-        if self.jmdict:
+        if self.jmdict is not None:
             entries = self.jmdict.search(query)
         elif self.jmdict_xml:
             entries = self.jmdict_xml.lookup(query)
@@ -227,7 +237,7 @@ class JMDictXML(object):
     '''
     def __init__(self, entries):
         self.entries = entries
-        self._seqmap = {}
+        self._seqmap = {}  # entryID - entryObj map
         self._textmap = dd(set)
         # compile map
         for entry in self.entries:
@@ -246,10 +256,12 @@ class JMDictXML(object):
     def lookup(self, a_query):
         if a_query in self._textmap:
             return tuple(self._textmap[a_query])
-        elif a_query in self._seqmap:
-            return (self._seqmap[a_query],)
-        else:
-            return ()
+        elif a_query.startswith('id#'):
+            entry_id = a_query[3:]
+            if entry_id in self._seqmap:
+                return (self._seqmap[entry_id],)
+        # found nothing
+        return ()
 
     @staticmethod
     def from_file(filename):
