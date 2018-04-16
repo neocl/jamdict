@@ -75,6 +75,29 @@ class LookupResult(object):
         self.entries = entries if entries else []
         self.chars = chars if chars else []
 
+    def text(self, compact=True, entry_sep='。', separator=' | '):
+        output = []
+        if self.entries:
+            entries_txt = str(entry_sep.join(e.text(compact=compact, separator='') for e in self.entries))
+            output.append("Entries: ")
+            output.append(entries_txt)
+        if self.entries:
+            if compact:
+                chars_txt = ', '.join(str(c) for c in self.chars)
+            else:
+                chars_txt = ', '.join(repr(c) for c in self.chars)
+            if output:
+                output.append(separator)
+            output.append("Chars: ")
+            output.append(chars_txt)
+        return "".join(output) if output else "Found nothing"
+
+    def __repr__(self):
+        return self.text(compact=True)
+
+    def __str__(self):
+        return self.text(compact=False)
+
     def to_json(self):
         return {'entries': [e.to_json() for e in self.entries],
                 'chars': [c.to_json() for c in self.chars]}
