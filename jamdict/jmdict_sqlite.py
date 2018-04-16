@@ -43,7 +43,7 @@ import logging
 
 from puchikarui import Schema
 from . import __version__ as JAMDICT_VERSION, __url__ as JAMDICT_URL
-from .jmdict import JMDEntry, EntryInfo, Link, BibInfo, Audit, KanjiReading, KanaReading, Sense, SenseGloss, LSource
+from .jmdict import JMDEntry, EntryInfo, Link, BibInfo, Audit, KanjiForm, KanaForm, Sense, SenseGloss, LSource
 
 
 # -------------------------------------------------------------------------------
@@ -51,7 +51,7 @@ from .jmdict import JMDEntry, EntryInfo, Link, BibInfo, Audit, KanjiReading, Kan
 # -------------------------------------------------------------------------------
 
 MY_FOLDER = os.path.dirname(os.path.abspath(__file__))
-SCRIPT_FOLDER = os.path.join(MY_FOLDER, 'scripts')
+SCRIPT_FOLDER = os.path.join(MY_FOLDER, 'data')
 JMDICT_SETUP_FILE = os.path.join(SCRIPT_FOLDER, 'setup_jmdict.sql')
 JMDICT_VERSION = '1.08'
 JMDICT_URL = 'http://www.csse.monash.edu.au/~jwb/edict.html'
@@ -183,7 +183,7 @@ class JMDictSQLite(JMDictSchema):
         # select kanji
         kanjis = ctx.Kanji.select('idseq=?', (idseq,))
         for dbkj in kanjis:
-            kj = KanjiReading(dbkj.text)
+            kj = KanjiForm(dbkj.text)
             kjis = ctx.KJI.select('kid=?', (dbkj.ID,))
             for i in kjis:
                 kj.info.append(i.text)
@@ -194,7 +194,7 @@ class JMDictSQLite(JMDictSchema):
         # select kana
         kanas = ctx.Kana.select('idseq=?', (idseq,))
         for dbkn in kanas:
-            kn = KanaReading(dbkn.text, dbkn.nokanji)
+            kn = KanaForm(dbkn.text, dbkn.nokanji)
             knis = ctx.KNI.select('kid=?', (dbkn.ID,))
             for i in knis:
                 kn.info.append(i.text)

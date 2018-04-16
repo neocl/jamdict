@@ -50,7 +50,7 @@ from .kanjidic2 import Character, CodePoint, Radical, Variant, DicRef, QueryCode
 # ------------------------------------------------------------------------------
 
 MY_FOLDER = os.path.dirname(os.path.abspath(__file__))
-SCRIPT_FOLDER = os.path.join(MY_FOLDER, 'scripts')
+SCRIPT_FOLDER = os.path.join(MY_FOLDER, 'data')
 KANJIDIC2_SETUP_FILE = os.path.join(SCRIPT_FOLDER, 'setup_kanjidic2.sql')
 KANJIDIC2_SETUP_SCRIPT = '''
 INSERT INTO meta SELECT 'generator', 'jamdict'
