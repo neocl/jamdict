@@ -88,16 +88,16 @@ class JamdictSQLite(KanjiDic2SQLite, JMDictSQLite):
 
 class Jamdict(object):
 
-    def __init__(self, db_file=None, kd2_file=None, jmd_xml_file=None, kd2_xml_file=None):
+    def __init__(self, db_file=None, kd2_file=None, jmd_xml_file=None, kd2_xml_file=None, auto_config=True):
         # file paths configuration
-        self.db_file = db_file if db_file else config.get_file('JAMDICT_DB')
-        self.kd2_file = kd2_file if kd2_file else config.get_file('JAMDICT_DB')
+        self.db_file = db_file if db_file else config.get_file('JAMDICT_DB') if auto_config else None
+        self.kd2_file = kd2_file if kd2_file else config.get_file('JAMDICT_DB') if auto_config else None
         if not self.db_file:
             getLogger().warning("JAMDICT_DB could NOT be found. Searching will be extremely slow. Please run `python3 -m jamdict.tools import` first")
         if not self.kd2_file:
             getLogger().warning("Kanjidic2 database could NOT be found. Searching will be extremely slow. Please run `python3 -m jamdict.tools import` first")
-        self.jmd_xml_file = jmd_xml_file if jmd_xml_file else config.get_file('JMDICT_XML')
-        self.kd2_xml_file = kd2_xml_file if kd2_xml_file else config.get_file('KD2_XML')
+        self.jmd_xml_file = jmd_xml_file if jmd_xml_file else config.get_file('JMDICT_XML') if auto_config else None
+        self.kd2_xml_file = kd2_xml_file if kd2_xml_file else config.get_file('KD2_XML') if auto_config else None
         # data sources
         self._db_sqlite = None
         self._kd2_sqlite = None
