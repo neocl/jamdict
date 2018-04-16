@@ -50,6 +50,8 @@ import os
 import logging
 from lxml import etree
 
+from chirptext import io as chio
+
 logger = logging.getLogger(__name__)
 
 ########################################################################
@@ -64,8 +66,8 @@ class JMDEntry(object):
     def __init__(self, idseq=''):
         # A unique numeric sequence number for each entry
         self.idseq = idseq     # ent_seq
-        self.kanji_forms = []  # k_ele*  => KanjiReading[]
-        self.kana_forms = []   # r_ele+  => KanaReading[]
+        self.kanji_forms = []  # k_ele*  => KanjiForm[]
+        self.kana_forms = []   # r_ele+  => KanaForm[]
         self.info = None       # info?   => EntryInfo
         self.senses = []       # sense+
 
@@ -80,18 +82,28 @@ class JMDEntry(object):
             logging.warning("WARNING: multiple info tag")
         self.info = info
 
-    def __repr__(self):
-        tmp = ['ID:%s' % self.idseq]
+    def text(self, compact=True, separator=' '):
+        tmp = []
+        if not compact:
+            tmp.append('[id#%s]' % self.idseq)
         if self.kana_forms:
             tmp.append(self.kana_forms[0].text)
         if self.kanji_forms:
-            tmp.append(self.kanji_forms[0].text)
-        for sense, idx in zip(self.senses, range(len(self.senses))):
-            tmp.append('{i}. {s}'.format(i=idx + 1, s=sense))
-        return '|'.join(tmp)
+            tmp.append("({})".format(self.kanji_forms[0].text))
+        if self.senses:
+            tmp.append(':')
+            if len(self.senses) == 1:
+                tmp.append(self.senses[0].text(compact=compact))
+            else:
+                for sense, idx in zip(self.senses, range(len(self.senses))):
+                    tmp.append('{i}. {s}'.format(i=idx + 1, s=sense.text(compact=compact)))
+        return separator.join(tmp)
+
+    def __repr__(self):
+        return self.text(compact=True)
 
     def __str__(self):
-        return repr(self)
+        return self.text(compact=False)
 
     def to_json(self):
         ed = {'idseq': self.idseq,
@@ -103,7 +115,7 @@ class JMDEntry(object):
         return ed
 
 
-class KanjiReading(object):
+class KanjiForm(object):
     ''' The kanji element, or in its absence, the reading element, is
     the defining component of each entry.
     The overwhelming majority of entries will have a single kanji
@@ -174,8 +186,14 @@ class KanjiReading(object):
             kjd['pri'] = self.pri
         return kjd
 
+    def __repr__(self):
+        return str(self)
 
-class KanaReading(object):
+    def __str__(self):
+        return self.text
+
+
+class KanaForm(object):
     '''<!ELEMENT r_ele (reb, re_nokanji?, re_restr*, re_inf*, re_pri*)>
     The reading element typically contains the valid readings
     of the word(s) in the kanji element using modern kanadzukai.
@@ -227,6 +245,12 @@ class KanaReading(object):
         if self.pri:
             knd['pri'] = self.pri
         return knd
+
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
+        return self.text
 
 
 class EntryInfo(object):
@@ -375,8 +399,11 @@ class Sense(object):
         return str(self)
 
     def __str__(self):
+        return self.text(compact=False)
+
+    def text(self, compact=True):
         tmp = [str(x) for x in self.gloss]
-        if self.pos:
+        if not compact and self.pos:
             return '{gloss} ({pos})'.format(gloss='/'.join(tmp), pos=('(%s)' % '|'.join(self.pos)))
         else:
             return '/'.join(tmp)
@@ -513,16 +540,18 @@ class JMDictXMLParser(object):
     def parse_file(self, jmdict_file_path):
         ''' Parse JMDict_e.xml file and return a list of JMDEntry objects
         '''
-        logger.debug('Loading data from file: %s' % (os.path.abspath(jmdict_file_path)))
+        actual_path = os.path.abspath(os.path.expanduser(jmdict_file_path))
+        logger.debug('Loading data from file: {}'.format(actual_path))
 
-        tree = etree.iterparse(jmdict_file_path)
-        entries = []
-        for event, element in tree:
-            if event == 'end' and element.tag == 'entry':
-                entries.append(self.parse_entry_tag(element))
-                # and then we can clear the element to save memory
-                element.clear()
-        return entries
+        with chio.open(actual_path, mode='rb') as jmfile:
+            tree = etree.iterparse(jmfile)
+            entries = []
+            for event, element in tree:
+                if event == 'end' and element.tag == 'entry':
+                    entries.append(self.parse_entry_tag(element))
+                    # and then we can clear the element to save memory
+                    element.clear()
+            return entries
 
     def parse_entry_tag(self, etag):
         '''Parse a lxml XML Node and generate a JMDEntry entry'''
@@ -559,7 +588,7 @@ class JMDictXMLParser(object):
             return children[0]
 
     def parse_k_ele(self, k_ele, entry):
-        kr = KanjiReading()
+        kr = KanjiForm()
         for child in k_ele:
             if child.tag == 'keb':
                 kr.set_text(child.text)
@@ -574,7 +603,7 @@ class JMDictXMLParser(object):
         return kr
 
     def parse_r_ele(self, r_ele, entry):
-        kr = KanaReading()
+        kr = KanaForm()
         for child in r_ele:
             if child.tag == 'reb':
                 kr.set_text(child.text)

@@ -43,7 +43,7 @@ import logging
 
 from puchikarui import Schema
 from . import __version__ as JAMDICT_VERSION, __url__ as JAMDICT_URL
-from .jmdict import JMDEntry, EntryInfo, Link, BibInfo, Audit, KanjiReading, KanaReading, Sense, SenseGloss, LSource
+from .jmdict import JMDEntry, EntryInfo, Link, BibInfo, Audit, KanjiForm, KanaForm, Sense, SenseGloss, LSource
 
 
 # -------------------------------------------------------------------------------
@@ -51,7 +51,7 @@ from .jmdict import JMDEntry, EntryInfo, Link, BibInfo, Audit, KanjiReading, Kan
 # -------------------------------------------------------------------------------
 
 MY_FOLDER = os.path.dirname(os.path.abspath(__file__))
-SCRIPT_FOLDER = os.path.join(MY_FOLDER, 'scripts')
+SCRIPT_FOLDER = os.path.join(MY_FOLDER, 'data')
 JMDICT_SETUP_FILE = os.path.join(SCRIPT_FOLDER, 'setup_jmdict.sql')
 JMDICT_VERSION = '1.08'
 JMDICT_URL = 'http://www.csse.monash.edu.au/~jwb/edict.html'
@@ -80,8 +80,8 @@ class JMDictSchema(Schema):
     KEY_JMD_VER = "jmdict.version"
     KEY_JMD_URL = "jmdict.url"
 
-    def __init__(self, data_source=":memory:", setup_script=None, setup_file=None):
-        super().__init__(data_source, setup_script=setup_script, setup_file=setup_file)
+    def __init__(self, data_source=":memory:", setup_script=None, setup_file=None, *args, **kwargs):
+        super().__init__(data_source, setup_script=setup_script, setup_file=setup_file, *args, **kwargs)
         self.add_script(SETUP_SCRIPT)
         self.add_file(JMDICT_SETUP_FILE)
         # Meta
@@ -117,8 +117,8 @@ class JMDictSchema(Schema):
 
 class JMDictSQLite(JMDictSchema):
 
-    def __init__(self, db_path, setup_script=None, setup_file=None):
-        super().__init__(db_path, setup_script=setup_script, setup_file=setup_file)
+    def __init__(self, db_path, setup_script=None, setup_file=None, *args, **kwargs):
+        super().__init__(db_path, setup_script=setup_script, setup_file=setup_file, *args, **kwargs)
 
     def update_meta(self, version, url, ctx=None):
         # create a default context if none was provided
@@ -146,8 +146,19 @@ class JMDictSQLite(JMDictSchema):
         if ctx is None:
             with self.ctx() as ctx:
                 return self.search(query, ctx=ctx)
+        where = "idseq IN (SELECT idseq FROM Kanji WHERE text like ?) OR idseq IN (SELECT idseq FROM Kana WHERE text like ?)"
+        params = [query, query]
+        try:
+            if query.startswith('id#'):
+                query_int = int(query[3:])
+                if query_int >= 0:
+                    print("Searching by ID: {}".format(query_int))
+                    where = "idseq = ?"
+                    params = [query_int]
+        except:
+            pass
         # else (a context is provided)
-        eids = self.Entry.select("idseq IN (SELECT idseq FROM Kanji WHERE text like ?) OR idseq IN (SELECT idseq FROM Kana WHERE text like ?)", (query, query), ctx=ctx)
+        eids = self.Entry.select(where, params, ctx=ctx)
         entries = []
         for e in eids:
             entries.append(self.get_entry(e.idseq, ctx=ctx))
@@ -183,7 +194,7 @@ class JMDictSQLite(JMDictSchema):
         # select kanji
         kanjis = ctx.Kanji.select('idseq=?', (idseq,))
         for dbkj in kanjis:
-            kj = KanjiReading(dbkj.text)
+            kj = KanjiForm(dbkj.text)
             kjis = ctx.KJI.select('kid=?', (dbkj.ID,))
             for i in kjis:
                 kj.info.append(i.text)
@@ -194,7 +205,7 @@ class JMDictSQLite(JMDictSchema):
         # select kana
         kanas = ctx.Kana.select('idseq=?', (idseq,))
         for dbkn in kanas:
-            kn = KanaReading(dbkn.text, dbkn.nokanji)
+            kn = KanaForm(dbkn.text, dbkn.nokanji)
             knis = ctx.KNI.select('kid=?', (dbkn.ID,))
             for i in knis:
                 kn.info.append(i.text)

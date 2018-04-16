@@ -50,7 +50,7 @@ from .kanjidic2 import Character, CodePoint, Radical, Variant, DicRef, QueryCode
 # ------------------------------------------------------------------------------
 
 MY_FOLDER = os.path.dirname(os.path.abspath(__file__))
-SCRIPT_FOLDER = os.path.join(MY_FOLDER, 'scripts')
+SCRIPT_FOLDER = os.path.join(MY_FOLDER, 'data')
 KANJIDIC2_SETUP_FILE = os.path.join(SCRIPT_FOLDER, 'setup_kanjidic2.sql')
 KANJIDIC2_SETUP_SCRIPT = '''
 INSERT INTO meta SELECT 'generator', 'jamdict'
@@ -78,8 +78,8 @@ class KanjiDic2Schema(Schema):
     KEY_DB_VER = 'kanjidic2.database_version'
     KEY_CREATED_DATE = 'kanjidic2.date_of_creation'
 
-    def __init__(self, data_source, setup_script=None, setup_file=None):
-        super().__init__(data_source, setup_script=setup_script, setup_file=setup_file)
+    def __init__(self, data_source, setup_script=None, setup_file=None, *args, **kwargs):
+        super().__init__(data_source, setup_script=setup_script, setup_file=setup_file, *args, **kwargs)
         self.add_file(KANJIDIC2_SETUP_FILE)
         self.add_script(KANJIDIC2_SETUP_SCRIPT)
         # Meta
@@ -100,8 +100,8 @@ class KanjiDic2Schema(Schema):
 
 class KanjiDic2SQLite(KanjiDic2Schema):
 
-    def __init__(self, db_path, setup_script=None, setup_file=None):
-        super().__init__(db_path, setup_script=setup_script, setup_file=setup_file)
+    def __init__(self, db_path, setup_script=None, setup_file=None, *args, **kwargs):
+        super().__init__(db_path, setup_script=setup_script, setup_file=setup_file, *args, **kwargs)
 
     def update_meta(self, file_version, database_version, date_of_creation, ctx=None):
         # ensure context
@@ -196,7 +196,7 @@ class KanjiDic2SQLite(KanjiDic2Schema):
         # context was ensured
         c = ctx.char.select_single('literal=?', (literal,))
         if not c:
-            getLogger().info("character {} could not be found".format(literal))
+            getLogger().debug("character {} could not be found".format(literal))
             return None
         else:
             return self.char_by_id(c.ID, ctx)

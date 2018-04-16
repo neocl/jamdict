@@ -47,9 +47,12 @@ References:
 
 ########################################################################
 
+import os
 import logging
 import threading
 from collections import defaultdict as dd
+
+from . import config
 from .jmdict import JMDictXMLParser
 from .jmdict_sqlite import JMDictSQLite
 from .kanjidic2 import Kanjidic2XMLParser
@@ -58,17 +61,40 @@ from .kanjidic2_sqlite import KanjiDic2SQLite
 
 ########################################################################
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+def getLogger():
+    return logging.getLogger(__name__)
+
 
 ########################################################################
-
 
 class LookupResult(object):
 
     def __init__(self, entries, chars):
         self.entries = entries if entries else []
         self.chars = chars if chars else []
+
+    def text(self, compact=True, entry_sep='。', separator=' | '):
+        output = []
+        if self.entries:
+            entries_txt = str(entry_sep.join(e.text(compact=compact, separator='') for e in self.entries))
+            output.append("Entries: ")
+            output.append(entries_txt)
+        if self.entries:
+            if compact:
+                chars_txt = ', '.join(str(c) for c in self.chars)
+            else:
+                chars_txt = ', '.join(repr(c) for c in self.chars)
+            if output:
+                output.append(separator)
+            output.append("Chars: ")
+            output.append(chars_txt)
+        return "".join(output) if output else "Found nothing"
+
+    def __repr__(self):
+        return self.text(compact=True)
+
+    def __str__(self):
+        return self.text(compact=False)
 
     def to_json(self):
         return {'entries': [e.to_json() for e in self.entries],
@@ -77,18 +103,23 @@ class LookupResult(object):
 
 class JamdictSQLite(KanjiDic2SQLite, JMDictSQLite):
 
-    def __init__(self, data_source, setup_script=None, setup_file=None):
-        super().__init__(data_source, setup_script=setup_script, setup_file=setup_file)
+    def __init__(self, data_source, setup_script=None, setup_file=None, *args, **kwargs):
+        super().__init__(data_source, setup_script=setup_script, setup_file=setup_file, *args, **kwargs)
 
 
 class Jamdict(object):
 
-    def __init__(self, db_file=None, kd2_file=None, jmd_xml_file=None, kd2_xml_file=None):
+    def __init__(self, db_file=None, kd2_file=None, jmd_xml_file=None, kd2_xml_file=None, auto_config=True, auto_expand=True):
         # file paths configuration
-        self.db_file = db_file
-        self.kd2_file = kd2_file
-        self.jmd_xml_file = jmd_xml_file
-        self.kd2_xml_file = kd2_xml_file
+        self.auto_expand = auto_expand
+        self.db_file = db_file if db_file else config.get_file('JAMDICT_DB') if auto_config else None
+        self.kd2_file = kd2_file if kd2_file else config.get_file('JAMDICT_DB') if auto_config else None
+        if not self.db_file or not os.path.isfile(self.db_file):
+            getLogger().warning("JAMDICT_DB could NOT be found. Searching will be extremely slow. Please run `python3 -m jamdict.tools import` first")
+        if not self.kd2_file or os.path.isfile(self.kd2_file):
+            getLogger().warning("Kanjidic2 database could NOT be found. Searching will be extremely slow. Please run `python3 -m jamdict.tools import` first")
+        self.jmd_xml_file = jmd_xml_file if jmd_xml_file else config.get_file('JMDICT_XML') if auto_config else None
+        self.kd2_xml_file = kd2_xml_file if kd2_xml_file else config.get_file('KD2_XML') if auto_config else None
         # data sources
         self._db_sqlite = None
         self._kd2_sqlite = None
@@ -96,23 +127,35 @@ class Jamdict(object):
         self._kd2_xml = None
 
     @property
+    def db_file(self):
+        return self.__db_file
+
+    @db_file.setter
+    def db_file(self, value):
+        if self.auto_expand and value:
+            self.__db_file = os.path.abspath(os.path.expanduser(value))
+        else:
+            self.__db_file = None
+
+    @property
     def jmdict(self):
         if not self._db_sqlite and self.db_file:
             with threading.Lock():
-                if not self.kd2_file:
+                if not self.kd2_file or self.kd2_file == self.db_file:
                     # Use 1 DB for both
-                    self._db_sqlite = JamdictSQLite(self.db_file)
+                    self._db_sqlite = JamdictSQLite(self.db_file, auto_expand_path=self.auto_expand)
+                    self._kd2_sqlite = self._db_sqlite
                 else:
                     # use 2 separated files
-                    self._db_sqlite = JMDictSQLite(self.db_file)
+                    self._db_sqlite = JMDictSQLite(self.db_file, auto_expand_path=self.auto_expand)
         return self._db_sqlite
 
     @property
     def kd2(self):
-        if not self._kd2_sqlite:
-            if self.kd2_file:
+        if self._kd2_sqlite is None:
+            if self.kd2_file is not None:
                 with threading.Lock():
-                    self.kd2_sqlite = KanjiDic2SQLite(self.kd2_file)
+                    self._kd2_sqlite = KanjiDic2SQLite(self.kd2_file, auto_expand_path=self.auto_expand)
             else:
                 self._kd2_sqlite = self.jmdict
         return self._kd2_sqlite
@@ -141,14 +184,14 @@ class Jamdict(object):
     def import_data(self):
         ''' Import JMDict and KanjiDic2 data from XML to SQLite '''
         if self.jmdict and self.jmdict_xml:
-            logger.info("Importing JMDict data")
+            getLogger().info("Importing JMDict data")
             self.jmdict.insert_entries(self.jmdict_xml)
-        if self.kd2 and self.kd2_xml:
-            logger.info("Importing KanjiDic2 data")
+        if self.kd2 is not None and self.kd2_xml:
+            getLogger().info("Importing KanjiDic2 data")
             self.kd2.insert_chars(self.kd2_xml)
 
     def get_char(self, literal):
-        if self.kd2:
+        if self.kd2 is not None:
             return self.kd2.get_char(literal)
         elif self.kd2_xml:
             return self.kd2_xml.lookup(literal)
@@ -171,7 +214,7 @@ class Jamdict(object):
         # Lookup words
         entries = []
         chars = []
-        if self.jmdict:
+        if self.jmdict is not None:
             entries = self.jmdict.search(query)
         elif self.jmdict_xml:
             entries = self.jmdict_xml.lookup(query)
@@ -194,7 +237,7 @@ class JMDictXML(object):
     '''
     def __init__(self, entries):
         self.entries = entries
-        self._seqmap = {}
+        self._seqmap = {}  # entryID - entryObj map
         self._textmap = dd(set)
         # compile map
         for entry in self.entries:
@@ -213,15 +256,17 @@ class JMDictXML(object):
     def lookup(self, a_query):
         if a_query in self._textmap:
             return tuple(self._textmap[a_query])
-        elif a_query in self._seqmap:
-            return (self._seqmap[a_query],)
-        else:
-            return ()
+        elif a_query.startswith('id#'):
+            entry_id = a_query[3:]
+            if entry_id in self._seqmap:
+                return (self._seqmap[entry_id],)
+        # found nothing
+        return ()
 
     @staticmethod
     def from_file(filename):
         parser = JMDictXMLParser()
-        return JMDictXML(parser.parse_file(filename))
+        return JMDictXML(parser.parse_file(os.path.abspath(os.path.expanduser(filename))))
 
 
 class KanjiDic2XML(object):
@@ -233,7 +278,7 @@ class KanjiDic2XML(object):
         self.char_map = {}
         for char in self.kd2:
             if char.literal in self.char_map:
-                logger.warning("Duplicate character entry: {}".format(char.literal))
+                getLogger().warning("Duplicate character entry: {}".format(char.literal))
             self.char_map[char.literal] = char
 
     def __len__(self):

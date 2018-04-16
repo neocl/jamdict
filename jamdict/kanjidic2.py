@@ -51,6 +51,8 @@ import os
 import logging
 from lxml import etree
 
+from chirptext import io as chio
+
 
 # ------------------------------------------------------------------------------
 # Configuration
@@ -123,7 +125,12 @@ class Character(object):
         self.nanoris = []  # a list of strings
 
     def __repr__(self):
-        return "{l}:{sc}".format(l=self.literal, sc=self.stroke_count)
+        meanings = []
+        for rm in self.rm_groups:
+            for m in rm.meanings:
+                if m.m_lang == '':
+                    meanings.append(m.value)
+        return "{l}:{sc}:{meanings}".format(l=self.literal, sc=self.stroke_count, meanings=','.join(meanings))
 
     def __str__(self):
         return self.literal
@@ -516,22 +523,24 @@ class Kanjidic2XMLParser(object):
         else:
             return default_value
 
-    def parse_file(self, jmdict_file_path):
-        ''' Parse JMDict_e.xml file and return a list of JMDEntry objects
+    def parse_file(self, kd2_file_path):
+        ''' Parse all characters from Kanjidic2 XML file
         '''
-        getLogger().debug('Loading data from file: %s' % (os.path.abspath(jmdict_file_path)))
+        actual_path = os.path.abspath(os.path.expanduser(kd2_file_path))
+        getLogger().debug('Loading data from file: {}'.format(actual_path))
 
-        tree = etree.iterparse(jmdict_file_path)
-        kd2 = None
-        for event, element in tree:
-            if event == 'end':
-                if element.tag == 'header':
-                    kd2 = self.parse_header(element)
-                    element.clear()
-                elif element.tag == 'character':
-                    kd2.characters.append(self.parse_char(element))
-                    element.clear()
-        return kd2
+        with chio.open(actual_path, mode='rb') as kd2file:
+            tree = etree.iterparse(kd2file)
+            kd2 = None
+            for event, element in tree:
+                if event == 'end':
+                    if element.tag == 'header':
+                        kd2 = self.parse_header(element)
+                        element.clear()
+                    elif element.tag == 'character':
+                        kd2.characters.append(self.parse_char(element))
+                        element.clear()
+            return kd2
 
     def parse_header(self, e):
         fv = None

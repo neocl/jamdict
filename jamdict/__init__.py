@@ -44,26 +44,14 @@ References:
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-
-__author__ = "Le Tuan Anh"
-__email__ = "tuananh.ke@gmail.com"
-__copyright__ = "Copyright 2016, jamdict"
-__credits__ = []
-__license__ = "MIT License"
-__description__ = "Python library for manipulating Jim Breen's JMdict & KanjiDic2"
-__url__ = "https://github.com/neocl/jamdict"
-__maintainer__ = "Le Tuan Anh"
-__version_major__ = "0.1"
-__version__ = "{}a1".format(__version_major__)
-__version_long__ = "{} - Alpha".format(__version_major__)
-__status__ = "Prototype"
-
 ########################################################################
+
+from .__version__ import __author__, __email__, __copyright__, __maintainer__
+from .__version__ import __credits__, __license__, __description__, __url__
+from .__version__ import __version_major__, __version_long__, __version__, __status__
 
 from .jmdict_sqlite import JMDictSQLite
 from .kanjidic2_sqlite import KanjiDic2SQLite
 from .util import Jamdict, JMDictXML, KanjiDic2XML
-
-########################################################################
-
-__all__ = ['Jamdict', 'JMDictSQLite', 'JMDictXML', 'KanjiDic2SQLite', 'KanjiDic2XML']
+__all__ = ['Jamdict', 'JMDictSQLite', 'JMDictXML', 'KanjiDic2SQLite', 'KanjiDic2XML',
+           "__version__", "__author__", "__description__", "__copyright__"]

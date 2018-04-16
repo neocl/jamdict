@@ -1,0 +1,8 @@
+{
+  "JAMDICT_HOME": "~/.jamdict",
+  "JAMDICT_DATA": "{JAMDICT_HOME}/data",
+  "JAMDICT_DB": "{JAMDICT_DATA}/jamdict.db",
+  "JMDICT_XML": "{JAMDICT_DATA}/JMdict_e.gz",
+  "KD2_XML": "{JAMDICT_DATA}/kanjidic2.xml.gz",
+  "KRADFILE": "{JAMDICT_DATA}/kradfile-u.gz"
+}
