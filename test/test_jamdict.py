@@ -89,6 +89,11 @@ class TestModels(unittest.TestCase):
         self.assertEqual(str(e[0].text()), 'repetition mark in katakana')  # compact is enabled by default
         self.assertEqual(str(e[0].gloss[0]), 'repetition mark in katakana')
 
+    def test_lookup_result(self):
+        jam = Jamdict(jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2, auto_config=False)
+        result = jam.lookup('おみやげ')
+        print(repr(result))
+
 
 class TestJamdictXML(unittest.TestCase):
 
