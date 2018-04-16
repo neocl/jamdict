@@ -61,7 +61,6 @@ TEST_DATA = os.path.join(TEST_DIR, 'data')
 if not os.path.isdir(TEST_DATA):
     os.makedirs(TEST_DATA)
 TEST_DB = os.path.join(TEST_DATA, 'jamcha.db')
-RAM_DB = ':memory:'
 MINI_KD2 = os.path.join(TEST_DATA, 'kanjidic2_mini.xml')
 
 
@@ -76,7 +75,7 @@ def getLogger():
 class TestJamdictSQLite(unittest.TestCase):
 
     db = KanjiDic2SQLite(TEST_DB)
-    ramdb = KanjiDic2SQLite(RAM_DB)
+    ramdb = KanjiDic2SQLite(":memory:", auto_expand_path=False)
     xdb = KanjiDic2XML.from_file(MINI_KD2)
 
     @classmethod
@@ -87,7 +86,7 @@ class TestJamdictSQLite(unittest.TestCase):
 
     def test_xml2sqlite(self):
         print("Test KanjiDic2 - XML to SQLite DB in RAM")
-        print(len(self.xdb))
+        getLogger().info("Testing using {} test characters".format(len(self.xdb)))
         db = self.ramdb
         with db.ctx() as ctx:
             fv = self.xdb.kd2.file_version

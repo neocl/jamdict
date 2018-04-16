@@ -63,7 +63,6 @@ TEST_DATA = os.path.join(TEST_DIR, 'data')
 if not os.path.isdir(TEST_DATA):
     os.makedirs(TEST_DATA)
 TEST_DB = os.path.join(TEST_DATA, 'test.db')
-RAM_DB = ':memory:'
 MINI_JMD = os.path.join(TEST_DATA, 'JMdict_mini.xml')
 
 
@@ -79,7 +78,7 @@ class TestJamdictSQLite(unittest.TestCase):
 
     db = JMDictSQLite(TEST_DB)
     xdb = JMDictXML.from_file(MINI_JMD)
-    ramdb = JMDictSQLite(RAM_DB)
+    ramdb = JMDictSQLite(":memory:", auto_expand_path=False)
 
     @classmethod
     def setUpClass(cls):
@@ -106,13 +105,13 @@ class TestJamdictSQLite(unittest.TestCase):
     def test_xml2ramdb(self):
         print("Testing XML to RAM")
         noe = len(self.xdb)
-        with self.ramdb.ds.open() as ctx:
+        with self.ramdb.ctx() as ctx:
             self.ramdb.insert_entries(self.xdb, ctx=ctx)
             self.assertEqual(len(self.ramdb.Entry.select(ctx=ctx)), noe)
 
     def test_import_function(self):
         print("Testing JMDict import function")
-        jd = Jamdict(db_file=RAM_DB, jmd_xml_file=MINI_JMD, auto_config=False)
+        jd = Jamdict(db_file=":memory:", jmd_xml_file=MINI_JMD, auto_config=False, auto_expand=False)
         jd.import_data()
 
     def test_search(self):

@@ -90,9 +90,15 @@ class TestModels(unittest.TestCase):
         self.assertEqual(str(e[0].gloss[0]), 'repetition mark in katakana')
 
     def test_lookup_result(self):
-        jam = Jamdict(jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2, auto_config=False)
+        jam = Jamdict(jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2, auto_config=False, auto_expand=False)
         result = jam.lookup('おみやげ')
         print(repr(result))
+        self.assertTrue(result.entries)
+        self.assertEqual(result.entries[0].kana_forms[0].text, 'おみやげ')
+        # test lookup by ID
+        res = jam.lookup('id#{}'.format(1002490))
+        self.assertTrue(res.entries)
+        self.assertEqual(res.entries[0].kana_forms[0].text, 'おとそ')
 
 
 class TestJamdictXML(unittest.TestCase):
