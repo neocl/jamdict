@@ -49,9 +49,10 @@ I have mirrored these files to Google Drive so you can download there too:
 [https://drive.google.com/drive/folders/1z4zF9ImZlNeTZZplflvvnpZfJp3WVLPk](https://drive.google.com/drive/folders/1z4zF9ImZlNeTZZplflvvnpZfJp3WVLPk)
 
 Official website
-- JMdict: [http://edrdg.org/jmdict/edict_doc.html](http://edrdg.org/jmdict/edict_doc.html)
-- kanjidic2: [http://www.edrdg.org/kanjidic/kanjd2index.html](http://www.edrdg.org/kanjidic/kanjd2index.html)
-- KRADFILE: [http://www.edrdg.org/krad/kradinf.html](http://www.edrdg.org/krad/kradinf.html)
+
+* JMdict: [http://edrdg.org/jmdict/edict_doc.html](http://edrdg.org/jmdict/edict_doc.html)
+* kanjidic2: [http://www.edrdg.org/kanjidic/kanjd2index.html](http://www.edrdg.org/kanjidic/kanjd2index.html)
+* KRADFILE: [http://www.edrdg.org/krad/kradinf.html](http://www.edrdg.org/krad/kradinf.html)
 
 
 # Sample codes
