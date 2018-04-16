@@ -68,7 +68,7 @@ def get_jam(cli, args):
         cli.logger.warning("Kanjidic2 database location: {}".format(args.kd2))
         jmd = Jamdict(db_file=args.jdb, kd2_file=args.kd2, jmd_xml_file=args.jmdxml, kd2_xml_file=args.kd2xml)
     else:
-        cli.logger.info("Using the same database for both JMDict and Kanjidic2")
+        cli.logger.debug("Using the same database for both JMDict and Kanjidic2")
         jmd = Jamdict(db_file=args.jdb, kd2_file=args.jdb, jmd_xml_file=args.jmdxml, kd2_xml_file=args.kd2xml)
     if jmd.kd2 is None:
         cli.logger.warning("Kanjidic2 database could not be found")
