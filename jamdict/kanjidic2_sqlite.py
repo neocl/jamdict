@@ -196,7 +196,7 @@ class KanjiDic2SQLite(KanjiDic2Schema):
         # context was ensured
         c = ctx.char.select_single('literal=?', (literal,))
         if not c:
-            getLogger().info("character {} could not be found".format(literal))
+            getLogger().debug("character {} could not be found".format(literal))
             return None
         else:
             return self.char_by_id(c.ID, ctx)
