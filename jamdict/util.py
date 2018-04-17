@@ -52,6 +52,8 @@ import logging
 import threading
 from collections import defaultdict as dd
 
+from chirptext.deko import HIRAGANA, KATAKANA
+
 from . import config
 from .jmdict import JMDictXMLParser
 from .jmdict_sqlite import JMDictSQLite
@@ -206,7 +208,7 @@ class Jamdict(object):
         else:
             raise LookupError("There is no backend data available")
 
-    def lookup(self, query):
+    def lookup(self, query, strict_lookup=False):
         if not self.is_available():
             raise LookupError("There is no backend data available")
         elif not query:
@@ -221,10 +223,12 @@ class Jamdict(object):
         if self.has_kd2():
             # lookup each character in query and kanji readings of each found entries
             chars_to_search = set(query)
-            if entries:
+            if not strict_lookup and entries:
+                # auto add characters from entries
                 for e in entries:
                     for k in e.kanji_forms:
-                        chars_to_search.update(k.text)
+                        if k not in HIRAGANA and k not in KATAKANA:
+                            chars_to_search.update(k.text)
             for c in chars_to_search:
                 result = self.get_char(c)
                 if result is not None:
