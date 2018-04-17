@@ -43,7 +43,7 @@ import logging
 
 from puchikarui import Schema
 from . import __version__ as JAMDICT_VERSION, __url__ as JAMDICT_URL
-from .jmdict import JMDEntry, EntryInfo, Link, BibInfo, Audit, KanjiForm, KanaForm, Sense, SenseGloss, LSource
+from .jmdict import Meta, JMDEntry, EntryInfo, Link, BibInfo, Audit, KanjiForm, KanaForm, Sense, SenseGloss, LSource
 
 
 # -------------------------------------------------------------------------------
@@ -85,7 +85,7 @@ class JMDictSchema(Schema):
         self.add_script(SETUP_SCRIPT)
         self.add_file(JMDICT_SETUP_FILE)
         # Meta
-        self.add_table('meta', ['jmdict_version', 'jmdict_url', 'generator', 'generator_version', 'generator_url'])
+        self.add_table('meta', ['key', 'value'], proto=Meta).set_id('key')
         self.add_table('Entry', ['idseq'])
         self.add_table('Link', ['ID', 'idseq', 'tag', 'desc', 'uri'])
         self.add_table('Bib', ['ID', 'idseq', 'tag', 'text'])
