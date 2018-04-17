@@ -227,8 +227,9 @@ class Jamdict(object):
                 # auto add characters from entries
                 for e in entries:
                     for k in e.kanji_forms:
-                        if k not in HIRAGANA and k not in KATAKANA:
-                            chars_to_search.update(k.text)
+                        for c in k.text:
+                            if c not in HIRAGANA and c not in KATAKANA:
+                                chars_to_search.add(c)
             for c in chars_to_search:
                 result = self.get_char(c)
                 if result is not None:
