@@ -86,6 +86,7 @@ class LookupResult(object):
                 chars_txt = ', '.join(str(c) for c in self.chars)
             else:
                 chars_txt = ', '.join(repr(c) for c in self.chars)
+        if self.chars:
             if output:
                 output.append(separator)
             output.append("Chars: ")
