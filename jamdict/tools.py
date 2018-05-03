@@ -99,39 +99,41 @@ def import_data(cli, args):
         print("Database paths were not provided. Process aborted.")
 
 
-def dump_result(results):
+def dump_result(results, report=None):
+    if report is None:
+        report = TextReport()
     if results.entries:
-        print("=" * 40)
-        print("Found entries")
-        print("=" * 40)
+        report.print("=" * 40)
+        report.print("Found entries")
+        report.print("=" * 40)
         for e in results.entries:
             kj = ', '.join([k.text for k in e.kanji_forms])
             kn = ', '.join([k.text for k in e.kana_forms])
-            print("Entry: {} | Kj:  {} | Kn: {}".format(e.idseq, kj, kn))
-            print("-" * 20)
+            report.print("Entry: {} | Kj:  {} | Kn: {}".format(e.idseq, kj, kn))
+            report.print("-" * 20)
             for idx, s in enumerate(e.senses):
-                print("{idx}. {s}".format(idx=idx + 1, s=s))
-            print('')
+                report.print("{idx}. {s}".format(idx=idx + 1, s=s))
+            report.print('')
     else:
-        print("No dictionary entry was found.")
+        report.print("No dictionary entry was found.")
     if results.chars:
-        print("=" * 40)
-        print("Found characters")
-        print("=" * 40)
+        report.print("=" * 40)
+        report.print("Found characters")
+        report.print("=" * 40)
         for c in results.chars:
-            print("Char: {} | Strokes: {}".format(c, c.stroke_count))
-            print("-" * 20)
+            report.print("Char: {} | Strokes: {}".format(c, c.stroke_count))
+            report.print("-" * 20)
             for rmg in c.rm_groups:
-                print("Readings:", ", ".join([r.value for r in rmg.readings]))
-                print("Meanings:", ", ".join([m.value for m in rmg.meanings if not m.m_lang or m.m_lang == 'en']))
+                report.print("Readings:", ", ".join([r.value for r in rmg.readings]))
+                report.print("Meanings:", ", ".join([m.value for m in rmg.meanings if not m.m_lang or m.m_lang == 'en']))
     else:
-        print("No character was found.")
+        report.print("No character was found.")
 
 
 def lookup(cli, args):
     '''Lookup words by kanji/kana'''
     jam = get_jam(cli, args)
-    results = jam.lookup(args.query)
+    results = jam.lookup(args.query, strict_lookup=args.strict)
     if args.format == 'json':
         print(results.to_json())
     else:
@@ -185,6 +187,7 @@ def main():
     lookup_task.add_argument('query', help='kanji/kana')
     lookup_task.add_argument('-f', '--format', help='json or text')
     lookup_task.add_argument('--compact', action='store_true')
+    lookup_task.add_argument('-s', '--strict', action='store_true')
     lookup_task.set_defaults(func=lookup)
     add_data_config(lookup_task)
 
