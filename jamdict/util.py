@@ -51,7 +51,7 @@ import os
 import logging
 import threading
 from collections import defaultdict as dd
-
+from collections import OrderedDict
 from chirptext.deko import HIRAGANA, KATAKANA
 
 from . import config
@@ -75,18 +75,17 @@ class LookupResult(object):
         self.entries = entries if entries else []
         self.chars = chars if chars else []
 
-    def text(self, compact=True, entry_sep='。', separator=' | '):
+    def text(self, compact=True, entry_sep='。', separator=' | ', no_id=False, with_chars=True):
         output = []
         if self.entries:
-            entries_txt = str(entry_sep.join(e.text(compact=compact, separator='') for e in self.entries))
+            entries_txt = str(entry_sep.join(e.text(compact=compact, separator='', no_id=no_id) for e in self.entries))
             output.append("Entries: ")
             output.append(entries_txt)
-        if self.entries:
+        if self.chars and with_chars:
             if compact:
                 chars_txt = ', '.join(str(c) for c in self.chars)
             else:
                 chars_txt = ', '.join(repr(c) for c in self.chars)
-        if self.chars:
             if output:
                 output.append(separator)
             output.append("Chars: ")
@@ -193,9 +192,9 @@ class Jamdict(object):
             getLogger().info("Importing KanjiDic2 data")
             self.kd2.insert_chars(self.kd2_xml)
 
-    def get_char(self, literal):
+    def get_char(self, literal, ctx=None):
         if self.kd2 is not None:
-            return self.kd2.get_char(literal)
+            return self.kd2.get_char(literal, ctx=ctx)
         elif self.kd2_xml:
             return self.kd2_xml.lookup(literal)
         else:
@@ -209,7 +208,7 @@ class Jamdict(object):
         else:
             raise LookupError("There is no backend data available")
 
-    def lookup(self, query, strict_lookup=False):
+    def lookup(self, query, strict_lookup=False, lookup_chars=True, ctx=None):
         if not self.is_available():
             raise LookupError("There is no backend data available")
         elif not query:
@@ -218,21 +217,21 @@ class Jamdict(object):
         entries = []
         chars = []
         if self.jmdict is not None:
-            entries = self.jmdict.search(query)
+            entries = self.jmdict.search(query, ctx=ctx)
         elif self.jmdict_xml:
             entries = self.jmdict_xml.lookup(query)
-        if self.has_kd2():
+        if lookup_chars and self.has_kd2():
             # lookup each character in query and kanji readings of each found entries
-            chars_to_search = set(query)
+            chars_to_search = OrderedDict({c: c for c in query})
             if not strict_lookup and entries:
                 # auto add characters from entries
                 for e in entries:
                     for k in e.kanji_forms:
                         for c in k.text:
                             if c not in HIRAGANA and c not in KATAKANA:
-                                chars_to_search.add(c)
+                                chars_to_search[c] = c
             for c in chars_to_search:
-                result = self.get_char(c)
+                result = self.get_char(c, ctx=ctx)
                 if result is not None:
                     chars.append(result)
         return LookupResult(entries, chars)
