@@ -52,22 +52,22 @@ import flask
 from flask import Flask, Response
 from functools import wraps
 from flask import request
+
+from chirptext.cli import setup_logging
+
 from jamdict import Jamdict
 
 # ---------------------------------------------------------------------
 # CONFIGURATION
 # ---------------------------------------------------------------------
 
+setup_logging('logging.json', 'logs')
 app = Flask(__name__, static_url_path="")
-# Prefer to use jmdict.en
-DB_FILE = os.path.abspath('./data/jamdict.en.db')
-if not os.path.isfile(DB_FILE):
-    DB_FILE = os.path.abspath('./data/jamdict.db')
-jmd = Jamdict(db_file=DB_FILE)
+jmd = Jamdict()
 
 
-def get_logger():
-    logging.getLogger(__name__)
+def getLogger():
+    return logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------
@@ -100,9 +100,11 @@ def get_entry(idseq):
 
 
 @app.route('/jamdol/search/<query>', methods=['GET'])
+@app.route('/jamdol/search/<strict>/<query>', methods=['GET'])
 @jsonp
-def search(query):
-    results = jmd.lookup(query)
+def search(query, strict=None):
+    getLogger().info("Query = {}".format(query))
+    results = jmd.lookup(query, strict_lookup=strict)
     return results.to_json()
 
 
