@@ -50,7 +50,7 @@ import os
 import logging
 from lxml import etree
 
-from chirptext import io as chio
+from chirptext import chio
 
 logger = logging.getLogger(__name__)
 
@@ -82,9 +82,9 @@ class JMDEntry(object):
             logging.warning("WARNING: multiple info tag")
         self.info = info
 
-    def text(self, compact=True, separator=' '):
+    def text(self, compact=True, separator=' ', no_id=False):
         tmp = []
-        if not compact:
+        if not compact and not no_id:
             tmp.append('[id#%s]' % self.idseq)
         if self.kana_forms:
             tmp.append(self.kana_forms[0].text)

@@ -35,7 +35,7 @@ import os
 import logging
 
 from chirptext import AppConfig
-from chirptext.io import read_file, write_file
+from chirptext.chio import read_file, write_file
 
 # ----------------------------------------------------------------------
 # Configuration
