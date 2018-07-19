@@ -39,6 +39,7 @@ References:
 
 import os
 
+
 from chirptext import confirm, TextReport, Timer
 from chirptext.cli import CLIApp, setup_logging
 
@@ -54,7 +55,11 @@ from jamdict import version_info
 JMD_XML = config.get_file('JMDICT_XML')
 KD2_XML = config.get_file('KD2_XML')
 JMD_DB = config.get_file('JAMDICT_DB')
-setup_logging('logging.json', 'logs')
+
+if os.path.isfile('logging.json'):
+    setup_logging('logging.json', 'logs')
+else:
+    setup_logging(os.path.join(config.home_dir(), 'logging.json'), 'logs')
 
 
 # -------------------------------------------------------------------------------
@@ -152,7 +157,7 @@ def file_status(file_path):
 def show_info(cli, args):
     ''' Show jamdict configuration (data folder, configuration file location, etc.) '''
     output = TextReport(args.output) if 'output' in args else TextReport()
-    output.header("Jamdict | {} - Version: {}".format(version_info.__description__, version_info.__version_long__), level='h0')
+    output.header("Jamdict | {} - Version: {}".format(version_info.__description__, version_info.__version__), level='h0')
     output.header("Basic configuration")
     output.print("JAMDICT_HOME:           {}".format(config.home_dir()))
     output.print("Configuration location: {}".format(config._get_config_manager().locate_config()))
