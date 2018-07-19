@@ -44,6 +44,10 @@
             "propagate": "no"
         },
         "jamdol-flask": { "level": "INFO" }
+        ,
+        "chirptext.dekomecab": {
+          "level": "ERROR"
+        }
     },
 
     "root": {
