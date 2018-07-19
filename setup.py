@@ -11,7 +11,6 @@ Latest version can be found at https://github.com/neocl/jamdict
 '''
 
 import io
-import os
 from setuptools import setup
 
 
@@ -26,10 +25,16 @@ def read(*filenames, **kwargs):
     return sep.join(buf)
 
 
-readme_file = 'README.rst' if os.path.isfile('README.rst') else 'README.md'
+# readme_file = 'README.rst' if os.path.isfile('README.rst') else 'README.md'
+readme_file = 'README.md'
 long_description = read(readme_file)
 pkg_info = {}
 exec(read('jamdict/__version__.py'), pkg_info)
+
+
+with open('requirements.txt', 'r') as infile:
+    requirements = infile.read().splitlines()
+    print(requirements)
 
 
 setup(
@@ -43,8 +48,8 @@ setup(
     keywords="nlp",
     license=pkg_info['__license__'],
     author=pkg_info['__author__'],
-    tests_require=['lxml', 'chirptext', 'puchikarui'],
-    install_requires=['lxml', 'chirptext', 'puchikarui'],
+    tests_require=requirements,
+    install_requires=requirements,
     author_email=pkg_info['__email__'],
     description=pkg_info['__description__'],
     long_description=long_description,
