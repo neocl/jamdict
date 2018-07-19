@@ -46,6 +46,7 @@ References:
 
 ########################################################################
 
+from . import __version__ as version_info
 from .__version__ import __author__, __email__, __copyright__, __maintainer__
 from .__version__ import __credits__, __license__, __description__, __url__
 from .__version__ import __version_major__, __version_long__, __version__, __status__
@@ -54,4 +55,4 @@ from .jmdict_sqlite import JMDictSQLite
 from .kanjidic2_sqlite import KanjiDic2SQLite
 from .util import Jamdict, JMDictXML, KanjiDic2XML
 __all__ = ['Jamdict', 'JMDictSQLite', 'JMDictXML', 'KanjiDic2SQLite', 'KanjiDic2XML',
-           "__version__", "__author__", "__description__", "__copyright__"]
+           "__version__", "__author__", "__description__", "__copyright__", "version_info"]

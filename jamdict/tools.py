@@ -44,6 +44,7 @@ from chirptext.cli import CLIApp, setup_logging
 
 from jamdict import Jamdict
 from jamdict import config
+from jamdict import version_info
 
 # -------------------------------------------------------------------------------
 # Configuration
@@ -150,11 +151,15 @@ def file_status(file_path):
 
 def show_info(cli, args):
     ''' Show jamdict configuration (data folder, configuration file location, etc.) '''
-    print("Configuration location: {}".format(config._get_config_manager().locate_config()))
-    print("-" * 40)
-    print("Jamdict DB location   : {} - {}".format(args.jdb, file_status(args.jdb)))
-    print("JMDict XML file       : {} - {}".format(args.jmdxml, file_status(args.jmdxml)))
-    print("KanjiDic2 XML file    : {} - {}".format(args.kd2xml, file_status(args.kd2xml)))
+    output = TextReport(args.output) if 'output' in args else TextReport()
+    output.header("Jamdict | {} - Version: {}".format(version_info.__description__, version_info.__version_long__), level='h0')
+    output.header("Basic configuration")
+    output.print("JAMDICT_HOME:           {}".format(config.home_dir()))
+    output.print("Configuration location: {}".format(config._get_config_manager().locate_config()))
+    output.header("Data files")
+    output.print("Jamdict DB location: {} - {}".format(args.jdb, file_status(args.jdb)))
+    output.print("JMDict XML file    : {} - {}".format(args.jmdxml, file_status(args.jmdxml)))
+    output.print("KanjiDic2 XML file : {} - {}".format(args.kd2xml, file_status(args.kd2xml)))
 
 
 # -------------------------------------------------------------------------------
@@ -180,6 +185,7 @@ def main():
 
     # show info
     info_task = app.add_task('info', func=show_info)
+    info_task.add_argument('-o', '--output', help='Write information to a text file')
     add_data_config(info_task)
 
     # look up task
