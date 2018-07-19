@@ -1,6 +1,6 @@
 /* Add meta info */
 CREATE TABLE IF NOT EXISTS meta (
-       key TEXT UNIQUE,
+       key TEXT PRIMARY KEY NOT NULL,
        value TEXT NOT NULL
 );
 

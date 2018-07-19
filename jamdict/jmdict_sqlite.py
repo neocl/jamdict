@@ -43,7 +43,7 @@ import logging
 
 from puchikarui import Schema
 from . import __version__ as JAMDICT_VERSION, __url__ as JAMDICT_URL
-from .jmdict import JMDEntry, EntryInfo, Link, BibInfo, Audit, KanjiForm, KanaForm, Sense, SenseGloss, LSource
+from .jmdict import Meta, JMDEntry, EntryInfo, Link, BibInfo, Audit, KanjiForm, KanaForm, Sense, SenseGloss, LSource
 
 
 # -------------------------------------------------------------------------------
@@ -85,7 +85,7 @@ class JMDictSchema(Schema):
         self.add_script(SETUP_SCRIPT)
         self.add_file(JMDICT_SETUP_FILE)
         # Meta
-        self.add_table('meta', ['jmdict_version', 'jmdict_url', 'generator', 'generator_version', 'generator_url'])
+        self.add_table('meta', ['key', 'value'], proto=Meta).set_id('key')
         self.add_table('Entry', ['idseq'])
         self.add_table('Link', ['ID', 'idseq', 'tag', 'desc', 'uri'])
         self.add_table('Bib', ['ID', 'idseq', 'tag', 'text'])
@@ -146,8 +146,8 @@ class JMDictSQLite(JMDictSchema):
         if ctx is None:
             with self.ctx() as ctx:
                 return self.search(query, ctx=ctx)
-        where = "idseq IN (SELECT idseq FROM Kanji WHERE text like ?) OR idseq IN (SELECT idseq FROM Kana WHERE text like ?)"
-        params = [query, query]
+        where = "idseq IN (SELECT idseq FROM Kanji WHERE text like ?) OR idseq IN (SELECT idseq FROM Kana WHERE text like ?) OR idseq IN (SELECT idseq FROM sense JOIN sensegloss ON sense.ID == sensegloss.sid WHERE text like ?)"
+        params = [query, query, query]
         try:
             if query.startswith('id#'):
                 query_int = int(query[3:])

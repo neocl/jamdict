@@ -51,7 +51,7 @@ import os
 import logging
 from lxml import etree
 
-from chirptext import io as chio
+from chirptext import chio
 
 
 # ------------------------------------------------------------------------------
@@ -366,7 +366,7 @@ class QueryCode(object):
     - stroke_count - a mistake in the number of strokes
     - stroke_and_posn - mistakes in both division and strokes
     - stroke_diff - ambiguous stroke counts depending on glyph
-    --> """
+S    --> """
         self.cid = None
         self.qc_type = qc_type
         self.value = value

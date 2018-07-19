@@ -1,5 +1,6 @@
 include README.rst
 include CHANGES.md
 include LICENSE
+include requirements*.txt
 recursive-include jamdict/data/ *.sql
 recursive-include jamdict/data/ *.json

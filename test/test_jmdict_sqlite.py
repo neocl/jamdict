@@ -128,6 +128,10 @@ class TestJamdictSQLite(unittest.TestCase):
             es = self.db.search('%子%', ctx)
             self.assertEqual(len(es), 4)
             getLogger().info('%子%: {}'.format('|'.join([str(x) for x in es])))
+            # search by meaning
+            es = self.db.search('%confections%', ctx)
+            self.assertTrue(es)
+            getLogger().info('%confections%: {}'.format('|'.join([str(x) for x in es])))
 
 
 # -------------------------------------------------------------------------------

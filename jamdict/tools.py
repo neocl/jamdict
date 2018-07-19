@@ -39,11 +39,13 @@ References:
 
 import os
 
+
 from chirptext import confirm, TextReport, Timer
 from chirptext.cli import CLIApp, setup_logging
 
 from jamdict import Jamdict
 from jamdict import config
+from jamdict import version_info
 
 # -------------------------------------------------------------------------------
 # Configuration
@@ -53,7 +55,11 @@ from jamdict import config
 JMD_XML = config.get_file('JMDICT_XML')
 KD2_XML = config.get_file('KD2_XML')
 JMD_DB = config.get_file('JAMDICT_DB')
-setup_logging('logging.json', 'logs')
+
+if os.path.isfile('logging.json'):
+    setup_logging('logging.json', 'logs')
+else:
+    setup_logging(os.path.join(config.home_dir(), 'logging.json'), 'logs')
 
 
 # -------------------------------------------------------------------------------
@@ -99,39 +105,41 @@ def import_data(cli, args):
         print("Database paths were not provided. Process aborted.")
 
 
-def dump_result(results):
+def dump_result(results, report=None):
+    if report is None:
+        report = TextReport()
     if results.entries:
-        print("=" * 40)
-        print("Found entries")
-        print("=" * 40)
+        report.print("=" * 40)
+        report.print("Found entries")
+        report.print("=" * 40)
         for e in results.entries:
             kj = ', '.join([k.text for k in e.kanji_forms])
             kn = ', '.join([k.text for k in e.kana_forms])
-            print("Entry: {} | Kj:  {} | Kn: {}".format(e.idseq, kj, kn))
-            print("-" * 20)
+            report.print("Entry: {} | Kj:  {} | Kn: {}".format(e.idseq, kj, kn))
+            report.print("-" * 20)
             for idx, s in enumerate(e.senses):
-                print("{idx}. {s}".format(idx=idx + 1, s=s))
-            print('')
+                report.print("{idx}. {s}".format(idx=idx + 1, s=s))
+            report.print('')
     else:
-        print("No dictionary entry was found.")
+        report.print("No dictionary entry was found.")
     if results.chars:
-        print("=" * 40)
-        print("Found characters")
-        print("=" * 40)
+        report.print("=" * 40)
+        report.print("Found characters")
+        report.print("=" * 40)
         for c in results.chars:
-            print("Char: {} | Strokes: {}".format(c, c.stroke_count))
-            print("-" * 20)
+            report.print("Char: {} | Strokes: {}".format(c, c.stroke_count))
+            report.print("-" * 20)
             for rmg in c.rm_groups:
-                print("Readings:", ", ".join([r.value for r in rmg.readings]))
-                print("Meanings:", ", ".join([m.value for m in rmg.meanings if not m.m_lang or m.m_lang == 'en']))
+                report.print("Readings:", ", ".join([r.value for r in rmg.readings]))
+                report.print("Meanings:", ", ".join([m.value for m in rmg.meanings if not m.m_lang or m.m_lang == 'en']))
     else:
-        print("No character was found.")
+        report.print("No character was found.")
 
 
 def lookup(cli, args):
     '''Lookup words by kanji/kana'''
     jam = get_jam(cli, args)
-    results = jam.lookup(args.query)
+    results = jam.lookup(args.query, strict_lookup=args.strict)
     if args.format == 'json':
         print(results.to_json())
     else:
@@ -148,11 +156,15 @@ def file_status(file_path):
 
 def show_info(cli, args):
     ''' Show jamdict configuration (data folder, configuration file location, etc.) '''
-    print("Configuration location: {}".format(config._get_config_manager().locate_config()))
-    print("-" * 40)
-    print("Jamdict DB location   : {} - {}".format(args.jdb, file_status(args.jdb)))
-    print("JMDict XML file       : {} - {}".format(args.jmdxml, file_status(args.jmdxml)))
-    print("KanjiDic2 XML file    : {} - {}".format(args.kd2xml, file_status(args.kd2xml)))
+    output = TextReport(args.output) if 'output' in args else TextReport()
+    output.header("Jamdict | {} - Version: {}".format(version_info.__description__, version_info.__version__), level='h0')
+    output.header("Basic configuration")
+    output.print("JAMDICT_HOME:           {}".format(config.home_dir()))
+    output.print("Configuration location: {}".format(config._get_config_manager().locate_config()))
+    output.header("Data files")
+    output.print("Jamdict DB location: {} - {}".format(args.jdb, file_status(args.jdb)))
+    output.print("JMDict XML file    : {} - {}".format(args.jmdxml, file_status(args.jmdxml)))
+    output.print("KanjiDic2 XML file : {} - {}".format(args.kd2xml, file_status(args.kd2xml)))
 
 
 # -------------------------------------------------------------------------------
@@ -178,6 +190,7 @@ def main():
 
     # show info
     info_task = app.add_task('info', func=show_info)
+    info_task.add_argument('-o', '--output', help='Write information to a text file')
     add_data_config(info_task)
 
     # look up task
@@ -185,6 +198,7 @@ def main():
     lookup_task.add_argument('query', help='kanji/kana')
     lookup_task.add_argument('-f', '--format', help='json or text')
     lookup_task.add_argument('--compact', action='store_true')
+    lookup_task.add_argument('-s', '--strict', action='store_true')
     lookup_task.set_defaults(func=lookup)
     add_data_config(lookup_task)
 
