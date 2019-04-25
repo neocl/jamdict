@@ -118,7 +118,7 @@ class Jamdict(object):
         self.kd2_file = kd2_file if kd2_file else config.get_file('JAMDICT_DB') if auto_config else None
         if not self.db_file or not os.path.isfile(self.db_file):
             getLogger().warning("JAMDICT_DB could NOT be found. Searching will be extremely slow. Please run `python3 -m jamdict.tools import` first")
-        if not self.kd2_file or os.path.isfile(self.kd2_file):
+        if not self.kd2_file or not os.path.isfile(self.kd2_file):
             getLogger().warning("Kanjidic2 database could NOT be found. Searching will be extremely slow. Please run `python3 -m jamdict.tools import` first")
         self.jmd_xml_file = jmd_xml_file if jmd_xml_file else config.get_file('JMDICT_XML') if auto_config else None
         self.kd2_xml_file = kd2_xml_file if kd2_xml_file else config.get_file('KD2_XML') if auto_config else None
@@ -138,6 +138,17 @@ class Jamdict(object):
             self.__db_file = os.path.abspath(os.path.expanduser(value))
         else:
             self.__db_file = None
+
+    @property
+    def kd2_file(self):
+        return self.__kd2_file
+
+    @kd2_file.setter
+    def kd2_file(self, value):
+        if self.auto_expand and value:
+            self.__kd2_file = os.path.abspath(os.path.expanduser(value))
+        else:
+            self.__kd2_file = None
 
     @property
     def jmdict(self):
