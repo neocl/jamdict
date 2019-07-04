@@ -146,7 +146,7 @@ class JMDictSQLite(JMDictSchema):
         if ctx is None:
             with self.ctx() as ctx:
                 return self.search(query, ctx=ctx)
-        where = "idseq IN (SELECT idseq FROM Kanji WHERE text like ?) OR idseq IN (SELECT idseq FROM Kana WHERE text like ?) OR idseq IN (SELECT idseq FROM sense JOIN sensegloss ON sense.ID == sensegloss.sid WHERE text like ?)"
+        where = "idseq IN (SELECT idseq FROM Kanji WHERE text == ?) OR idseq IN (SELECT idseq FROM Kana WHERE text == ?) OR idseq IN (SELECT idseq FROM sense JOIN sensegloss ON sense.ID == sensegloss.sid WHERE text == ?)"
         params = [query, query, query]
         try:
             if query.startswith('id#'):
