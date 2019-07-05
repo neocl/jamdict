@@ -219,7 +219,16 @@ class Jamdict(object):
         else:
             raise LookupError("There is no backend data available")
 
-    def lookup(self, query, strict_lookup=False, lookup_chars=True, ctx=None):
+    def lookup(self, query, strict_lookup=False, lookup_chars=True, ctx=None, exact_match=False, **kwargs):
+        ''' Search words and characters and return a LookupResult object.
+
+        Keyword arguments:
+        query --- Text to query, may contains wildcard characters
+        exact_match --- use exact SQLite matching (==) instead of wildcard matching (LIKE)
+        strict_lookup --- Only look up the Kanji characters in query (i.e. discard characters from variants)
+        lookup_chars --- set lookup_chars to False to disable character lookup
+        ctx --- Database access context, can be reused for better performance
+        '''
         if not self.is_available():
             raise LookupError("There is no backend data available")
         elif not query:
@@ -228,7 +237,7 @@ class Jamdict(object):
         entries = []
         chars = []
         if self.jmdict is not None:
-            entries = self.jmdict.search(query, ctx=ctx)
+            entries = self.jmdict.search(query, exact_match=exact_match, ctx=ctx)
         elif self.jmdict_xml:
             entries = self.jmdict_xml.lookup(query)
         if lookup_chars and self.has_kd2():
