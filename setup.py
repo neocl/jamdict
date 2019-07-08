@@ -53,6 +53,7 @@ setup(
     author_email=pkg_info['__email__'],
     description=pkg_info['__description__'],
     long_description=long_description,
+    long_description_content_type='text/markdown',
     packages=['jamdict'],
     package_data={'jamdict': ['data/*.sql', 'data/*.json']},
     include_package_data=True,

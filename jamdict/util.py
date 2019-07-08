@@ -111,14 +111,14 @@ class JamdictSQLite(KanjiDic2SQLite, JMDictSQLite):
 
 class Jamdict(object):
 
-    def __init__(self, db_file=None, kd2_file=None, jmd_xml_file=None, kd2_xml_file=None, auto_config=True, auto_expand=True):
+    def __init__(self, db_file=None, kd2_file=None, jmd_xml_file=None, kd2_xml_file=None, auto_config=True, auto_expand=True, reuse_ctx=True, **kwargs):
         # file paths configuration
         self.auto_expand = auto_expand
         self.db_file = db_file if db_file else config.get_file('JAMDICT_DB') if auto_config else None
         self.kd2_file = kd2_file if kd2_file else config.get_file('JAMDICT_DB') if auto_config else None
         if not self.db_file or not os.path.isfile(self.db_file):
             getLogger().warning("JAMDICT_DB could NOT be found. Searching will be extremely slow. Please run `python3 -m jamdict.tools import` first")
-        if not self.kd2_file or os.path.isfile(self.kd2_file):
+        if not self.kd2_file or not os.path.isfile(self.kd2_file):
             getLogger().warning("Kanjidic2 database could NOT be found. Searching will be extremely slow. Please run `python3 -m jamdict.tools import` first")
         self.jmd_xml_file = jmd_xml_file if jmd_xml_file else config.get_file('JMDICT_XML') if auto_config else None
         self.kd2_xml_file = kd2_xml_file if kd2_xml_file else config.get_file('KD2_XML') if auto_config else None
@@ -127,6 +127,21 @@ class Jamdict(object):
         self._kd2_sqlite = None
         self._jmd_xml = None
         self._kd2_xml = None
+        self.reuse_ctx = reuse_ctx
+        self.__jm_ctx = None
+        try:
+            if self.reuse_ctx and self.db_file and os.path.isfile(self.db_file):
+                self.__jm_ctx = self.jmdict.ctx()
+        except Exception:
+            getLogger().warning("JMdict data could not be accessed.")
+
+    def __del__(self):
+        if self.__jm_ctx is not None:
+            try:
+                # try to close default SQLite context if needed
+                self.__jm_ctx.close()
+            except Exception:
+                pass
 
     @property
     def db_file(self):
@@ -138,6 +153,17 @@ class Jamdict(object):
             self.__db_file = os.path.abspath(os.path.expanduser(value))
         else:
             self.__db_file = None
+
+    @property
+    def kd2_file(self):
+        return self.__kd2_file
+
+    @kd2_file.setter
+    def kd2_file(self, value):
+        if self.auto_expand and value:
+            self.__kd2_file = os.path.abspath(os.path.expanduser(value))
+        else:
+            self.__kd2_file = None
 
     @property
     def jmdict(self):
@@ -208,11 +234,22 @@ class Jamdict(object):
         else:
             raise LookupError("There is no backend data available")
 
-    def lookup(self, query, strict_lookup=False, lookup_chars=True, ctx=None):
+    def lookup(self, query, strict_lookup=False, lookup_chars=True, ctx=None, **kwargs):
+        ''' Search words and characters and return a LookupResult object.
+
+        Keyword arguments:
+        query --- Text to query, may contains wildcard characters
+        exact_match --- use exact SQLite matching (==) instead of wildcard matching (LIKE)
+        strict_lookup --- Only look up the Kanji characters in query (i.e. discard characters from variants)
+        lookup_chars --- set lookup_chars to False to disable character lookup
+        ctx --- Database access context, can be reused for better performance
+        '''
         if not self.is_available():
             raise LookupError("There is no backend data available")
         elif not query:
             raise ValueError("Query cannot be empty")
+        if ctx is None and self.reuse_ctx and self.__jm_ctx is not None:
+            ctx = self.__jm_ctx
         # Lookup words
         entries = []
         chars = []
