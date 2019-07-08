@@ -60,16 +60,44 @@ Official website
 ```python
 >>> from jamdict import Jamdict
 >>> jmd = Jamdict()
->>> jmd.lookup('食べる')
-'Entries: たべる(食べる):1. to eat2. to live on (e.g. a salary)/to live off/to subsist on | Chars: 食, 喰'
->>> result = jmd.lookup('食べる')
->>> print(result.entries)
-[たべる (食べる) : 1. to eat 2. to live on (e.g. a salary)/to live off/to subsist on]
+# use wildcard matching to find anything starts with 食べ and ends with る
+>>> result = jmd.lookup('食べ%る')
+# print all found word entries
+>>> for entry in result.entries:
+...     print(entry)
+...
+[id#1358280] たべる (食べる) : 1. to eat ((Ichidan verb|transitive verb)) 2. to live on (e.g. a salary)/to live off/to subsist on
+[id#1358300] たべすぎる (食べ過ぎる) : to overeat ((Ichidan verb|transitive verb))
+[id#1852290] たべつける (食べ付ける) : to be used to eating ((Ichidan verb|transitive verb))
+[id#2145280] たべはじめる (食べ始める) : to start eating ((Ichidan verb))
+[id#2449430] たべかける (食べ掛ける) : to start eating ((Ichidan verb))
+[id#2671010] たべなれる (食べ慣れる) : to be used to eating/to become used to eating/to be accustomed to eating/to acquire a taste for ((Ichidan verb))
+[id#2765050] たべられる (食べられる) : 1. to be able to eat ((Ichidan verb|intransitive verb)) 2. to be edible/to be good to eat ((pre-noun adjectival (rentaishi)))
+[id#2795790] たべくらべる (食べ比べる) : to taste and compare several dishes (or foods) of the same type ((Ichidan verb|transitive verb))
+[id#2807470] たべあわせる (食べ合わせる) : to eat together (various foods) ((Ichidan verb))
+# print all related characters
 >>> for c in result.chars:
-...     print(c, c.rm_groups)
+...     print(repr(c))
 ... 
-食 [R: shi2, si4, sig, sa, 식, 사, Thực, Tự, ショク, ジキ, く.う, く.らう, た.べる, は.む | M: eat, food, manger, nourriture, alimento, comida, eclipse, comer, comer, comida, alimento]
-喰 [R: shi2, si4, sig, 식, Thặc, Thực, Tự, く.う, く.らう | M: eat, drink, receive (a blow), (kokuji)]
+食:9:eat,food
+喰:12:eat,drink,receive (a blow),(kokuji)
+過:12:overdo,exceed,go beyond,error
+付:5:adhere,attach,refer to,append
+始:8:commence,begin
+掛:11:hang,suspend,depend,arrive at,tax,pour
+慣:14:accustomed,get used to,become experienced
+比:4:compare,race,ratio,Philippines
+合:6:fit,suit,join,0.1
+
+# use exact matching to increase searching speed (thanks to @reem-codes)
+result = jmd.lookup('食べる')
+
+>>> for entry in result.entries:
+...     print(entry)
+... 
+[id#1358280] たべる (食べる) : 1. to eat ((Ichidan verb|transitive verb)) 2. to live on (e.g. a salary)/to live off/to subsist on
 ```
+>>> for c in result.chars:
+...     print(repr(c))
 
 See `jamdict_demo.py` and `jamdict/tools.py` for more information.
