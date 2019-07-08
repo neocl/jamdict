@@ -111,7 +111,7 @@ class JamdictSQLite(KanjiDic2SQLite, JMDictSQLite):
 
 class Jamdict(object):
 
-    def __init__(self, db_file=None, kd2_file=None, jmd_xml_file=None, kd2_xml_file=None, auto_config=True, auto_expand=True):
+    def __init__(self, db_file=None, kd2_file=None, jmd_xml_file=None, kd2_xml_file=None, auto_config=True, auto_expand=True, reuse_ctx=True, **kwargs):
         # file paths configuration
         self.auto_expand = auto_expand
         self.db_file = db_file if db_file else config.get_file('JAMDICT_DB') if auto_config else None
@@ -127,6 +127,21 @@ class Jamdict(object):
         self._kd2_sqlite = None
         self._jmd_xml = None
         self._kd2_xml = None
+        self.reuse_ctx = reuse_ctx
+        self.__jm_ctx = None
+        try:
+            if self.reuse_ctx and self.db_file and os.path.isfile(self.db_file):
+                self.__jm_ctx = self.jmdict.ctx()
+        except Exception:
+            getLogger().warning("JMdict data could not be accessed.")
+
+    def __del__(self):
+        if self.__jm_ctx is not None:
+            try:
+                # try to close default SQLite context if needed
+                self.__jm_ctx.close()
+            except Exception:
+                pass
 
     @property
     def db_file(self):
@@ -219,7 +234,7 @@ class Jamdict(object):
         else:
             raise LookupError("There is no backend data available")
 
-    def lookup(self, query, strict_lookup=False, lookup_chars=True, ctx=None, exact_match=False, **kwargs):
+    def lookup(self, query, strict_lookup=False, lookup_chars=True, ctx=None, **kwargs):
         ''' Search words and characters and return a LookupResult object.
 
         Keyword arguments:
@@ -233,11 +248,13 @@ class Jamdict(object):
             raise LookupError("There is no backend data available")
         elif not query:
             raise ValueError("Query cannot be empty")
+        if ctx is None and self.reuse_ctx and self.__jm_ctx is not None:
+            ctx = self.__jm_ctx
         # Lookup words
         entries = []
         chars = []
         if self.jmdict is not None:
-            entries = self.jmdict.search(query, exact_match=exact_match, ctx=ctx)
+            entries = self.jmdict.search(query, ctx=ctx)
         elif self.jmdict_xml:
             entries = self.jmdict_xml.lookup(query)
         if lookup_chars and self.has_kd2():

@@ -141,13 +141,13 @@ class JMDictSQLite(JMDictSchema):
             ju.value = url
             ctx.meta.save(ju)
 
-    def search(self, query, ctx=None, exact_match=False, **kwargs):
+    def search(self, query, ctx=None, **kwargs):
         # ensure context
         if ctx is None:
             with self.ctx() as ctx:
                 return self.search(query, ctx=ctx)
         _is_wildcard_search = '_' in query or '@' in query or '%' in query
-        if _is_wildcard_search and not exact_match:
+        if _is_wildcard_search:
             where = "idseq IN (SELECT idseq FROM Kanji WHERE text like ?) OR idseq IN (SELECT idseq FROM Kana WHERE text like ?) OR idseq IN (SELECT idseq FROM sense JOIN sensegloss ON sense.ID == sensegloss.sid WHERE text like ?)"
         else:
             where = "idseq IN (SELECT idseq FROM Kanji WHERE text == ?) OR idseq IN (SELECT idseq FROM Kana WHERE text == ?) OR idseq IN (SELECT idseq FROM sense JOIN sensegloss ON sense.ID == sensegloss.sid WHERE text == ?)"
