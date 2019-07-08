@@ -97,7 +97,5 @@ result = jmd.lookup('食べる')
 ... 
 [id#1358280] たべる (食べる) : 1. to eat ((Ichidan verb|transitive verb)) 2. to live on (e.g. a salary)/to live off/to subsist on
 ```
->>> for c in result.chars:
-...     print(repr(c))
 
 See `jamdict_demo.py` and `jamdict/tools.py` for more information.
