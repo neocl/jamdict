@@ -52,11 +52,16 @@ import logging
 from lxml import etree
 
 from chirptext import chio
+from chirptext.sino import Radical as KangxiRadical
 
+from .krad import KRad
 
 # ------------------------------------------------------------------------------
 # Configuration
 # ------------------------------------------------------------------------------
+
+krad = KRad()
+
 
 def getLogger():
     return logging.getLogger(__name__)
@@ -112,6 +117,7 @@ class Character(object):
         self.literal = ''  # <!ELEMENT literal (#PCDATA)> The character itself in UTF8 coding.
         self.codepoints = []  # <!ELEMENT codepoint (cp_value+)>
         self.radicals = []  # <!ELEMENT radical (rad_value+)>
+        self.__canon_radical = None
         self.stroke_count = None  # first stroke_count in misc
         self.grade = None  # <misc>/<grade>
         self.stroke_miscounts = []  # <misc>/stroke_count[1:]
@@ -134,6 +140,21 @@ class Character(object):
 
     def __str__(self):
         return self.literal
+
+    @property
+    def components(self):
+        if self.literal in krad.krad:
+            return krad.krad[self.literal]
+        else:
+            return []
+
+    @property
+    def radical(self):
+        if self.__canon_radical is None:
+            for rad in self.radicals:
+                if rad.rad_type == 'classical':
+                    self.__canon_radical = KangxiRadical.kangxi()[rad.value]
+        return self.__canon_radical
 
     def to_json(self):
         return {'literal': self.literal,

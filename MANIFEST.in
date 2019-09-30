@@ -4,3 +4,4 @@ include LICENSE
 include requirements*.txt
 recursive-include jamdict/data/ *.sql
 recursive-include jamdict/data/ *.json
+recursive-include jamdict/data/ *.gz

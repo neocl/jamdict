@@ -55,7 +55,7 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     packages=['jamdict'],
-    package_data={'jamdict': ['data/*.sql', 'data/*.json']},
+    package_data={'jamdict': ['data/*.sql', 'data/*.json', 'data/*.gz']},
     include_package_data=True,
     platforms='any',
     test_suite='test',
