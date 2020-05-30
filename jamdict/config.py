@@ -76,7 +76,7 @@ def read_config():
 
 def home_dir():
     _config = read_config()
-    return _config.get('JAMDICT_HOME', '.')
+    return _config.get('JAMDICT_HOME', __jamdict_home)
 
 
 def data_dir():
