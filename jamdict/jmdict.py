@@ -435,6 +435,25 @@ class Sense(object):
         return sd
 
 
+class Translation(Sense):
+    ''' The trans element will record the translational equivalent
+    of the Japanese name, plus other related information. (JMendict)
+    <!ELEMENT trans (name_type*, xref*, trans_det*)>'''
+    def __init__(self):
+        super().__init__()
+        self.name_type = []  # mapped to name_type*
+        self.xref = []  # mapped to xref
+        self.gloss = []  # mapped to trans_det
+
+    def name_type_human(self):
+        return [JMENDICT_TYPE_MAP[x] if x in JMENDICT_TYPE_MAP else x for x in self.name_type]
+
+    def to_json(self):
+        sd = super().to_json()
+        sd['name_type'] = self.name_type
+        return sd
+
+
 class SenseGloss(object):
     '''Within each sense will be one or more "glosses", i.e.
         target-language words or phrases which are equivalents to the
@@ -517,6 +536,23 @@ class LSource:
                 'text': self.text}
 
 
+JMENDICT_TYPES = (("surname", "family or surname"),
+                  ("place", "place name"),
+                  ("unclass", "unclassified name"),
+                  ("company", "company name"),
+                  ("product", "product name"),
+                  ("work", "work of art, literature, music, etc. name"),
+                  ("masc", "male given name or forename"),
+                  ("fem", "female given name or forename"),
+                  ("person", "full name of a particular person"),
+                  ("given", "given name or forename, gender not specified"),
+                  ("station", "railway station"),
+                  ("organization", "organization name"),
+                  ("ok", "old or irregular kana form"))
+JMENDICT_TYPE_MAP = dict(JMENDICT_TYPES)
+JMENDICT_TYPE_MAP_DECODE = {v: k for k, v in JMENDICT_TYPES}
+
+
 class Meta(object):
 
     def __init__(self, key='', value=''):
@@ -568,6 +604,9 @@ class JMDictXMLParser(object):
                 self.parse_info(child, entry)
             elif child.tag == 'sense':
                 self.parse_sense(child, entry)
+            elif child.tag == 'trans':
+                # JMendict support
+                self.parse_ne_translation(child, entry)
             else:
                 raise Exception("Invalid tag: %s" % child.tag)
         return entry
@@ -656,6 +695,24 @@ class JMDictXMLParser(object):
                 raise Exception("WARNING: invalid tag in bibinfo (child.tag = %s)" % child.tag)
         entry_info.bibinfo.append(bib)
         return bib
+
+    def parse_ne_translation(self, trans_tag, entry):
+        translation = Translation()
+        for child in trans_tag:
+            if child.tag == 'name_type':
+                _name_type = JMENDICT_TYPE_MAP_DECODE[child.text] if child.text in JMENDICT_TYPE_MAP_DECODE else child.text
+                translation.name_type.append(_name_type)
+            elif child.tag == 'trans_det':
+                # add sensegloss
+                lang = self.get_attrib(trans_tag, 'xml:lang', default_value='eng')
+                gloss = SenseGloss(lang=lang, gend='', text=child.text)
+                translation.gloss.append(gloss)
+            elif child.tag == 'xref':
+                translation.xref.append(child.text)
+            else:
+                raise Exception("Invalid tag: {} in JMendict/trans tag".format(child.tag))
+        entry.senses.append(translation)
+        return translation
 
     def parse_sense(self, sense_tag, entry):
         sense = Sense()

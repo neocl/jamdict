@@ -54,6 +54,7 @@ from jamdict import version_info
 
 JMD_XML = config.get_file('JMDICT_XML')
 KD2_XML = config.get_file('KD2_XML')
+JMNE_XML = config.get_file('JMNEDICT_XML')
 JMD_DB = config.get_file('JAMDICT_DB')
 
 if os.path.isfile('logging.json'):
@@ -69,13 +70,20 @@ else:
 def get_jam(cli, args):
     if not args.jdb:
         args.jdb = None
-    if args.kd2:
+    if args.kd2 or args.jmne:
         cli.logger.warning("Jamdict database location: {}".format(args.jdb))
         cli.logger.warning("Kanjidic2 database location: {}".format(args.kd2))
-        jmd = Jamdict(db_file=args.jdb, kd2_file=args.kd2, jmd_xml_file=args.jmdxml, kd2_xml_file=args.kd2xml)
+        jmd = Jamdict(db_file=args.jdb, kd2_file=args.kd2,
+                      jmd_xml_file=args.jmdxml, kd2_xml_file=args.kd2xml,
+                      jmnedict_file=args.jmne, jmnedict_xml_file=args.jmnexml)
     else:
         cli.logger.debug("Using the same database for both JMDict and Kanjidic2")
-        jmd = Jamdict(db_file=args.jdb, kd2_file=args.jdb, jmd_xml_file=args.jmdxml, kd2_xml_file=args.kd2xml)
+        jmd = Jamdict(db_file=args.jdb,
+                      kd2_file=args.jdb,
+                      jmnedict_file=args.jdb,
+                      jmd_xml_file=args.jmdxml,
+                      kd2_xml_file=args.kd2xml,
+                      jmnedict_xml_file=args.jmnexml)
     if jmd.kd2 is None:
         cli.logger.warning("Kanjidic2 database could not be found")
     return jmd
@@ -89,6 +97,7 @@ def import_data(cli, args):
     rp.print("Jamdict DB location        : {}".format(db_loc))
     rp.print("JMDict XML file location   : {}".format(args.jmdxml))
     rp.print("Kanjidic2 XML file location: {}".format(args.kd2xml))
+    rp.print("JMnedict XML file location: {}".format(args.jmnexml))
     jam = get_jam(cli, args)
     if args and (args.jdb or args.kd2):
         if os.path.isfile(db_loc):
@@ -134,6 +143,20 @@ def dump_result(results, report=None):
                 report.print("Meanings:", ", ".join([m.value for m in rmg.meanings if not m.m_lang or m.m_lang == 'en']))
     else:
         report.print("No character was found.")
+    if results.names:
+        report.print("=" * 40)
+        report.print("Found name entities")
+        report.print("=" * 40)
+        for e in results.names:
+            kj = ', '.join([k.text for k in e.kanji_forms])
+            kn = ', '.join([k.text for k in e.kana_forms])
+            report.print("Names: {} | Kj:  {} | Kn: {}".format(e.idseq, kj, kn))
+            report.print("-" * 20)
+            for idx, s in enumerate(e.senses):
+                report.print("{idx}. {s}".format(idx=idx + 1, s=s))
+            report.print('')
+    else:
+        report.print("No name was found.")
 
 
 def lookup(cli, args):
@@ -165,6 +188,7 @@ def show_info(cli, args):
     output.print("Jamdict DB location: {} - {}".format(args.jdb, file_status(args.jdb)))
     output.print("JMDict XML file    : {} - {}".format(args.jmdxml, file_status(args.jmdxml)))
     output.print("KanjiDic2 XML file : {} - {}".format(args.kd2xml, file_status(args.kd2xml)))
+    output.print("JMnedict XML file : {} - {}".format(args.jmnexml, file_status(args.jmnexml)))
 
 
 # -------------------------------------------------------------------------------
@@ -174,8 +198,10 @@ def show_info(cli, args):
 def add_data_config(parser):
     parser.add_argument('-j', '--jmdxml', help='Path to JMdict XML file', default=JMD_XML)
     parser.add_argument('-k', '--kd2xml', help='Path to KanjiDic2 XML file', default=KD2_XML)
+    parser.add_argument('-e', '--jmnexml', help='Path to JMnedict XML file', default=JMNE_XML)
     parser.add_argument('-J', '--jdb', help='Path to JMDict SQLite file', default=JMD_DB)
     parser.add_argument('-K', '--kd2', help='Path to KanjiDic2 SQLite file', default=None)
+    parser.add_argument('-E', '--jmne', help='Path to JMnedict SQLite file', default=None)
 
 
 def main():

@@ -88,4 +88,5 @@ def data_dir():
 def get_file(file_key):
     _config = read_config()
     _data_dir = data_dir()
-    return _config.get(file_key).format(JAMDICT_DATA=_data_dir)
+    _value = _config.get(file_key)
+    return _value.format(JAMDICT_DATA=_data_dir) if _value else ''
