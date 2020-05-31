@@ -278,6 +278,7 @@ class JMDictSQLite(JMDictSchema):
             with self.ctx() as new_context:
                 return self.insert_entries(entries, ctx=new_context)
         # else
+        getLogger().debug("JMdict bulk insert {} entries".format(len(entries)))
         for entry in entries:
             self.insert_entry(entry, ctx)
 
