@@ -19,13 +19,29 @@ python3 -m pip install jamdict
 
 ## Install data file
 
-1. Download the offical, pre-compiled jamdict database from Google Drive [https://drive.google.com/drive/u/1/folders/1z4zF9ImZlNeTZZplflvvnpZfJp3WVLPk](https://drive.google.com/drive/u/1/folders/1z4zF9ImZlNeTZZplflvvnpZfJp3WVLPk)
-2. To know where to copy data files
+1. Download the offical, pre-compiled jamdict database (`jamdict-0.1a7.tar.xz`) from Google Drive [https://drive.google.com/drive/u/1/folders/1z4zF9ImZlNeTZZplflvvnpZfJp3WVLPk](https://drive.google.com/drive/u/1/folders/1z4zF9ImZlNeTZZplflvvnpZfJp3WVLPk)
+2. Extract and copy `jamdict.db` to jamdict data folder (defaulted to `~/.jamdict/data/jamdict.db`)
+3. To know where to copy data files
    
    ```bash
    # initial setup (this command will create ~/.jamdict for you
    # it will also tell you where to copy the data files
-   python3 -m jamdict.tools info
+   python3 -m jamdict info
+   # +----------------------------------------------------------------------------------
+   # | Jamdict | Python library for manipulating Jim Breen's JMdict, KanjiDic2 and JMnedict - Version: 0.1a7
+   # +----------------------------------------------------------------------------------
+
+   # Basic configuration
+   # ------------------------------------------------------------
+   # JAMDICT_HOME:           ~/.jamdict
+   # Configuration location: /home/tuananh/.jamdict/config.json
+
+   # Data files
+   # ------------------------------------------------------------
+   # Jamdict DB location: ~/.jamdict/data/jamdict.db - [OK]
+   # JMDict XML file    : ~/.jamdict/data/JMdict_e.gz - [OK]
+   # KanjiDic2 XML file : ~/.jamdict/data/kanjidic2.xml.gz - [OK]
+   # JMnedict XML file : ~/.jamdict/data/JMnedict.xml.gz - [OK]
    ```
 
 ## Command line tools
@@ -91,7 +107,11 @@ for c in result.chars:
 # 慣:14:accustomed,get used to,become experienced
 # 比:4:compare,race,ratio,Philippines
 # 合:6:fit,suit,join,0.1
+```
 
+## Finding name entities
+
+```bash
 # Find all names with 鈴木 inside
 result = jmd.lookup('%鈴木%')
 for name in result.names:
@@ -107,7 +127,13 @@ for name in result.names:
 # [id#5499409] おおすずき (大鈴木) : Oosuzuki (family or surname)
 # [id#5711308] すすき (鈴木) : Susuki (family or surname)
 # ...
+```
 
+## Exact matching
+
+Use exact matching for faster search
+
+```python
 # Find an entry (word, name entity) by idseq
 result = jmd.lookup('id#5711308')
 print(result.names[0])
