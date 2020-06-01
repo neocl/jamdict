@@ -131,15 +131,21 @@ class Character(object):
         self.nanoris = []  # a list of strings
 
     def __repr__(self):
-        meanings = []
-        for rm in self.rm_groups:
-            for m in rm.meanings:
-                if m.m_lang == '':
-                    meanings.append(m.value)
+        meanings = self.meanings(english_only=True)
         return "{l}:{sc}:{meanings}".format(l=self.literal, sc=self.stroke_count, meanings=','.join(meanings))
 
     def __str__(self):
         return self.literal
+
+    def meanings(self, english_only=False):
+        ''' Accumulate all meanings '''
+        meanings = []
+        for rm in self.rm_groups:
+            for m in rm.meanings:
+                if english_only and m.m_lang != '':
+                    continue
+                meanings.append(m.value)
+        return meanings
 
     @property
     def components(self):
