@@ -6,15 +6,10 @@ Script for testing KRad module library
 Latest version can be found at https://github.com/neocl/jamdict
 
 References:
-    Python documentation:
-        https://docs.python.org/
-    Python unittest
-        https://docs.python.org/3/library/unittest.html
-    --
-    argparse module:
-        https://docs.python.org/3/howto/argparse.html
-    PEP 257 - Python Docstring Conventions:
-        https://www.python.org/dev/peps/pep-0257/
+     RADKFILE/KRADFILE
+        This project provides a decomposition of kanji into a number of visual elements
+        or radicals to support software which provides a lookup service using kanji components.
+        https://www.edrdg.org/krad/kradinf.html
 
 @author: Le Tuan Anh <tuananh.ke@gmail.com>
 '''

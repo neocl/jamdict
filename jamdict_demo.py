@@ -48,7 +48,7 @@ References:
 
 ########################################################################
 
-import os
+import json
 from jamdict import Jamdict
 
 ########################################################################
@@ -61,20 +61,70 @@ print("Jamdict DB file: {}".format(jam.db_file))
 result = jam.lookup('おかえし')
 for entry in result.entries:
     print(entry)
-print("-----------------")
 
 # Lookup by kanji
+print("-----------------")
 result = jam.lookup('御土産')
 for entry in result.entries:
     print(entry)
+
+# Lookup a name
+# a name entity is also a jamdict.jmdict.JMDEntry object
+# excep that the senses is a list of Translation objects instead of Sense objects
 print("-----------------")
+if jam.has_jmne():
+    result = jam.lookup('鈴木')
+    for name in result.names:
+        print(name)
 
+# Use wildcard matching
+# Find all names ends with -jida
+print("-----------------")
+result = jam.lookup('%じだ')
+for name in result.names:
+    print(name)
 
+# ------------------------------------------------------------------------------
 # lookup entry by idseq
+print("---------------------")
 otenki = jam.lookup('id#1002470').entries[0]
+# extract all kana forms
 kana_forms = ' '.join([x.text for x in otenki.kana_forms])
+# extract all kanji forms
 kanji_forms = ' '.join([x.text for x in otenki.kanji_forms])
 print("Entry #{id}: Kanji: {kj} - Kana: {kn}".format(id=otenki.idseq, kj=kanji_forms, kn=kana_forms))
-print("---------------------")
+
+# extract all sense glosses
 for idx, sense in enumerate(otenki):
     print("{i}. {s}".format(i=idx, s=sense))
+
+# Look up radical & writing components of kanji characters
+# 1. Lookup kanji's components
+print("---------------------")
+result = jam.lookup('筋斗雲')
+for c in result.chars:
+    meanings = ', '.join(c.meanings())
+    # has components
+    print(f"{c}: {meanings}")
+    print(f"    Radical: {c.radical}")
+    print(f"    Components: {c.components}")
+
+# 2. Lookup kanjis by component
+print("---------------------")
+chars = jam.radk['鼎']  # this returns a list of strings (each string is the literal of a character)
+result = jam.lookup(''.join(chars))
+for c in result.chars:
+    meanings = ', '.join(c.meanings())
+    # has components
+    print(f"{c}: {meanings}")
+    print(f"    Radical: {c.radical}")
+    print(f"    Components: {c.components}")
+
+# using JSON
+print("---------------------")
+result = jam.lookup('こうしえん')
+print(result.text(separator='\n'))
+print("---------------------")
+otenki_dict = result.to_json()  # get a dict structure to produce a JSON string
+json_string = json.dumps(otenki_dict, ensure_ascii=False, indent=2)
+print(json_string)

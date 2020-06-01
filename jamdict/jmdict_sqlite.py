@@ -157,7 +157,7 @@ class JMDictSQLite(JMDictSchema):
             if query.startswith('id#'):
                 query_int = int(query[3:])
                 if query_int >= 0:
-                    print("Searching by ID: {}".format(query_int))
+                    getLogger().debug("Searching by ID: {}".format(query_int))
                     where = "idseq = ?"
                     params = [query_int]
         except Exception:
@@ -278,6 +278,7 @@ class JMDictSQLite(JMDictSchema):
             with self.ctx() as new_context:
                 return self.insert_entries(entries, ctx=new_context)
         # else
+        getLogger().debug("JMdict bulk insert {} entries".format(len(entries)))
         for entry in entries:
             self.insert_entry(entry, ctx)
 

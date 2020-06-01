@@ -1,0 +1,372 @@
+<?xml version="1.0"?>
+<!DOCTYPE JMnedict [
+<!--
+	This is the DTD of the Japanese-Multilingual Named Entity
+	Dictionary file. It is based on the JMdict DTD, and carries
+	many fields from it. It is used for a quick-and-dirty conversion
+	of the ENAMDICT entries, plus the name entries from EDICTH.
+-->
+<!-- Rev 1.08 
+	Matching revision numbers with the JMdict DTD, which was changed
+	to delete the <info> and <example> elements
+-->
+<!ELEMENT JMnedict (entry*)>
+<!--                                                                   -->
+<!ELEMENT entry (ent_seq, k_ele*, r_ele+, trans+)*>
+	<!-- Entries consist of kanji elements, reading elements 
+	name translation elements. Each entry must have at 
+	least one reading element and one sense element. Others are optional.
+	-->
+<!ELEMENT ent_seq (#PCDATA)>
+    <!-- A unique numeric sequence number for each entry
+    -->
+<!ELEMENT k_ele (keb, ke_inf*, ke_pri*)>
+	<!-- The kanji element, or in its absence, the reading element, is 
+	the defining component of each entry.
+	The overwhelming majority of entries will have a single kanji
+	element associated with an entity name in Japanese. Where there are 
+	multiple kanji elements within an entry, they will be orthographical
+	variants of the same word, either using variations in okurigana, or
+	alternative and equivalent kanji. Common "mis-spellings" may be 
+	included, provided they are associated with appropriate information
+	fields. Synonyms are not included; they may be indicated in the
+	cross-reference field associated with the sense element.
+	-->
+<!ELEMENT keb (#PCDATA)>
+	<!-- This element will contain an entity name in Japanese 
+	which is written using at least one non-kana character (usually
+	kanji, but can be other characters). The valid 
+	characters are kanji, kana, related characters such as chouon and 
+	kurikaeshi, and in exceptional cases, letters from other alphabets.
+	-->
+<!ELEMENT ke_inf (#PCDATA)>
+	<!-- This is a coded information field related specifically to the 
+	orthography of the keb, and will typically indicate some unusual
+	aspect, such as okurigana irregularity.
+	-->
+<!ELEMENT ke_pri (#PCDATA)>
+	<!-- This and the equivalent re_pri field are provided to record
+	information about the relative priority of the entry, and are for
+	use either by applications which want to concentrate on entries of 
+	a particular priority, or to generate subset files. The reason
+	both the kanji and reading elements are tagged is because on
+	occasions a priority is only associated with a particular
+	kanji/reading pair.
+	-->
+<!--                                                                   -->
+<!ELEMENT r_ele (reb, re_restr*, re_inf*, re_pri*)>
+	<!-- The reading element typically contains the valid readings
+	of the word(s) in the kanji element using modern kanadzukai. 
+	Where there are multiple reading elements, they will typically be
+	alternative readings of the kanji element. In the absence of a 
+	kanji element, i.e. in the case of a word or phrase written
+	entirely in kana, these elements will define the entry.
+	-->
+<!ELEMENT reb (#PCDATA)>
+	<!-- this element content is restricted to kana and related
+	characters such as chouon and kurikaeshi. Kana usage will be
+	consistent between the keb and reb elements; e.g. if the keb
+	contains katakana, so too will the reb.
+	-->
+<!ELEMENT re_restr (#PCDATA)>
+	<!-- This element is used to indicate when the reading only applies
+	to a subset of the keb elements in the entry. In its absence, all
+	readings apply to all kanji elements. The contents of this element 
+	must exactly match those of one of the keb elements.
+	-->
+<!ELEMENT re_inf (#PCDATA)>
+	<!-- General coded information pertaining to the specific reading.
+	Typically it will be used to indicate some unusual aspect of 
+	the reading. -->
+<!ELEMENT re_pri (#PCDATA)>
+	<!-- See the comment on ke_pri above. -->
+<!ELEMENT trans (name_type*, xref*, trans_det*)>
+	<!-- The trans element will record the translational equivalent
+	of the Japanese name, plus other related information. 
+	-->
+<!ELEMENT name_type (#PCDATA)>
+	<!-- The type of name, recorded in the appropriate entity codes.
+	-->
+<!ELEMENT xref (#PCDATA)*>
+    <!-- This element is used to indicate a cross-reference to another
+    entry with a similar or related meaning or sense. The content of
+    this element is typically a keb or reb element in another entry. In some
+    cases a keb will be followed by a reb and/or a sense number to provide
+    a precise target for the cross-reference. Where this happens, a JIS
+    "centre-dot" (0x2126) is placed between the components of the 
+    cross-reference.
+	-->
+<!ELEMENT trans_det (#PCDATA)>
+	<!-- The actual translations of the name, usually as a transcription
+	into the target language.
+	-->
+<!ATTLIST trans_det xml:lang CDATA #IMPLIED>
+	<!-- The xml:lang attribute defines the target language of the
+	translated name. It will be coded using the three-letter language 
+	code from the ISO 639-2 standard. When absent, the value "eng" 
+	(i.e. English) is the default value. The bibliographic (B) codes
+	are used.-->
+<!-- The following entity codes are used for common elements within the
+various information fields.
+-->
+<!ENTITY surname "family or surname">
+<!ENTITY place "place name">
+<!ENTITY unclass "unclassified name">
+<!ENTITY company "company name">
+<!ENTITY product "product name">
+<!ENTITY work "work of art, literature, music, etc. name">
+<!ENTITY masc "male given name or forename">
+<!ENTITY fem "female given name or forename">
+<!ENTITY person "full name of a particular person">
+<!ENTITY given "given name or forename, gender not specified">
+<!ENTITY station "railway station">
+<!ENTITY organization "organization name">
+<!ENTITY ok "old or irregular kana form">
+]>
+<!-- JMnedict created: 2020-05-29 -->
+<JMnedict>
+<entry>
+<ent_seq>1657560</ent_seq>
+<k_ele>
+<keb>国労</keb>
+</k_ele>
+<r_ele>
+<reb>こくろう</reb>
+</r_ele>
+<trans>
+<name_type>&organization;</name_type>
+<trans_det>National Railway Workers' Union</trans_det>
+</trans>
+</entry>
+<entry>
+<ent_seq>2092920</ent_seq>
+<k_ele>
+<keb>ＩＫＥＡ</keb>
+</k_ele>
+<r_ele>
+<reb>イケア</reb>
+</r_ele>
+<trans>
+<name_type>&company;</name_type>
+<trans_det>IKEA</trans_det>
+</trans>
+</entry>
+<entry>
+<ent_seq>2831743</ent_seq>
+<k_ele>
+<keb>蒼国来栄吉</keb>
+</k_ele>
+<r_ele>
+<reb>そうこくらいえいきち</reb>
+</r_ele>
+<trans>
+<name_type>&person;</name_type>
+<trans_det>Sōkokurai Eikichi (sumo wrestler from Inner Mongolia, 1984-)</trans_det>
+<trans_det>Engketübsin</trans_det>
+</trans>
+</entry>
+<entry>
+<ent_seq>5000000</ent_seq>
+<k_ele>
+<keb>ゝ泉</keb>
+</k_ele>
+<r_ele>
+<reb>ちゅせん</reb>
+</r_ele>
+<trans>
+<name_type>&given;</name_type>
+<trans_det>Chusen</trans_det>
+</trans>
+</entry>
+<entry>
+<ent_seq>5000001</ent_seq>
+<k_ele>
+<keb>〆</keb>
+</k_ele>
+<r_ele>
+<reb>しめ</reb>
+</r_ele>
+<trans>
+<name_type>&fem;</name_type>
+<trans_det>Shime</trans_det>
+</trans>
+</entry>
+<entry>
+<ent_seq>5000002</ent_seq>
+<k_ele>
+<keb>〆ヱ</keb>
+</k_ele>
+<r_ele>
+<reb>しめえ</reb>
+</r_ele>
+<trans>
+<name_type>&fem;</name_type>
+<trans_det>Shimee (Shimewe)</trans_det>
+</trans>
+</entry>
+<entry>
+<ent_seq>5000003</ent_seq>
+<k_ele>
+<keb>〆丸</keb>
+</k_ele>
+<r_ele>
+<reb>しめまる</reb>
+</r_ele>
+<trans>
+<name_type>&given;</name_type>
+<trans_det>Shimemaru</trans_det>
+</trans>
+</entry>
+<entry>
+<ent_seq>5000004</ent_seq>
+<k_ele>
+<keb>〆子</keb>
+</k_ele>
+<r_ele>
+<reb>しめこ</reb>
+</r_ele>
+<trans>
+<name_type>&fem;</name_type>
+<trans_det>Shimeko</trans_det>
+</trans>
+</entry>
+<entry>
+<ent_seq>5000005</ent_seq>
+<k_ele>
+<keb>〆治</keb>
+</k_ele>
+<r_ele>
+<reb>しめじ</reb>
+</r_ele>
+<trans>
+<name_type>&given;</name_type>
+<trans_det>Shimeji</trans_det>
+</trans>
+</entry>
+<entry>
+<ent_seq>5000006</ent_seq>
+<k_ele>
+<keb>〆代</keb>
+</k_ele>
+<r_ele>
+<reb>しめよ</reb>
+</r_ele>
+<trans>
+<name_type>&fem;</name_type>
+<trans_det>Shimeyo</trans_det>
+</trans>
+</entry>
+<entry>
+<ent_seq>5000007</ent_seq>
+<k_ele>
+<keb>〆谷</keb>
+</k_ele>
+<r_ele>
+<reb>しめたに</reb>
+</r_ele>
+<trans>
+<name_type>&surname;</name_type>
+<trans_det>Shimetani</trans_det>
+</trans>
+</entry>
+<entry>
+<ent_seq>5000008</ent_seq>
+<k_ele>
+<keb>〆木</keb>
+</k_ele>
+<r_ele>
+<reb>しめき</reb>
+</r_ele>
+<trans>
+<name_type>&surname;</name_type>
+<trans_det>Shimeki</trans_det>
+</trans>
+</entry>
+<entry>
+<ent_seq>5000009</ent_seq>
+<k_ele>
+<keb>〆野</keb>
+</k_ele>
+<r_ele>
+<reb>しめの</reb>
+</r_ele>
+<trans>
+<name_type>&surname;</name_type>
+<trans_det>Shimeno</trans_det>
+</trans>
+</entry>
+<entry>
+<ent_seq>5741686</ent_seq>
+<k_ele>
+<keb>埼銀</keb>
+</k_ele>
+<r_ele>
+<reb>さいぎん</reb>
+</r_ele>
+<trans>
+<name_type>&company;</name_type>
+<xref>埼玉銀行・さいたまぎんこう</xref>
+<trans_det>Saitama Bank</trans_det>
+</trans>
+</entry>
+<entry>
+<ent_seq>5723538</ent_seq>
+<k_ele>
+<keb>厦門</keb>
+</k_ele>
+<k_ele>
+<keb>廈門</keb>
+</k_ele>
+<r_ele>
+<reb>アモイ</reb>
+</r_ele>
+<r_ele>
+<reb>シアメン</reb>
+</r_ele>
+<r_ele>
+<reb>シヤメン</reb>
+</r_ele>
+<r_ele>
+<reb>シャーメン</reb>
+</r_ele>
+<trans>
+<name_type>&place;</name_type>
+<trans_det>Xiamen (China)</trans_det>
+<trans_det>Amoy</trans_det>
+</trans>
+</entry>
+<entry>
+<ent_seq>5741815</ent_seq>
+<k_ele>
+<keb>神龍</keb>
+</k_ele>
+<k_ele>
+<keb>神竜</keb>
+</k_ele>
+<r_ele>
+<reb>しんりゅう</reb>
+</r_ele>
+<r_ele>
+<reb>じんりゅう</reb>
+</r_ele>
+<r_ele>
+<reb>シェンロン</reb>
+</r_ele>
+<trans>
+<name_type>&unclass;</name_type>
+<trans_det>Shen Long (spiritual dragon in Chinese mythology)</trans_det>
+<trans_det>Shen-lung</trans_det>
+</trans>
+</entry>
+<entry>
+<ent_seq>5001644</ent_seq>
+<r_ele>
+<reb>かかずゆみ</reb>
+</r_ele>
+<trans>
+<name_type>&fem;</name_type>
+<name_type>&person;</name_type>
+<trans_det>Kakazu Yumi (1973.6.18-)</trans_det>
+</trans>
+</entry>
+</JMnedict>

@@ -45,6 +45,12 @@
         },
         "jamdol-flask": { "level": "INFO" }
         ,
+        "jamdict.util": {
+          "level": "INFO"
+        },
+        "jamdict.jmdict_sqlite": {
+          "level": "ERROR"
+        },
         "chirptext.dekomecab": {
           "level": "ERROR"
         }
