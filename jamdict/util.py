@@ -56,6 +56,7 @@ from chirptext.deko import HIRAGANA, KATAKANA
 
 from . import config
 from .jmdict import JMDictXMLParser
+from .krad import KRad
 from .jmdict_sqlite import JMDictSQLite
 from .kanjidic2 import Kanjidic2XMLParser
 from .kanjidic2_sqlite import KanjiDic2SQLite
@@ -80,11 +81,15 @@ class LookupResult(object):
     def text(self, compact=True, entry_sep='。', separator=' | ', no_id=False, with_chars=True):
         output = []
         if self.entries:
-            entries_txt = str(entry_sep.join(e.text(compact=compact, separator='', no_id=no_id) for e in self.entries))
-            output.append("Entries: ")
-            output.append(entries_txt)
-        else:
-            print("No entries")
+            entry_txts = []
+            for idx, e in enumerate(self.entries, start=1):
+                entry_txt = e.text(compact=compact, separator=' ', no_id=no_id)
+                entry_txts.append("#{}: {}".format(idx, entry_txt))
+            output.append("[Entries]")
+            output.append(entry_sep)
+            output.append(entry_sep.join(entry_txts))
+        elif not compact:
+            output.append("No entries")
         if self.chars and with_chars:
             if compact:
                 chars_txt = ', '.join(str(c) for c in self.chars)
@@ -92,14 +97,19 @@ class LookupResult(object):
                 chars_txt = ', '.join(repr(c) for c in self.chars)
             if output:
                 output.append(separator)
-            output.append("Chars: ")
+            output.append("[Chars]")
+            output.append(entry_sep)
             output.append(chars_txt)
         if self.names:
-            names_txt = str(entry_sep.join(e.text(compact=compact, separator='', no_id=no_id) for e in self.names))
+            name_txts = []
+            for idx, n in enumerate(self.names, start=1):
+                name_txt = n.text(compact=compact, separator=' ', no_id=no_id)
+                name_txts.append("#{}: {}".format(idx, name_txt))
             if output:
                 output.append(separator)
-            output.append("Names: ")
-            output.append(names_txt)
+            output.append("[Names]")
+            output.append(entry_sep)
+            output.append(entry_sep.join(name_txts))
         return "".join(output) if output else "Found nothing"
 
     def __repr__(self):
@@ -110,7 +120,8 @@ class LookupResult(object):
 
     def to_json(self):
         return {'entries': [e.to_json() for e in self.entries],
-                'chars': [c.to_json() for c in self.chars]}
+                'chars': [c.to_json() for c in self.chars],
+                'names': [n.to_json() for n in self.names]}
 
 
 class JamdictSQLite(KanjiDic2SQLite, JMNEDictSQLite, JMDictSQLite):
@@ -145,6 +156,7 @@ class Jamdict(object):
         self._jmd_xml = None
         self._kd2_xml = None
         self._jmne_xml = None
+        self.__krad_map = None
         self.reuse_ctx = reuse_ctx
         self.__jm_ctx = None
         try:
@@ -240,6 +252,22 @@ class Jamdict(object):
         return self._jmd_xml
 
     @property
+    def krad(self):
+        ''' Kanji to radicals map '''
+        if not self.__krad_map:
+            with threading.Lock():
+                self.__krad_map = KRad()
+        return self.__krad_map.krad
+
+    @property
+    def radk(self):
+        ''' Radical to kanji map '''
+        if not self.__krad_map:
+            with threading.Lock():
+                self.__krad_map = KRad()
+        return self.__krad_map.radk
+    
+    @property
     def kd2_xml(self):
         if not self._kd2_xml and self.kd2_xml_file:
             with threading.Lock():
@@ -264,7 +292,7 @@ class Jamdict(object):
         ''' Check if current database has jmne support '''
         if self.jmnedict is not None:
             m = self.jmnedict.meta.select_single('key=?', ('jmnedict.version',))
-            return len(m.value) > 0
+            return m is not None and len(m.value) > 0
         return None
 
     def is_available(self):
@@ -329,6 +357,7 @@ class Jamdict(object):
         # Lookup words
         entries = []
         chars = []
+        names = []
         if self.jmdict is not None:
             entries = self.jmdict.search(query, ctx=ctx)
         elif self.jmdict_xml:
