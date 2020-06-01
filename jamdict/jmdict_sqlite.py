@@ -157,7 +157,7 @@ class JMDictSQLite(JMDictSchema):
             if query.startswith('id#'):
                 query_int = int(query[3:])
                 if query_int >= 0:
-                    print("Searching by ID: {}".format(query_int))
+                    getLogger().debug("Searching by ID: {}".format(query_int))
                     where = "idseq = ?"
                     params = [query_int]
         except Exception:
