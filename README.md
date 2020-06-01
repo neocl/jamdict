@@ -28,7 +28,9 @@ python3 -m pip install jamdict
    python3 -m jamdict.tools info
    ```
 
-## To make sure that jamdict is configured properly, try to look up a word using command line
+## Command line tools
+
+To make sure that jamdict is configured properly, try to look up a word using command line
 
 ```bash
 python3 -m jamdict.tools lookup たべる
