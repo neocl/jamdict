@@ -59,6 +59,7 @@ MY_DIR = os.path.abspath(os.path.dirname(__file__))
 TEST_DATA = os.path.join(MY_DIR, 'data')
 MINI_JMD = os.path.join(TEST_DATA, 'JMdict_mini.xml')
 MINI_KD2 = os.path.join(TEST_DATA, 'kanjidic2_mini.xml')
+MINI_JMNE = os.path.join(TEST_DATA, 'jmendict_mini.xml')
 TEST_DB = os.path.join(TEST_DATA, 'jamdict_test.db')
 
 
@@ -164,7 +165,7 @@ class TestJamdictSQLite(unittest.TestCase):
     def test_jamdict_sqlite_all(self):
         if os.path.isfile(TEST_DB):
             os.unlink(TEST_DB)
-        jam = Jamdict(db_file=TEST_DB, kd2_file=TEST_DB, jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2)
+        jam = Jamdict(db_file=TEST_DB, kd2_file=TEST_DB, jmnedict_file=TEST_DB, jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2, jmnedict_xml_file=MINI_JMNE)
         # Lookup using XML
         result = jam.jmdict_xml.lookup('おみやげ')
         getLogger().debug("Results: {}".format(result))
