@@ -38,7 +38,7 @@ References:
 # THE SOFTWARE.
 
 import os
-
+import json
 
 from chirptext import confirm, TextReport, Timer
 from chirptext.cli import CLIApp, setup_logging
@@ -94,10 +94,11 @@ def import_data(cli, args):
     rp = TextReport()
     t = Timer(report=rp)
     db_loc = os.path.abspath(os.path.expanduser(args.jdb))
-    rp.print("Jamdict DB location        : {}".format(db_loc))
-    rp.print("JMDict XML file location   : {}".format(args.jmdxml))
-    rp.print("Kanjidic2 XML file location: {}".format(args.kd2xml))
-    rp.print("JMnedict XML file location: {}".format(args.jmnexml))
+    show_info(cli, args)
+    # rp.print("Jamdict DB location        : {}".format(db_loc))
+    # rp.print("JMDict XML file location   : {}".format(args.jmdxml))
+    # rp.print("Kanjidic2 XML file location: {}".format(args.kd2xml))
+    # rp.print("JMnedict XML file location : {}".format(args.jmnexml))
     jam = get_jam(cli, args)
     if args and (args.jdb or args.kd2):
         if os.path.isfile(db_loc):
@@ -141,6 +142,7 @@ def dump_result(results, report=None):
             for rmg in c.rm_groups:
                 report.print("Readings:", ", ".join([r.value for r in rmg.readings]))
                 report.print("Meanings:", ", ".join([m.value for m in rmg.meanings if not m.m_lang or m.m_lang == 'en']))
+        report.print('')
     else:
         report.print("No character was found.")
     if results.names:
@@ -163,13 +165,16 @@ def lookup(cli, args):
     '''Lookup words by kanji/kana'''
     jam = get_jam(cli, args)
     results = jam.lookup(args.query, strict_lookup=args.strict)
+    report = TextReport(args.output)
     if args.format == 'json':
-        print(results.to_json())
+        report.print(json.dumps(results.to_json(),
+                                ensure_ascii=args.ensure_ascii,
+                                indent=args.indent if args.indent else None))
     else:
         if args.compact:
-            print(results.text(separator='\n------\n', entry_sep='\n'))
+            report.print(results.text(separator='\n------\n', entry_sep='\n'))
         else:
-            dump_result(results)
+            dump_result(results, report=report)
 
 
 def file_status(file_path):
@@ -180,15 +185,24 @@ def file_status(file_path):
 def show_info(cli, args):
     ''' Show jamdict configuration (data folder, configuration file location, etc.) '''
     output = TextReport(args.output) if 'output' in args else TextReport()
-    output.header("Jamdict | {} - Version: {}".format(version_info.__description__, version_info.__version__), level='h0')
+    output.print("Jamdict " + version_info.__version__)
+    output.print(version_info.__description__)
     output.header("Basic configuration")
-    output.print("JAMDICT_HOME:           {}".format(config.home_dir()))
-    output.print("Configuration location: {}".format(config._get_config_manager().locate_config()))
+    output.print("JAMDICT_HOME        : {}".format(config.home_dir()))
+    output.print("Config file location: {}".format(config._get_config_manager().locate_config()))
     output.header("Data files")
     output.print("Jamdict DB location: {} - {}".format(args.jdb, file_status(args.jdb)))
     output.print("JMDict XML file    : {} - {}".format(args.jmdxml, file_status(args.jmdxml)))
     output.print("KanjiDic2 XML file : {} - {}".format(args.kd2xml, file_status(args.kd2xml)))
     output.print("JMnedict XML file : {} - {}".format(args.jmnexml, file_status(args.jmnexml)))
+
+
+def show_version(cli, args):
+    ''' Show Jamdict version '''
+    if args.verbose:
+        print("Jamdict {v} - {d}".format(d=version_info.__description__, v=version_info.__version__))
+    else:
+        print("Jamdict {}".format(version_info.__version__))
 
 
 # -------------------------------------------------------------------------------
@@ -212,12 +226,16 @@ def main():
 
     # import task
     import_task = app.add_task('import', func=import_data)
-    add_data_config(import_task)
+    add_data_config(import_task)    
 
     # show info
     info_task = app.add_task('info', func=show_info)
     info_task.add_argument('-o', '--output', help='Write information to a text file')
     add_data_config(info_task)
+
+    # show version
+    version_task = app.add_task('version', func=show_version)
+    add_data_config(version_task)
 
     # look up task
     lookup_task = app.add_task('lookup', func=lookup)
@@ -225,6 +243,9 @@ def main():
     lookup_task.add_argument('-f', '--format', help='json or text')
     lookup_task.add_argument('--compact', action='store_true')
     lookup_task.add_argument('-s', '--strict', action='store_true')
+    lookup_task.add_argument('--ensure_ascii', help='Force JSON dumps to ASCII only', action='store_true')
+    lookup_task.add_argument('--indent', help='JSON default indent', default=2, type=int)
+    lookup_task.add_argument('-o', '--output', help='Path to a file to output lookup result, leave blank to write to console standard output')
     lookup_task.set_defaults(func=lookup)
     add_data_config(lookup_task)
 
