@@ -448,6 +448,11 @@ class Translation(Sense):
     def name_type_human(self):
         return [JMENDICT_TYPE_MAP[x] if x in JMENDICT_TYPE_MAP else x for x in self.name_type]
 
+    def text(self, compact=True):
+        tmp = [str(x) for x in self.gloss]
+        types = "/".join(self.name_type) if compact else "/".join(self.name_type_human())
+        return '{gloss} ({types})'.format(gloss='/'.join(tmp), types=types)
+
     def to_json(self):
         sd = super().to_json()
         sd['name_type'] = self.name_type
@@ -485,7 +490,8 @@ class SenseGloss(object):
 
     def __str__(self):
         tmp = [self.text]
-        if self.lang:
+        if self.lang and self.lang != 'eng':
+            # lang = eng is trivial
             tmp.append('(lang:%s)' % self.lang)
         if self.gend:
             tmp.append('(gend:%s)' % self.gend)
