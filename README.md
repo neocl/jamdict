@@ -161,3 +161,8 @@ See `jamdict_demo.py` and `jamdict/tools.py` for more information.
 * kanjidic2: [https://www.edrdg.org/wiki/index.php/KANJIDIC_Project](https://www.edrdg.org/wiki/index.php/KANJIDIC_Project)
 * JMnedict: [https://www.edrdg.org/enamdict/enamdict_doc.html](https://www.edrdg.org/enamdict/enamdict_doc.html)
 * KRADFILE: [http://www.edrdg.org/krad/kradinf.html](http://www.edrdg.org/krad/kradinf.html)
+
+# Contributors
+
+- [Matteo Fumagalli](https://github.com/matteofumagalli1275)
+- [Reem Alghamdi](https://github.com/reem-codes)
