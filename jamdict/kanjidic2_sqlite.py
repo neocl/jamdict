@@ -5,12 +5,8 @@ KanjiDic2 in SQLite format
 Latest version can be found at https://github.com/neocl/jamdict
 
 References:
-    Python documentation:
-        https://docs.python.org/
-    PEP 0008 - Style Guide for Python Code
-        https://www.python.org/dev/peps/pep-0008/
-    PEP 257 - Python Docstring Conventions:
-        https://www.python.org/dev/peps/pep-0257/
+    KANJIDIC2 project
+        https://www.edrdg.org/wiki/index.php/KANJIDIC_Project 
 
 @author: Le Tuan Anh <tuananh.ke@gmail.com>
 @license: MIT
@@ -51,14 +47,23 @@ from .kanjidic2 import Character, CodePoint, Radical, Variant, DicRef, QueryCode
 
 MY_FOLDER = os.path.dirname(os.path.abspath(__file__))
 SCRIPT_FOLDER = os.path.join(MY_FOLDER, 'data')
+KANJIDIC2_VERSION = '1.6'
+KANJIDIC2_URL = 'https://www.edrdg.org/wiki/index.php/KANJIDIC_Project'
+KANJIDIC2_DATE = 'April 2008'
 KANJIDIC2_SETUP_FILE = os.path.join(SCRIPT_FOLDER, 'setup_kanjidic2.sql')
 KANJIDIC2_SETUP_SCRIPT = '''
+INSERT INTO meta VALUES ('kanjidic2.version', '{kdv}');
+INSERT INTO meta VALUES ('kanjidic2.url', '{kdu}');
+INSERT INTO meta VALUES ('kanjidic2.date', '{kdd}');
 INSERT INTO meta SELECT 'generator', 'jamdict'
 WHERE NOT EXISTS (SELECT 1 FROM meta WHERE key='generator');
 INSERT INTO meta SELECT 'generator_version', '{gv}'
 WHERE NOT EXISTS (SELECT 1 FROM meta WHERE key='generator_version');
 INSERT INTO meta SELECT 'generator_url', '{gu}'
 WHERE NOT EXISTS (SELECT 1 FROM meta WHERE key='generator_url');'''.format(
+    kdv=KANJIDIC2_VERSION,
+    kdu=KANJIDIC2_URL,
+    kdd=KANJIDIC2_DATE,
     gv=JAMDICT_VERSION,
     gu=JAMDICT_URL
 )
