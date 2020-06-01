@@ -1,5 +1,8 @@
+2020-05-31
+    - Version 0.1a7: Added Japanese Proper Names Dictionary (JMnedict) support
+
 2017-08-18
-        - Support for KanjiDic2 (XML/SQLite formats)
+    - Support KanjiDic2 (XML/SQLite formats)
         
 2016-11-09
-	- Release first demo to Github
+    - Release first version to Github
