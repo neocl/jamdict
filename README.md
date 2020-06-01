@@ -1,11 +1,19 @@
 Python library for manipulating Jim Breen's JMdict & KanjiDic2
 
 # Main features
-* Query Japanese-English dictionary JMDict, KanjiDic2, and Japanese Proper Names Dictionary (JMnedict) using SQLite database
+
+* Support querying different Japanese language resources
+  - Japanese-English dictionary JMDict
+  - Kanji dictionary KanjiDic2
+  - Kanji-radical and radical-kanji maps KRADFILE/RADKFILE
+  - Japanese Proper Names Dictionary (JMnedict) 
+* Data are stored using SQLite database
 * Console lookup tool
-* jamdol (jamdict-online) - REST API using Python/Flask (jamdol-flask), experimental state
+* jamdol (jamdol-flask) - a Python/Flask server that provides Jamdict lookup via REST API (experimental state)
 
 Homepage: [https://github.com/neocl/jamdict](https://github.com/neocl/jamdict)
+
+Contributors are welcome! 🙇
 
 # Installation
 
@@ -27,21 +35,20 @@ python3 -m pip install jamdict
    # initial setup (this command will create ~/.jamdict for you
    # it will also tell you where to copy the data files
    python3 -m jamdict info
-   # +----------------------------------------------------------------------------------
-   # | Jamdict | Python library for manipulating Jim Breen's JMdict, KanjiDic2 and JMnedict - Version: 0.1a7
-   # +----------------------------------------------------------------------------------
-
+   # Jamdict 0.1a7
+   # Python library for manipulating Jim Breen's JMdict, KanjiDic2, KRADFILE and JMnedict
+   # 
    # Basic configuration
    # ------------------------------------------------------------
-   # JAMDICT_HOME:           ~/.jamdict
-   # Configuration location: /home/tuananh/.jamdict/config.json
-
+   # JAMDICT_HOME        : /home/tuananh/.jamdict
+   # Config file location: /home/tuananh/.jamdict/config.json
+   # 
    # Data files
    # ------------------------------------------------------------
-   # Jamdict DB location: ~/.jamdict/data/jamdict.db - [OK]
-   # JMDict XML file    : ~/.jamdict/data/JMdict_e.gz - [OK]
-   # KanjiDic2 XML file : ~/.jamdict/data/kanjidic2.xml.gz - [OK]
-   # JMnedict XML file : ~/.jamdict/data/JMnedict.xml.gz - [OK]
+   # Jamdict DB location: /home/tuananh/.jamdict/data/jamdict.db - [OK]
+   # JMDict XML file    : /home/tuananh/.jamdict/data/JMdict_e.gz - [OK]
+   # KanjiDic2 XML file : /home/tuananh/.jamdict/data/kanjidic2.xml.gz - [OK]
+   # JMnedict XML file : /home/tuananh/.jamdict/data/JMnedict.xml.gz - [OK]
    ```
 
 ## Command line tools
@@ -49,26 +56,31 @@ python3 -m pip install jamdict
 To make sure that jamdict is configured properly, try to look up a word using command line
 
 ```bash
-python3 -m jamdict.tools lookup たべる
+python3 -m jamdict.tools lookup 言語学
 ========================================
 Found entries
 ========================================
-Entry: 1358280 | Kj:  食べる, 喰べる | Kn: たべる
+Entry: 1264430 | Kj:  言語学 | Kn: げんごがく
 --------------------
-1. to eat ((Ichidan verb|transitive verb))
-2. to live on (e.g. a salary)/to live off/to subsist on
+1. linguistics ((noun (common) (futsuumeishi)))
 
 ========================================
 Found characters
 ========================================
-Char: 食 | Strokes: 9
+Char: 言 | Strokes: 7
 --------------------
-Readings: shi2, si4, sig, sa, 식, 사, Thực, Tự, ショク, ジキ, く.う, く.らう, た.べる, は.む
-Meanings: eat, food
-Char: 喰 | Strokes: 12
+Readings: yan2, eon, 언, Ngôn, Ngân, ゲン, ゴン, い.う, こと
+Meanings: say, word
+Char: 語 | Strokes: 14
 --------------------
-Readings: shi2, si4, sig, 식, Thặc, Thực, Tự, く.う, く.らう
-Meanings: eat, drink, receive (a blow), (kokuji)
+Readings: yu3, yu4, eo, 어, Ngữ, Ngứ, ゴ, かた.る, かた.らう
+Meanings: word, speech, language
+Char: 学 | Strokes: 8
+--------------------
+Readings: xue2, hag, 학, Học, ガク, まな.ぶ
+Meanings: study, learning, science
+
+No name was found.
 ```
 
 # Sample jamdict Python code
@@ -107,6 +119,40 @@ for c in result.chars:
 # 慣:14:accustomed,get used to,become experienced
 # 比:4:compare,race,ratio,Philippines
 # 合:6:fit,suit,join,0.1
+```
+
+## Using KRAD/RADK mapping
+
+Jamdict has built-in support for KRAD/RADK (i.e. kanji-radical and radical-kanji mapping).
+The terminology of radicals/components used by Jamdict can be different from else where.
+
+- A radical in Jamdict is a principal component, each character has only one radical.
+- A character may be decomposed into several writing components.
+
+By default jamdict provides two maps:
+
+- jmd.krad is a Python dict that maps characters to list of components.
+- jmd.radk is a Python dict that maps each available components to a list of characters.
+
+```python
+# Find all writing components (often called "radicals") of the character 雲
+print(jmd.krad['雲'])
+# ['一', '雨', '二', '厶']
+
+# Find all characters with the component 鼎
+chars = jmd.radk['鼎']
+print(chars)
+# {'鼏', '鼒', '鼐', '鼎', '鼑'}
+
+# look up the characters info
+result = jmd.lookup(''.join(chars))
+for c in result.chars:
+    print(c, c.meanings())
+# 鼏 ['cover of tripod cauldron']
+# 鼒 ['large tripod cauldron with small']
+# 鼐 ['incense tripod']
+# 鼎 ['three legged kettle']
+# 鼑 []
 ```
 
 ## Finding name entities
@@ -150,7 +196,6 @@ for entry in result.entries:
 
 # [id#1467640] ねこ (猫) : 1. cat ((noun (common) (futsuumeishi))) 2. shamisen 3. geisha 4. wheelbarrow 5. clay bed-warmer 6. bottom/submissive partner of a homosexual relationship
 # [id#2698030] ねこま (猫) : cat ((noun (common) (futsuumeishi)))
-
 ```
 
 See `jamdict_demo.py` and `jamdict/tools.py` for more information.
