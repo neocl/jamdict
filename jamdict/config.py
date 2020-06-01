@@ -75,7 +75,18 @@ def read_config():
 
 
 def home_dir():
+    ''' Find JAMDICT_HOME folder.
+    if there is an environment variable that points to an existing directory
+    (e.g. export JAMDICT_HOME=/home/user/jamdict)
+    that folder will be used instead of the configured in jamdict JSON config file
+    '''
     _config = read_config()
+    # [2020-06-01] Allow JAMDICT_HOME to be overridden by environment variables
+    if 'JAMDICT_HOME' in os.environ:
+        _env_jamdict_home = os.path.abspath(os.path.expanduser(os.environ['JAMDICT_HOME']))
+        if os.path.isdir(_env_jamdict_home):
+            getLogger().debug("JAMDICT_HOME: {}".format(_env_jamdict_home))
+            return _env_jamdict_home
     return _config.get('JAMDICT_HOME', __jamdict_home)
 
 
