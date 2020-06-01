@@ -127,6 +127,9 @@ class KanjiForm(object):
     fields. Synonyms are not included; they may be indicated in the
     cross-reference field associated with the sense element.
     DTD <!ELEMENT k_ele (keb, ke_inf*, ke_pri*)>
+    text --- a kanji written form of an entry, string
+    info --- coded information field, a list of strings
+    pri --- relative priority of the entry, a list of strings
     '''
 
     def __init__(self, text=''):
@@ -200,7 +203,13 @@ class KanaForm(object):
     Where there are multiple reading elements, they will typically be
     alternative readings of the kanji element. In the absence of a
     kanji element, i.e. in the case of a word or phrase written
-    entirely in kana, these elements will define the entry.'''
+    entirely in kana, these elements will define the entry.
+    text --- a kana written form of an entry, string
+    nokanji --- True means this entry cannot be regarded as a true reading of the kanji, boolean
+    restr --- use to restrict the reading to a subset of the available kanji forms, list of string
+    info --- coded information field, a list of strings
+    pri --- relative priority of the entry, a list of strings
+    '''
 
     def __init__(self, text='', nokanji=False):
         '''this element content is restricted to kana and related
