@@ -158,12 +158,7 @@ class Jamdict(object):
         self._jmne_xml = None
         self.__krad_map = None
         self.reuse_ctx = reuse_ctx
-        self.__jm_ctx = None
-        try:
-            if self.reuse_ctx and self.db_file and os.path.isfile(self.db_file):
-                self.__jm_ctx = self.jmdict.ctx()
-        except Exception:
-            getLogger().warning("JMdict data could not be accessed.")
+        self.__jm_ctx = None  # for reusing database context
 
     def __del__(self):
         if self.__jm_ctx is not None:
@@ -172,6 +167,17 @@ class Jamdict(object):
                 self.__jm_ctx.close()
             except Exception:
                 pass
+
+    def __make_db_ctx(self):
+        ''' Try to reuse context if allowed '''
+        try:
+            if not self.reuse_ctx:
+                return self.jmdict.ctx()
+            elif self.__jm_ctx is None and self.db_file and os.path.isfile(self.db_file):
+                self.__jm_ctx = self.jmdict.ctx()
+        except Exception:
+            getLogger().warning("JMdict data could not be accessed.")
+        return self.__jm_ctx
 
     @property
     def db_file(self):
@@ -352,8 +358,7 @@ class Jamdict(object):
             raise LookupError("There is no backend data available")
         elif not query:
             raise ValueError("Query cannot be empty")
-        if ctx is None and self.reuse_ctx and self.__jm_ctx is not None:
-            ctx = self.__jm_ctx
+        ctx = self.__make_db_ctx()
         # Lookup words
         entries = []
         chars = []
