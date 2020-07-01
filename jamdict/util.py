@@ -321,14 +321,18 @@ class Jamdict(object):
     def get_ne(self, idseq, ctx=None):
         ''' Get name entity by idseq in JMnedict '''
         if self.jmnedict is not None:
+            if ctx is None:
+                ctx = self.__make_db_ctx()
             return self.jmnedict.get_ne(idseq, ctx=ctx)
         elif self.jmnedict_xml_file:
             return self.jmne_xml.lookup(idseq)
         else:
-            raise LookupError("There is no KanjiDic2 data source available")
+            raise LookupError("There is no JMnedict data source available")
 
     def get_char(self, literal, ctx=None):
         if self.kd2 is not None:
+            if ctx is None:
+                ctx = self.__make_db_ctx()
             return self.kd2.get_char(literal, ctx=ctx)
         elif self.kd2_xml:
             return self.kd2_xml.lookup(literal)
