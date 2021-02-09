@@ -142,6 +142,7 @@ def dump_result(results, report=None):
             for rmg in c.rm_groups:
                 report.print("Readings:", ", ".join([r.value for r in rmg.readings]))
                 report.print("Meanings:", ", ".join([m.value for m in rmg.meanings if not m.m_lang or m.m_lang == 'en']))
+            report.print('')
         report.print('')
     else:
         report.print("No character was found.")
