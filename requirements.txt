@@ -1,3 +1,2 @@
-lxml
 chirptext >= 0.1a19
 puchikarui >= 0.1a3
