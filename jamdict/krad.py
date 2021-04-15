@@ -1,47 +1,24 @@
 # -*- coding: utf-8 -*-
 
 '''
-Module for retrieving kanji components (i.e. radicals)
-Latest version can be found at https://github.com/neocl/jamdict
-
-This package uses the RADKFILE/KRADFILE[1] file.
-These files are the property of the [Electronic Dictionary Research and Development Group][2], and are used in conformance with the Group's [licence][3].
-
-[1]: http://www.edrdg.org/krad/kradinf.html
-[2]: http://www.edrdg.org/
-[3]: http://www.edrdg.org/edrdg/licence.html
-
-References:
-    JMDict website:
-        http://www.csse.monash.edu.au/~jwb/edict.html
-    Python documentation:
-        https://docs.python.org/
-    PEP 257 - Python Docstring Conventions:
-        https://www.python.org/dev/peps/pep-0257/
-
-@author: Le Tuan Anh <tuananh.ke@gmail.com>
-@license: MIT
+jamdict.krad is a module for retrieving kanji components (i.e. radicals)
 '''
 
-# Copyright (c) 2016, Le Tuan Anh <tuananh.ke@gmail.com>
+# Latest version can be found at https://github.com/neocl/jamdict
+# 
+# This package uses the RADKFILE/KRADFILE[1] file.
+# These files are the property of the [Electronic Dictionary Research and Development Group][2], and are used in conformance with the Group's [licence][3].
+# 
+# [1]: http://www.edrdg.org/krad/kradinf.html
+# [2]: http://www.edrdg.org/
+# [3]: http://www.edrdg.org/edrdg/licence.html
+# 
+# References:
+#     JMDict website:
+#         http://www.csse.monash.edu.au/~jwb/edict.html
 #
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+# @author: Le Tuan Anh <tuananh.ke@gmail.com>
+# @license: MIT
 
 ########################################################################
 
@@ -50,7 +27,6 @@ import logging
 import threading
 from collections import OrderedDict
 from collections import defaultdict as dd
-from lxml import etree
 
 from chirptext import chio
 from chirptext.sino import Radical
@@ -69,9 +45,11 @@ logger = logging.getLogger(__name__)
 ########################################################################
 
 class KRad:
+    ''' This class contains mapping from radicals to kanjis (radk) and kanjis to radicals (krad) 
+
+    '''
     def __init__(self, **kwargs):
-        """ Kanji Radical management
-        """
+        """ Kanji-Radical mapping """
         self.__krad_map = None
         self.__radk_map = None
         self.__rads = {}
