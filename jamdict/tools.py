@@ -39,10 +39,12 @@ References:
 
 import os
 import json
+import logging
 
 from chirptext import confirm, TextReport, Timer
 from chirptext.cli import CLIApp, setup_logging
 
+import jamdict
 from jamdict import Jamdict
 from jamdict import config
 from jamdict import version_info
@@ -61,6 +63,10 @@ if os.path.isfile('logging.json'):
     setup_logging('logging.json', 'logs')
 else:
     setup_logging(os.path.join(config.home_dir(), 'logging.json'), 'logs')
+
+
+def getLogger():
+    return logging.getLogger(__name__)
 
 
 # -------------------------------------------------------------------------------
@@ -165,17 +171,21 @@ def dump_result(results, report=None):
 def lookup(cli, args):
     '''Lookup words by kanji/kana'''
     jam = get_jam(cli, args)
-    results = jam.lookup(args.query, strict_lookup=args.strict)
-    report = TextReport(args.output)
-    if args.format == 'json':
-        report.print(json.dumps(results.to_json(),
-                                ensure_ascii=args.ensure_ascii,
-                                indent=args.indent if args.indent else None))
-    else:
-        if args.compact:
-            report.print(results.text(separator='\n------\n', entry_sep='\n'))
+    if jam.ready:
+        results = jam.lookup(args.query, strict_lookup=args.strict)
+        report = TextReport(args.output)
+        if args.format == 'json':
+            report.print(json.dumps(results.to_json(),
+                                    ensure_ascii=args.ensure_ascii,
+                                    indent=args.indent if args.indent else None))
         else:
-            dump_result(results, report=report)
+            if args.compact:
+                report.print(results.text(separator='\n------\n', entry_sep='\n'))
+            else:
+                dump_result(results, report=report)
+    else:
+        getLogger().warning(f"Jamdict database is not available.\nThere are 3 ways to install data: \n    1) install jamdict_data via PyPI using `pip install jamdict_data` \n    2) download prebuilt dictionary database file from: {jamdict.__url__}, \n    3) or build your own database file from XML source files.")
+        
 
 
 def file_status(file_path):
@@ -189,13 +199,20 @@ def show_info(cli, args):
     output.print("Jamdict " + version_info.__version__)
     output.print(version_info.__description__)
     output.header("Basic configuration")
-    output.print("JAMDICT_HOME        : {}".format(config.home_dir()))
-    output.print("Config file location: {}".format(config._get_config_manager().locate_config()))
-    output.header("Data files")
+    output.print(f"JAMDICT_HOME             : {config.home_dir()}")
+    output.print(f"jamdict_data availability: {jamdict.util._JAMDICT_DATA_AVAILABLE}")
+    _config_path = config._get_config_manager().locate_config()
+    if not _config_path:
+        _config_path = "Not available.\n     Run `python3 -m jamdict config` to create configuration file if needed."
+    output.print(f"Config file location     : {_config_path}")
+
+    output.header("Custom data files")
     output.print("Jamdict DB location: {} - {}".format(args.jdb, file_status(args.jdb)))
     output.print("JMDict XML file    : {} - {}".format(args.jmdxml, file_status(args.jmdxml)))
     output.print("KanjiDic2 XML file : {} - {}".format(args.kd2xml, file_status(args.kd2xml)))
     output.print("JMnedict XML file : {} - {}".format(args.jmnexml, file_status(args.jmnexml)))
+    output.header("Others")
+    output.print(f"lxml availability: {jamdict.jmdict._LXML_AVAILABLE}")
 
 
 def show_version(cli, args):
@@ -204,6 +221,12 @@ def show_version(cli, args):
         print("Jamdict {v} - {d}".format(d=version_info.__description__, v=version_info.__version__))
     else:
         print("Jamdict {}".format(version_info.__version__))
+
+
+def config_jamdict(cli, args):
+    ''' Create configuration file '''
+    jamdict.config._ensure_config()
+    show_info(cli, args)
 
 
 # -------------------------------------------------------------------------------
@@ -237,6 +260,10 @@ def main():
     # show version
     version_task = app.add_task('version', func=show_version)
     add_data_config(version_task)
+
+    # create config file
+    config_task = app.add_task('config', func=config_jamdict)
+    add_data_config(config_task)
 
     # look up task
     lookup_task = app.add_task('lookup', func=lookup)

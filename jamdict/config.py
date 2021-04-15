@@ -58,17 +58,25 @@ def _get_config_manager():
     return __app_config
 
 
+def _ensure_config():
+    # need to create a config
+    config_dir = os.path.expanduser('~/.jamdict/')
+    if not os.path.exists(config_dir):
+        os.makedirs(config_dir)
+    cfg_loc = os.path.join(config_dir, 'config.json')
+    default_config = read_file(CONFIG_TEMPLATE)
+    getLogger().warning("Jamdict configuration file could not be found. A new configuration file will be generated at {}".format(cfg_loc))
+    getLogger().debug("Default config: {}".format(default_config))
+    write_file(cfg_loc, default_config)
+
+
 def read_config():
     if not __app_config.config and not __app_config.locate_config():
-        # need to create a config
-        config_dir = os.path.expanduser('~/.jamdict/')
-        if not os.path.exists(config_dir):
-            os.makedirs(config_dir)
-        cfg_loc = os.path.join(config_dir, 'config.json')
-        default_config = read_file(CONFIG_TEMPLATE)
-        getLogger().warning("Jamdict configuration file could not be found. A new configuration file will be generated at {}".format(cfg_loc))
-        getLogger().debug("Default config: {}".format(default_config))
-        write_file(cfg_loc, default_config)
+        # _ensure_config()
+        # [2021-04-15] data can be installed via PyPI
+        # configuration file can be optional now
+        # load config from default template
+        __app_config.load(CONFIG_TEMPLATE)
     # read config
     config = __app_config.config
     return config
