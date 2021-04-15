@@ -54,5 +54,6 @@ from .__version__ import __version_major__, __version_long__, __version__, __sta
 from .jmdict_sqlite import JMDictSQLite
 from .kanjidic2_sqlite import KanjiDic2SQLite
 from .util import Jamdict, JMDictXML, KanjiDic2XML
-__all__ = ['Jamdict', 'JMDictSQLite', 'JMDictXML', 'KanjiDic2SQLite', 'KanjiDic2XML',
+from .krad import KRad
+__all__ = ['Jamdict', 'JMDictSQLite', 'JMDictXML', 'KanjiDic2SQLite', 'KanjiDic2XML', 'KRad',
            "__version__", "__author__", "__description__", "__copyright__", "version_info"]
