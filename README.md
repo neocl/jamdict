@@ -189,3 +189,4 @@ See `jamdict_demo.py` and `jamdict/tools.py` for more information.
 - [Le Tuan Anh](https://github.com/letuananh) (Maintainer)
 - [Matteo Fumagalli](https://github.com/matteofumagalli1275)
 - [Reem Alghamdi](https://github.com/reem-codes)
+- [alt-romes](https://github.com/alt-romes)
