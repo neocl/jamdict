@@ -1,6 +1,6 @@
 Python library for manipulating Jim Breen's JMdict & KanjiDic2
 
-[![ReadTheDocs Badge](https://readthedocs.org/projects/jamdict/badge/?version=latest&style=plastic)](https://jamdict.readthedocs.io/)
+Documentation: [![ReadTheDocs Badge](https://readthedocs.org/projects/jamdict/badge/?version=latest&style=plastic)](https://jamdict.readthedocs.io/) https://jamdict.readthedocs.io/
 
 # Main features
 
@@ -211,5 +211,6 @@ See `jamdict_demo.py` and `jamdict/tools.py` for more information.
 
 # Contributors
 
+- [Le Tuan Anh](https://github.com/letuananh) (Maintainer)
 - [Matteo Fumagalli](https://github.com/matteofumagalli1275)
 - [Reem Alghamdi](https://github.com/reem-codes)
