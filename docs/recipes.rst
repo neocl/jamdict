@@ -8,7 +8,8 @@ Common Recipes
 - Decomposing kanji characters into components, or search kanji characters by components.
 - Search for named entities.
 
-👉 ⚠️ THIS SECTION IS STILL UNDER CONSTRUCTION ⚠️
+.. warning::
+    👉 ⚠️ THIS SECTION IS STILL UNDER CONSTRUCTION ⚠️
 
 All code here assumed that you have created a Jamdict object named :samp:`jam`, like this
 

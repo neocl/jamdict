@@ -14,22 +14,25 @@ Main features
    -  Kanji-radical and radical-kanji maps KRADFILE/RADKFILE
    -  Japanese Proper Names Dictionary (JMnedict)
 
--  Data are stored using SQLite database
--  Console lookup tool
--  jamdol (jamdol-flask) - a Python/Flask server that provides Jamdict
-   lookup via REST API (experimental state)
+-  Fast look up (dictionaries are stored in SQLite databases)
+-  Command-line lookup tool :ref:`(Example) <commandline>`
+   
+..
+   Hide this for now
+   -  jamdol (jamdol-flask) - a Python/Flask server that provides Jamdict lookup via REST API (experimental state)
 
-:ref:`Contributors are welcome! 🙇 <contributors>`
+:ref:`Contributors <contributors>` are welcome! 🙇
 
 Installation
 ------------
 
 Jamdict is `available on PyPI <https://pypi.org/project/jamdict/>`_ and
-can be installed using pip command
+can be installed using pip.
+For more information please see :ref:`installpage` page.
 
 .. code:: bash
 
-   pip install jamdict jamdict_data
+   pip install jamdict jamdict-data
 
 Sample jamdict Python code
 --------------------------
@@ -68,6 +71,8 @@ Looking up named entities
    [id#5741091] ディズニーランド : Disneyland (place name)
 
 See :ref:`recipes` for more sample code.
+
+.. _commandline:
 
 Command line tools
 ------------------
@@ -127,6 +132,7 @@ Other info
 Contributors
 ------------
 
+-  `Le Tuan Anh <https://github.com/letuananh>`__ (Maintainer)
 -  `Matteo Fumagalli <https://github.com/matteofumagalli1275>`__
 -  `Reem Alghamdi <https://github.com/reem-codes>`__
 
