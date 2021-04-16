@@ -1,6 +1,10 @@
-Python library for manipulating Jim Breen's JMdict & KanjiDic2
+# Jamdict
 
-Documentation: [![ReadTheDocs Badge](https://readthedocs.org/projects/jamdict/badge/?version=latest&style=plastic)](https://jamdict.readthedocs.io/) https://jamdict.readthedocs.io/
+[Jamdict](https://github.com/neocl/jamdict) is a Python 3 library for manipulating Jim Breen's JMdict, KanjiDic2, JMnedict and kanji-radical mappings.
+
+[![ReadTheDocs Badge](https://readthedocs.org/projects/jamdict/badge/?version=latest&style=plastic)](https://jamdict.readthedocs.io/)
+
+**Jamdict documentation:** https://jamdict.readthedocs.io/ 
 
 # Main features
 
@@ -9,9 +13,8 @@ Documentation: [![ReadTheDocs Badge](https://readthedocs.org/projects/jamdict/ba
   - Kanji dictionary KanjiDic2
   - Kanji-radical and radical-kanji maps KRADFILE/RADKFILE
   - Japanese Proper Names Dictionary (JMnedict) 
-* Data are stored using SQLite database
-* Console lookup tool
-* jamdol (jamdol-flask) - a Python/Flask server that provides Jamdict lookup via REST API (experimental state)
+* Fast look up (dictionaries are stored in SQLite databases)
+* Command-line lookup tool [(Example)](#command-line-tools)
 
 Homepage: [https://github.com/neocl/jamdict](https://github.com/neocl/jamdict)
 
@@ -19,12 +22,10 @@ Contributors are welcome! 🙇
 
 # Installation
 
-Jamdict is available on PyPI at [https://pypi.org/project/jamdict/](https://pypi.org/project/jamdict/) and can be installed using pip command
+Jamdict & Jamdict database are both available on [PyPI](https://pypi.org/project/jamdict/) and can be installed using pip
 
 ```bash
-pip install jamdict
-# pip script sometimes doesn't work properly, so you may want to try this instead
-python3 -m pip install jamdict
+pip install jamdict jamdict-data
 ```
 
 ## Install data file
