@@ -18,7 +18,7 @@
 
 Homepage: [https://github.com/neocl/jamdict](https://github.com/neocl/jamdict)
 
-Contributors are welcome! 🙇
+[Contributors](#contributors) are welcome! 🙇
 
 # Installation
 
