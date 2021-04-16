@@ -1,6 +1,10 @@
-Python library for manipulating Jim Breen's JMdict & KanjiDic2
+# Jamdict
+
+[Jamdict](https://github.com/neocl/jamdict) is a Python 3 library for manipulating Jim Breen's JMdict, KanjiDic2, JMnedict and kanji-radical mappings.
 
 [![ReadTheDocs Badge](https://readthedocs.org/projects/jamdict/badge/?version=latest&style=plastic)](https://jamdict.readthedocs.io/)
+
+**Documentation:** https://jamdict.readthedocs.io/ 
 
 # Main features
 
@@ -9,80 +13,19 @@ Python library for manipulating Jim Breen's JMdict & KanjiDic2
   - Kanji dictionary KanjiDic2
   - Kanji-radical and radical-kanji maps KRADFILE/RADKFILE
   - Japanese Proper Names Dictionary (JMnedict) 
-* Data are stored using SQLite database
-* Console lookup tool
-* jamdol (jamdol-flask) - a Python/Flask server that provides Jamdict lookup via REST API (experimental state)
+* Fast look up (dictionaries are stored in SQLite databases)
+* Command-line lookup tool [(Example)](#command-line-tools)
 
 Homepage: [https://github.com/neocl/jamdict](https://github.com/neocl/jamdict)
 
-Contributors are welcome! 🙇
+[Contributors](#contributors) are welcome! 🙇
 
 # Installation
 
-Jamdict is available on PyPI at [https://pypi.org/project/jamdict/](https://pypi.org/project/jamdict/) and can be installed using pip command
+Jamdict & Jamdict database are both available on [PyPI](https://pypi.org/project/jamdict/) and can be installed using pip
 
 ```bash
-pip install jamdict
-# pip script sometimes doesn't work properly, so you may want to try this instead
-python3 -m pip install jamdict
-```
-
-## Install data file
-
-1. Download the offical, pre-compiled jamdict database (`jamdict-0.1a7.tar.xz`) from Google Drive [https://drive.google.com/drive/u/1/folders/1z4zF9ImZlNeTZZplflvvnpZfJp3WVLPk](https://drive.google.com/drive/u/1/folders/1z4zF9ImZlNeTZZplflvvnpZfJp3WVLPk)
-2. Extract and copy `jamdict.db` to jamdict data folder (defaulted to `~/.jamdict/data/jamdict.db`)
-3. To know where to copy data files
-   
-   ```bash
-   # initial setup (this command will create ~/.jamdict for you
-   # it will also tell you where to copy the data files
-   python3 -m jamdict info
-   # Jamdict 0.1a7
-   # Python library for manipulating Jim Breen's JMdict, KanjiDic2, KRADFILE and JMnedict
-   # 
-   # Basic configuration
-   # ------------------------------------------------------------
-   # JAMDICT_HOME        : /home/tuananh/.jamdict
-   # Config file location: /home/tuananh/.jamdict/config.json
-   # 
-   # Data files
-   # ------------------------------------------------------------
-   # Jamdict DB location: /home/tuananh/.jamdict/data/jamdict.db - [OK]
-   # JMDict XML file    : /home/tuananh/.jamdict/data/JMdict_e.gz - [OK]
-   # KanjiDic2 XML file : /home/tuananh/.jamdict/data/kanjidic2.xml.gz - [OK]
-   # JMnedict XML file : /home/tuananh/.jamdict/data/JMnedict.xml.gz - [OK]
-   ```
-
-## Command line tools
-
-To make sure that jamdict is configured properly, try to look up a word using command line
-
-```bash
-python3 -m jamdict.tools lookup 言語学
-========================================
-Found entries
-========================================
-Entry: 1264430 | Kj:  言語学 | Kn: げんごがく
---------------------
-1. linguistics ((noun (common) (futsuumeishi)))
-
-========================================
-Found characters
-========================================
-Char: 言 | Strokes: 7
---------------------
-Readings: yan2, eon, 언, Ngôn, Ngân, ゲン, ゴン, い.う, こと
-Meanings: say, word
-Char: 語 | Strokes: 14
---------------------
-Readings: yu3, yu4, eo, 어, Ngữ, Ngứ, ゴ, かた.る, かた.らう
-Meanings: word, speech, language
-Char: 学 | Strokes: 8
---------------------
-Readings: xue2, hag, 학, Học, ガク, まな.ぶ
-Meanings: study, learning, science
-
-No name was found.
+pip install jamdict jamdict-data
 ```
 
 # Sample jamdict Python code
@@ -121,6 +64,38 @@ for c in result.chars:
 # 慣:14:accustomed,get used to,become experienced
 # 比:4:compare,race,ratio,Philippines
 # 合:6:fit,suit,join,0.1
+```
+
+## Command line tools
+
+To make sure that jamdict is configured properly, try to look up a word using command line
+
+```bash
+python3 -m jamdict lookup 言語学
+========================================
+Found entries
+========================================
+Entry: 1264430 | Kj:  言語学 | Kn: げんごがく
+--------------------
+1. linguistics ((noun (common) (futsuumeishi)))
+
+========================================
+Found characters
+========================================
+Char: 言 | Strokes: 7
+--------------------
+Readings: yan2, eon, 언, Ngôn, Ngân, ゲン, ゴン, い.う, こと
+Meanings: say, word
+Char: 語 | Strokes: 14
+--------------------
+Readings: yu3, yu4, eo, 어, Ngữ, Ngứ, ゴ, かた.る, かた.らう
+Meanings: word, speech, language
+Char: 学 | Strokes: 8
+--------------------
+Readings: xue2, hag, 학, Học, ガク, まな.ぶ
+Meanings: study, learning, science
+
+No name was found.
 ```
 
 ## Using KRAD/RADK mapping
@@ -211,5 +186,6 @@ See `jamdict_demo.py` and `jamdict/tools.py` for more information.
 
 # Contributors
 
+- [Le Tuan Anh](https://github.com/letuananh) (Maintainer)
 - [Matteo Fumagalli](https://github.com/matteofumagalli1275)
 - [Reem Alghamdi](https://github.com/reem-codes)

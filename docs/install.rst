@@ -1,3 +1,5 @@
+.. _installpage:
+
 Installation
 =============
 
@@ -5,10 +7,28 @@ jamdict and jamdict dictionary data are both available on PyPI and can be instal
 
 .. code-block:: bash
 
-   pip install --user jamdict jamdict_data
+   pip install --user jamdict jamdict-data
    # pip script sometimes doesn't work properly
    # so you may want to try this instead
-   python3 -m pip install jamdict jamdict_data
+   python3 -m pip install jamdict jamdict-data
+
+.. note::
+   When you use :code:`pip install` in a virtual environment, especially the ones created via :code:`python3 -m venv`,
+   wheel support can be missing. :code:`jamdict-data` relies on wheel/pip to extract xz-compressed database and this may cause a problem.
+   If you encounter any error, please make sure that wheel is available
+
+   .. code-block:: bash
+
+      # list all available packages in pip
+      pip list
+      # ensure wheel support in pip
+      pip install -U wheel
+
+   You may need to uninstall :code:`jamdict-data` before reinstalling it.
+
+   .. code-block:: bash
+
+      pip uninstall jamdict-data
 
 Download database file manually
 -------------------------------
