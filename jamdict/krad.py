@@ -25,11 +25,9 @@ jamdict.krad is a module for retrieving kanji components (i.e. radicals)
 import os
 import logging
 import threading
-from collections import OrderedDict
 from collections import defaultdict as dd
 
 from chirptext import chio
-from chirptext.sino import Radical
 
 # ------------------------------------------------------------------------------
 # Configuration

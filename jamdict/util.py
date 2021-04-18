@@ -52,7 +52,7 @@ import logging
 import threading
 from collections import defaultdict as dd
 from collections import OrderedDict
-from typing import List, Tuple
+from typing import List
 
 from chirptext.deko import HIRAGANA, KATAKANA
 
@@ -67,7 +67,7 @@ from .jmnedict_sqlite import JMNEDictSQLite
 try:
     import jamdict_data
     _JAMDICT_DATA_AVAILABLE = True
-except:
+except Exception:
     _JAMDICT_DATA_AVAILABLE = False
 
 
@@ -232,13 +232,13 @@ class Jamdict(object):
                 self.db_file = jamdict_data.JAMDICT_DB_PATH
             elif self.jmd_xml_file and os.path.isfile(self.jmd_xml_file):
                 getLogger().warning("JAMDICT_DB could NOT be found. Searching will be extremely slow. Please run `python3 -m jamdict import` first")
-        self.kd2_file = kd2_file if kd2_file else config.get_file('JAMDICT_DB') if auto_config else None        
+        self.kd2_file = kd2_file if kd2_file else self.db_file if auto_config else None        
         if not self.kd2_file or not os.path.isfile(self.kd2_file):
             if _JAMDICT_DATA_AVAILABLE:
                 self.kd2_file = None  # jamdict_data.JAMDICT_DB_PATH
             elif self.kd2_xml_file and os.path.isfile(self.kd2_xml_file):
                 getLogger().warning("Kanjidic2 database could NOT be found. Searching will be extremely slow. Please run `python3 -m jamdict import` first")
-        self.jmnedict_file = jmnedict_file if jmnedict_file else config.get_file('JAMDICT_DB') if auto_config else None
+        self.jmnedict_file = jmnedict_file if jmnedict_file else self.db_file if auto_config else None
         if not self.jmnedict_file or not os.path.isfile(self.jmnedict_file):
             if _JAMDICT_DATA_AVAILABLE:
                 self.jmnedict_file = None  # jamdict_data.JAMDICT_DB_PATH
@@ -316,15 +316,8 @@ class Jamdict(object):
     def jmdict(self):
         if not self._db_sqlite and self.db_file:
             with threading.Lock():
-                if (not self.kd2_file or self.kd2_file == self.db_file) and (not self.jmnedict_file or self.jmnedict_file == self.db_file):
-                    # Use 1 DB for all
-                    self._db_sqlite = JamdictSQLite(self.db_file, auto_expand_path=self.auto_expand)
-                    self._kd2_sqlite = self._db_sqlite
-                    self._jmne_sqlite = self._db_sqlite
-                else:
-                    # use separated db files
-                    # this is kept for backward compatible, may change in future code revision
-                    self._db_sqlite = JMDictSQLite(self.db_file, auto_expand_path=self.auto_expand)
+                # Use 1 DB for all
+                self._db_sqlite = JamdictSQLite(self.db_file, auto_expand_path=self.auto_expand)
         return self._db_sqlite
 
     @property
@@ -333,7 +326,7 @@ class Jamdict(object):
             if self.kd2_file is not None and os.path.isfile(self.kd2_file):
                 with threading.Lock():
                     self._kd2_sqlite = KanjiDic2SQLite(self.kd2_file, auto_expand_path=self.auto_expand)
-            else:
+            elif not self.kd2_file or self.kd2_file == self.db_file:
                 self._kd2_sqlite = self.jmdict
         return self._kd2_sqlite
 
@@ -344,7 +337,7 @@ class Jamdict(object):
             if self.jmnedict_file is not None:
                 with threading.Lock():
                     self._jmne_sqlite = JMNEDictSQLite(self.jmnedict_file, auto_expand_path=self.auto_expand)
-            else:
+            elif not self.jmnedict_file or self.jmnedict_file == self.db_file:
                 self._jmne_sqlite = self.jmdict
         return self._jmne_sqlite
 

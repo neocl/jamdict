@@ -45,24 +45,21 @@ from chirptext import confirm, TextReport, Timer
 from chirptext.cli import CLIApp, setup_logging
 
 import jamdict
-from jamdict import Jamdict
-from jamdict import config
-from jamdict import version_info
 
 # -------------------------------------------------------------------------------
 # Configuration
 # -------------------------------------------------------------------------------
 
 
-JMD_XML = config.get_file('JMDICT_XML')
-KD2_XML = config.get_file('KD2_XML')
-JMNE_XML = config.get_file('JMNEDICT_XML')
-JMD_DB = config.get_file('JAMDICT_DB')
+JMD_XML = jamdict.config.get_file('JMDICT_XML')
+KD2_XML = jamdict.config.get_file('KD2_XML')
+JMNE_XML = jamdict.config.get_file('JMNEDICT_XML')
+JMD_DB = jamdict.config.get_file('JAMDICT_DB')
 
 if os.path.isfile('logging.json'):
     setup_logging('logging.json', 'logs')
 else:
-    setup_logging(os.path.join(config.home_dir(), 'logging.json'), 'logs')
+    setup_logging(os.path.join(jamdict.config.home_dir(), 'logging.json'), 'logs')
 
 
 def getLogger():
@@ -79,12 +76,12 @@ def get_jam(cli, args):
     if args.kd2 or args.jmne:
         cli.logger.warning("Jamdict database location: {}".format(args.jdb))
         cli.logger.warning("Kanjidic2 database location: {}".format(args.kd2))
-        jmd = Jamdict(db_file=args.jdb, kd2_file=args.kd2,
+        jmd = jamdict.Jamdict(db_file=args.jdb, kd2_file=args.kd2,
                       jmd_xml_file=args.jmdxml, kd2_xml_file=args.kd2xml,
                       jmnedict_file=args.jmne, jmnedict_xml_file=args.jmnexml)
     else:
         cli.logger.debug("Using the same database for both JMDict and Kanjidic2")
-        jmd = Jamdict(db_file=args.jdb,
+        jmd = jamdict.Jamdict(db_file=args.jdb,
                       kd2_file=args.jdb,
                       jmnedict_file=args.jdb,
                       jmd_xml_file=args.jmdxml,
@@ -193,15 +190,25 @@ def file_status(file_path):
     return '[NOT FOUND]' if not os.path.isfile(real_path) else '[OK]'
 
 
+def hello_jamdict(cli, args):
+    ''' Say hello and test if Jamdict is working '''
+    jam = get_jam(cli, args)
+    if jam.ready:
+        results = jam.lookup("一期一会")
+        dump_result(results, report=TextReport())
+    else:
+        getLogger().warning("Hello there, unfortunately jamdict data is not available. Please try to install using `pip install jamdict-data`")
+
+
 def show_info(cli, args):
     ''' Show jamdict configuration (data folder, configuration file location, etc.) '''
     output = TextReport(args.output) if 'output' in args else TextReport()
-    output.print("Jamdict " + version_info.__version__)
-    output.print(version_info.__description__)
+    output.print("Jamdict " + jamdict.version_info.__version__)
+    output.print(jamdict.version_info.__description__)
     output.header("Basic configuration")
-    output.print(f"JAMDICT_HOME             : {config.home_dir()}")
+    output.print(f"JAMDICT_HOME             : {jamdict.config.home_dir()}")
     output.print(f"jamdict_data availability: {jamdict.util._JAMDICT_DATA_AVAILABLE}")
-    _config_path = config._get_config_manager().locate_config()
+    _config_path = jamdict.config._get_config_manager().locate_config()
     if not _config_path:
         _config_path = "Not available.\n     Run `python3 -m jamdict config` to create configuration file if needed."
     output.print(f"Config file location     : {_config_path}")
@@ -211,6 +218,16 @@ def show_info(cli, args):
     output.print("JMDict XML file    : {} - {}".format(args.jmdxml, file_status(args.jmdxml)))
     output.print("KanjiDic2 XML file : {} - {}".format(args.kd2xml, file_status(args.kd2xml)))
     output.print("JMnedict XML file : {} - {}".format(args.jmnexml, file_status(args.jmnexml)))
+
+    jam = get_jam(cli, args)
+    if jam.ready:
+        output.header("Jamdict database meta")
+        try:
+            for meta in jam.jmdict.meta.select():
+                output.print(f"{meta.key}: {meta.value}")
+        except Exception as e:
+            print(e)
+            output.print("Error happened while retrieving database meta data")
     output.header("Others")
     output.print(f"lxml availability: {jamdict.jmdict._LXML_AVAILABLE}")
 
@@ -218,9 +235,9 @@ def show_info(cli, args):
 def show_version(cli, args):
     ''' Show Jamdict version '''
     if args.verbose:
-        print("Jamdict {v} - {d}".format(d=version_info.__description__, v=version_info.__version__))
+        print("Jamdict {v} - {d}".format(d=jamdict.version_info.__description__, v=jamdict.version_info.__version__))
     else:
-        print("Jamdict {}".format(version_info.__version__))
+        print("Jamdict {}".format(jamdict.version_info.__version__))
 
 
 def config_jamdict(cli, args):
@@ -265,6 +282,10 @@ def main():
     config_task = app.add_task('config', func=config_jamdict)
     add_data_config(config_task)
 
+    # hello
+    hello_task = app.add_task('hello', func=hello_jamdict)
+    add_data_config(hello_task)
+    
     # look up task
     lookup_task = app.add_task('lookup', func=lookup)
     lookup_task.add_argument('query', help='kanji/kana')
