@@ -52,7 +52,7 @@ import logging
 import threading
 from collections import defaultdict as dd
 from collections import OrderedDict
-from typing import List, Tuple
+from typing import List
 
 from chirptext.deko import HIRAGANA, KATAKANA
 
@@ -67,7 +67,7 @@ from .jmnedict_sqlite import JMNEDictSQLite
 try:
     import jamdict_data
     _JAMDICT_DATA_AVAILABLE = True
-except:
+except Exception:
     _JAMDICT_DATA_AVAILABLE = False
 
 

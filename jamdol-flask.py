@@ -45,7 +45,6 @@ __status__ = "Prototype"
 
 ########################################################################
 
-import os
 import json
 import logging
 import flask
