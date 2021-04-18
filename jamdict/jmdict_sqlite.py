@@ -195,7 +195,7 @@ class JMDictSQLite(JMDictSchema):
                     entry.info.etym.append(e)
             if dbaudit:
                 for a in dbaudit:
-                    entry.info.audit.append(Audit(e.upd_date, e.upd_detl))
+                    entry.info.audit.append(Audit(a.upd_date, a.upd_detl))
         # select kanji
         kanjis = ctx.Kanji.select('idseq=?', (idseq,))
         for dbkj in kanjis:
@@ -312,7 +312,6 @@ class JMDictSQLite(JMDictSchema):
             # KJP
             for kjp in kj.pri:
                 ctx.KJP.insert(kjid, kjp)
-            pass
         # insert kana
         for kn in entry.kana_forms:
             knid = ctx.Kana.insert(entry.idseq, kn.text, kn.nokanji)
@@ -325,7 +324,6 @@ class JMDictSQLite(JMDictSchema):
             # KNR
             for knr in kn.restr:
                 ctx.KNR.insert(knid, knr)
-            pass
         # insert senses
         for s in entry.senses:
             sid = ctx.Sense.insert(entry.idseq)
