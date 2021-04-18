@@ -189,6 +189,16 @@ def file_status(file_path):
     return '[NOT FOUND]' if not os.path.isfile(real_path) else '[OK]'
 
 
+def hello_jamdict(cli, args):
+    ''' Say hello and test if Jamdict is working '''
+    jam = get_jam(cli, args)
+    if jam.ready:
+        results = jam.lookup("一期一会")
+        dump_result(results, report=TextReport())
+    else:
+        getLogger().warning("Hello there, unfortunately jamdict data is not available. Please try to install using `pip install jamdict-data`")
+
+
 def show_info(cli, args):
     ''' Show jamdict configuration (data folder, configuration file location, etc.) '''
     output = TextReport(args.output) if 'output' in args else TextReport()
@@ -271,6 +281,10 @@ def main():
     config_task = app.add_task('config', func=config_jamdict)
     add_data_config(config_task)
 
+    # hello
+    hello_task = app.add_task('hello', func=hello_jamdict)
+    add_data_config(hello_task)
+    
     # look up task
     lookup_task = app.add_task('lookup', func=lookup)
     lookup_task.add_argument('query', help='kanji/kana')
