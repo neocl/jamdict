@@ -129,6 +129,11 @@ Documentation
 Other info
 ==========
 
+Release Notes
+-------------
+
+Release notes is available :ref:`here <updates>`.
+
 .. _contributors:
   
 Contributors
