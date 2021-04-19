@@ -18,24 +18,28 @@
 
 Homepage: [https://github.com/neocl/jamdict](https://github.com/neocl/jamdict)
 
-[Contributors](#contributors) are welcome! 🙇
+[Contributors](#contributors) are welcome! 🙇. If you want to help, please see [Contributing](https://jamdict.readthedocs.io/en/latest/contributing.html) page.
 
 # Installation
 
 Jamdict & Jamdict database are both available on [PyPI](https://pypi.org/project/jamdict/) and can be installed using pip
 
 ```bash
-pip install jamdict jamdict-data
+pip install --upgrade jamdict jamdict-data
 ```
+
+# Try it out
+
+There is a demo Jamdict virtual machine to try out on the web on Repl.it: https://replit.com/@tuananhle/jamdict-demo
 
 # Sample jamdict Python code
 
 ```python
 from jamdict import Jamdict
-jmd = Jamdict()
+jam = Jamdict()
 
 # use wildcard matching to find anything starts with 食べ and ends with る
-result = jmd.lookup('食べ%る')
+result = jam.lookup('食べ%る')
 
 # print all word entries
 for entry in result.entries:
@@ -108,21 +112,21 @@ The terminology of radicals/components used by Jamdict can be different from els
 
 By default jamdict provides two maps:
 
-- jmd.krad is a Python dict that maps characters to list of components.
-- jmd.radk is a Python dict that maps each available components to a list of characters.
+- jam.krad is a Python dict that maps characters to list of components.
+- jam.radk is a Python dict that maps each available components to a list of characters.
 
 ```python
 # Find all writing components (often called "radicals") of the character 雲
-print(jmd.krad['雲'])
+print(jam.krad['雲'])
 # ['一', '雨', '二', '厶']
 
 # Find all characters with the component 鼎
-chars = jmd.radk['鼎']
+chars = jam.radk['鼎']
 print(chars)
 # {'鼏', '鼒', '鼐', '鼎', '鼑'}
 
 # look up the characters info
-result = jmd.lookup(''.join(chars))
+result = jam.lookup(''.join(chars))
 for c in result.chars:
     print(c, c.meanings())
 # 鼏 ['cover of tripod cauldron']
@@ -136,7 +140,7 @@ for c in result.chars:
 
 ```bash
 # Find all names with 鈴木 inside
-result = jmd.lookup('%鈴木%')
+result = jam.lookup('%鈴木%')
 for name in result.names:
     print(name)
 
@@ -154,25 +158,22 @@ for name in result.names:
 
 ## Exact matching
 
-Use exact matching for faster search
+Use exact matching for faster search.
+
+Find the word 花火 by idseq (1194580)
 
 ```python
-# Find an entry (word, name entity) by idseq
-result = jmd.lookup('id#5711308')
-print(result.names[0])
-# [id#5711308] すすき (鈴木) : Susuki (family or surname)
-result = jmd.lookup('id#1467640')
-print(result.entries[0])
-# ねこ (猫) : 1. cat 2. shamisen 3. geisha 4. wheelbarrow 5. clay bed-warmer 6. bottom/submissive partner of a homosexual relationship
+>>> result = jam.lookup('id#1194580')
+>>> print(result.names[0])
+[id#1194580] はなび (花火) : fireworks ((noun (common) (futsuumeishi)))
+```
 
-# use exact matching to increase searching speed (thanks to @reem-codes)
-result = jmd.lookup('猫')
+Find an exact name 花火 by idseq (5170462)
 
-for entry in result.entries:
-    print(entry)
-
-# [id#1467640] ねこ (猫) : 1. cat ((noun (common) (futsuumeishi))) 2. shamisen 3. geisha 4. wheelbarrow 5. clay bed-warmer 6. bottom/submissive partner of a homosexual relationship
-# [id#2698030] ねこま (猫) : cat ((noun (common) (futsuumeishi)))
+```python
+>>> result = jam.lookup('id#5170462')
+>>> print(result.names[0])
+[id#5170462] はなび (花火) : Hanabi (female given name or forename)
 ```
 
 See `jamdict_demo.py` and `jamdict/tools.py` for more information.
