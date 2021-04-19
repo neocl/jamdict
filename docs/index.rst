@@ -21,7 +21,8 @@ Main features
    Hide this for now
    -  jamdol (jamdol-flask) - a Python/Flask server that provides Jamdict lookup via REST API (experimental state)
 
-:ref:`Contributors <contributors>` are welcome! 🙇
+:ref:`Contributors <contributors>` are welcome! 🙇.
+If you want to help developing Jamdict, please visit :ref:`contributing` page.
 
 Installation
 ------------
@@ -70,7 +71,7 @@ Looking up named entities
    [id#5053163] ディズニー : Disney (family or surname/company name)
    [id#5741091] ディズニーランド : Disneyland (place name)
 
-See :ref:`recipes` for more sample code.
+See :ref:`recipes` for more code samples.
 
 .. _commandline:
 
@@ -123,6 +124,7 @@ Documentation
    tutorials
    recipes
    api
+   contributing
 
 Other info
 ==========
