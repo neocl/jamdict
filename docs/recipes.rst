@@ -99,3 +99,72 @@ Use exact matching for faster search
    # [id#1467640] ねこ (猫) : 1. cat ((noun (common) (futsuumeishi))) 2. shamisen 3. geisha 4. wheelbarrow 5. clay bed-warmer 6. bottom/submissive partner of a homosexual relationship
    # [id#2698030] ねこま (猫) : cat ((noun (common) (futsuumeishi)))
 
+Low-level data queries
+----------------------
+
+It’s possible to access to the dictionary data by querying database directly using lower level APIs.
+However these are prone to future changes so please keep that in mind.
+
+When you create a Jamdict object, you have direct access to the
+underlying databases, via these properties
+
+.. code:: python
+
+   from jamdict import Jamdict
+   jam = Jamdict()
+   >>> jam.jmdict    # jamdict.JMDictSQLite object for accessing word dictionary
+   >>> jam.kd2       # jamdict.KanjiDic2SQLite object, for accessing kanji dictionary
+   >>> jam.jmnedict  # jamdict.JMNEDictSQLite object, for accessing named-entities dictionary
+
+You can perform database queries on each of these databases by obtaining
+a database cursor with ``ctx()`` function (i.e. database query context).
+
+For example the following code list down all existing part-of-speeches
+in the database.
+
+.. code:: python
+
+   # returns a list of sqlite3.Row object
+   pos_rows = jam.jmdict.ctx().select("SELECT DISTINCT text FROM pos")  
+
+   # access columns in each query row by name
+   all_pos = [x['text'] for x in pos_rows]  
+
+   # sort all POS
+   all_pos.sort()
+   for pos in all_pos:
+       print(pos)
+
+For more information, please see `Jamdict database schema </_static/jamdict_db_schema.png>`_.
+
+Say we want to get all irregular suru verbs, we can start with finding
+all Sense IDs with pos = ``suru verb - irregular``, and then find all the
+Entry idseq connected to those Senses.
+
+Words (and also named entities) can be retrieved directly using their ``idseq``.
+Each word may have many Senses (meaning) and each Sense may have different pos.
+
+::
+
+   # Entry (idseq) --(has many)--> Sense --(has many)--> pos
+
+.. note::
+   Tips: Since we hit the database so many times (to find the IDs, to retrieve
+   each word, etc.), we also should consider to reuse the database
+   connection using database context to have better performance
+   (``with jam.jmdict.ctx() as ctx:`` and ``ctx=ctx`` in the code below).
+
+Here is the sample code:
+
+.. code:: python
+
+   # find all idseq of lexical entry (i.e. words) that have at least 1 sense with pos = suru verb - irregular
+   with jam.jmdict.ctx() as ctx:
+       # query all word's idseqs
+       rows = ctx.select(
+           query="SELECT DISTINCT idseq FROM Sense WHERE ID IN (SELECT sid FROM pos WHERE text = ?) LIMIT 10000",
+           params=("suru verb - irregular",))
+       for row in rows:
+           # reuse database connection with ctx=ctx for better performance
+           word = jam.jmdict.get_entry(idseq=row['idseq'], ctx=ctx)
+           print(word)

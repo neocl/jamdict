@@ -221,7 +221,7 @@ def show_info(cli, args):
 
     jam = get_jam(cli, args)
     if jam.ready:
-        output.header("Jamdict database meta")
+        output.header("Jamdict database metadata")
         try:
             for meta in jam.jmdict.meta.select():
                 output.print(f"{meta.key}: {meta.value}")
