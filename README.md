@@ -20,6 +20,10 @@ Homepage: [https://github.com/neocl/jamdict](https://github.com/neocl/jamdict)
 
 [Contributors](#contributors) are welcome! 🙇. If you want to help, please see [Contributing](https://jamdict.readthedocs.io/en/latest/contributing.html) page.
 
+# Try Jamdict out
+
+There is a demo Jamdict virtual machine to try out on the web on Repl.it: https://replit.com/@tuananhle/jamdict-demo
+
 # Installation
 
 Jamdict & Jamdict database are both available on [PyPI](https://pypi.org/project/jamdict/) and can be installed using pip
@@ -27,10 +31,6 @@ Jamdict & Jamdict database are both available on [PyPI](https://pypi.org/project
 ```bash
 pip install --upgrade jamdict jamdict-data
 ```
-
-# Try it out
-
-There is a demo Jamdict virtual machine to try out on the web on Repl.it: https://replit.com/@tuananhle/jamdict-demo
 
 # Sample jamdict Python code
 
