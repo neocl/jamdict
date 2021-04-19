@@ -178,7 +178,7 @@ Find an exact name 花火 by idseq (5170462)
 
 See `jamdict_demo.py` and `jamdict/tools.py` for more information.
 
-# Official website
+# Useful links
 
 * JMdict: [http://edrdg.org/jmdict/edict_doc.html](http://edrdg.org/jmdict/edict_doc.html)
 * kanjidic2: [https://www.edrdg.org/wiki/index.php/KANJIDIC_Project](https://www.edrdg.org/wiki/index.php/KANJIDIC_Project)
