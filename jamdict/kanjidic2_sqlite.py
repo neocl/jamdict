@@ -108,11 +108,11 @@ class KanjiDic2SQLite(KanjiDic2Schema):
     def __init__(self, db_path, setup_script=None, setup_file=None, *args, **kwargs):
         super().__init__(db_path, setup_script=setup_script, setup_file=setup_file, *args, **kwargs)
 
-    def update_meta(self, file_version, database_version, date_of_creation, ctx=None):
+    def update_kd2_meta(self, file_version, database_version, date_of_creation, ctx=None):
         # ensure context
         if ctx is None:
             with self.ctx() as new_context:
-                return self.update_meta(file_version, database_version, date_of_creation, new_context)
+                return self.update_kd2_meta(file_version, database_version, date_of_creation, new_context)
         # else
         # file_version
         fv = ctx.meta.by_id(self.KEY_FILE_VER)
