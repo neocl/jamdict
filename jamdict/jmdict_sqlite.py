@@ -80,8 +80,8 @@ class JMDictSchema(Schema):
     KEY_JMD_VER = "jmdict.version"
     KEY_JMD_URL = "jmdict.url"
 
-    def __init__(self, data_source=":memory:", setup_script=None, setup_file=None, *args, **kwargs):
-        super().__init__(data_source, setup_script=setup_script, setup_file=setup_file, *args, **kwargs)
+    def __init__(self, db_path, *args, **kwargs):
+        super().__init__(db_path, *args, **kwargs)
         self.add_script(SETUP_SCRIPT)
         self.add_file(JMDICT_SETUP_FILE)
         # Meta
@@ -117,8 +117,8 @@ class JMDictSchema(Schema):
 
 class JMDictSQLite(JMDictSchema):
 
-    def __init__(self, db_path, setup_script=None, setup_file=None, *args, **kwargs):
-        super().__init__(db_path, setup_script=setup_script, setup_file=setup_file, *args, **kwargs)
+    def __init__(self, db_path, *args, **kwargs):
+        super().__init__(db_path, *args, **kwargs)
 
     def update_jmd_meta(self, version, url, ctx=None):
         # create a default context if none was provided
