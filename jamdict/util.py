@@ -424,7 +424,7 @@ class Jamdict(object):
             getLogger().info("Importing JMDict data")
             self.jmdict.insert_entries(self.jmdict_xml, ctx=self.__make_db_ctx())
         # import KanjiDic2
-        if self.kd2 is not None and self.kd2_xml and os.path.isfile(self.kd2_xml):
+        if self.kd2 is not None and self.kd2_xml and os.path.isfile(self.kd2_xml_file):
             getLogger().info("Importing KanjiDic2 data")
             if self.jmdict is not None and id(self.kd2) == id(self.jmdict):
                 self.kd2.insert_chars(self.kd2_xml, ctx=self.__make_db_ctx())
@@ -433,7 +433,7 @@ class Jamdict(object):
         else:
             getLogger().warning("KanjiDic2 XML data is not available - skipped!")
         # import JMNEdict
-        if self.jmnedict is not None and self.jmne_xml and os.path.isfile(self.jmne_xml):
+        if self.jmnedict is not None and self.jmne_xml and os.path.isfile(self.jmnedict_xml_file):
             getLogger().info("Importing JMNEdict data")
             if self.jmdict is not None and id(self.jmnedict) == id(self.jmdict):
                 self.jmnedict.insert_name_entities(self.jmne_xml, ctx=self.__make_db_ctx())
@@ -494,7 +494,8 @@ class Jamdict(object):
             raise LookupError("There is no backend data available")
         elif not query:
             raise ValueError("Query cannot be empty")
-        ctx = self.__make_db_ctx()
+        if ctx is None:
+            ctx = self.__make_db_ctx()
         # Lookup words
         entries = []
         chars = []
