@@ -120,11 +120,11 @@ class JMDictSQLite(JMDictSchema):
     def __init__(self, db_path, setup_script=None, setup_file=None, *args, **kwargs):
         super().__init__(db_path, setup_script=setup_script, setup_file=setup_file, *args, **kwargs)
 
-    def update_meta(self, version, url, ctx=None):
+    def update_jmd_meta(self, version, url, ctx=None):
         # create a default context if none was provided
         if ctx is None:
             with self.open(ctx) as ctx:
-                return self.update_meta(version, url, ctx=ctx)
+                return self.update_jmd_meta(version, url, ctx=ctx)
         # else (a context is provided)
         # version
         jv = ctx.meta.by_id(self.KEY_JMD_VER)

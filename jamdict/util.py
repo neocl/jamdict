@@ -220,6 +220,17 @@ class Jamdict(object):
                  auto_config=True, auto_expand=True, reuse_ctx=True,
                  jmnedict_file=None, jmnedict_xml_file=None,
                  **kwargs):
+        # data sources
+        self.reuse_ctx = reuse_ctx
+        self._db_sqlite = None
+        self._kd2_sqlite = None
+        self._jmne_sqlite = None
+        self._jmd_xml = None
+        self._kd2_xml = None
+        self._jmne_xml = None
+        self.__krad_map = None
+        self.__jm_ctx = None  # for reusing database context
+
         # file paths configuration
         self.auto_expand = auto_expand
         self.jmd_xml_file = jmd_xml_file if jmd_xml_file else config.get_file('JMDICT_XML') if auto_config else None
@@ -244,16 +255,6 @@ class Jamdict(object):
                 self.jmnedict_file = None  # jamdict_data.JAMDICT_DB_PATH
             elif self.jmnedict_xml_file and os.path.isfile(self.jmnedict_xml_file):
                 getLogger().warning("JMNE database could NOT be found. Searching will be extremely slow. Please run `python3 -m jamdict import` first")
-        # data sources
-        self._db_sqlite = None
-        self._kd2_sqlite = None
-        self._jmne_sqlite = None
-        self._jmd_xml = None
-        self._kd2_xml = None
-        self._jmne_xml = None
-        self.__krad_map = None
-        self.reuse_ctx = reuse_ctx
-        self.__jm_ctx = None  # for reusing database context
 
     @property
     def ready(self):
