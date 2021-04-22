@@ -92,7 +92,7 @@ class TestJamdictSQLite(unittest.TestCase):
             fv = self.xdb.kd2.file_version
             dv = self.xdb.kd2.database_version
             doc = self.xdb.kd2.date_of_creation
-            db.update_meta(fv, dv, doc, ctx)
+            db.update_kd2_meta(fv, dv, doc, ctx)
             metas = ctx.meta.select()
             getLogger().debug("KanjiDic2 meta: {}".format(metas))
             for c in self.xdb:
