@@ -91,7 +91,7 @@ def get_jam(cli, args):
 
 
 def import_data(cli, args):
-    '''Import XML data into SQLite database'''
+    '''Generate Jamdict SQLite database from XML data files'''
     rp = TextReport()
     t = Timer(report=rp)
     db_loc = os.path.abspath(os.path.expanduser(args.jdb))
@@ -248,7 +248,7 @@ def show_version(cli, args):
 
 
 def config_jamdict(cli, args):
-    ''' Create configuration file '''
+    ''' Create Jamdict configuration file '''
     if args.config:
         jamdict.config._ensure_config(args.config)
     else:
@@ -273,7 +273,7 @@ def add_data_config(parser):
 def main():
     '''Main entry of jamtk
     '''
-    app = CLIApp(desc='Jamdict toolkit', logger=__name__)
+    app = CLIApp(desc='Jamdict command-line toolkit', logger=__name__, show_version=show_version)
     add_data_config(app.parser)
 
     # import task
