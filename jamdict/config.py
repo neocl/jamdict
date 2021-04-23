@@ -61,8 +61,7 @@ def _get_config_manager():
 
 def _ensure_config(config_path='~/.jamdict/config.json', mkdir=True):
     _path = Path(os.path.expanduser(config_path))
-    # need to create a config
-    config_dir = _path.parent
+    # auto create config dir
     if mkdir:
         _path.parent.mkdir(exist_ok=True)
     if not _path.exists():
