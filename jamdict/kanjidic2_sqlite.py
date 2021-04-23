@@ -83,8 +83,8 @@ class KanjiDic2Schema(Schema):
     KEY_DB_VER = 'kanjidic2.database_version'
     KEY_CREATED_DATE = 'kanjidic2.date_of_creation'
 
-    def __init__(self, data_source, setup_script=None, setup_file=None, *args, **kwargs):
-        super().__init__(data_source, setup_script=setup_script, setup_file=setup_file, *args, **kwargs)
+    def __init__(self, db_path, *args, **kwargs):
+        super().__init__(db_path, *args, **kwargs)
         self.add_file(KANJIDIC2_SETUP_FILE)
         self.add_script(KANJIDIC2_SETUP_SCRIPT)
         # Meta
@@ -105,14 +105,14 @@ class KanjiDic2Schema(Schema):
 
 class KanjiDic2SQLite(KanjiDic2Schema):
 
-    def __init__(self, db_path, setup_script=None, setup_file=None, *args, **kwargs):
-        super().__init__(db_path, setup_script=setup_script, setup_file=setup_file, *args, **kwargs)
+    def __init__(self, db_path, *args, **kwargs):
+        super().__init__(db_path, *args, **kwargs)
 
-    def update_meta(self, file_version, database_version, date_of_creation, ctx=None):
+    def update_kd2_meta(self, file_version, database_version, date_of_creation, ctx=None):
         # ensure context
         if ctx is None:
             with self.ctx() as new_context:
-                return self.update_meta(file_version, database_version, date_of_creation, new_context)
+                return self.update_kd2_meta(file_version, database_version, date_of_creation, new_context)
         # else
         # file_version
         fv = ctx.meta.by_id(self.KEY_FILE_VER)
