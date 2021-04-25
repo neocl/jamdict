@@ -48,19 +48,21 @@ __license__ = "MIT"
 import os
 import logging
 import unittest
+from pathlib import Path
 from jamdict import config
 from jamdict.jmdict import JMDictXMLParser
 from jamdict.kanjidic2 import Kanjidic2XMLParser
 from jamdict import Jamdict, JMDictXML
+from jamdict import config
 
 ########################################################################
 
-MY_DIR = os.path.abspath(os.path.dirname(__file__))
-TEST_DATA = os.path.join(MY_DIR, 'data')
-MINI_JMD = os.path.join(TEST_DATA, 'JMdict_mini.xml')
-MINI_KD2 = os.path.join(TEST_DATA, 'kanjidic2_mini.xml')
-MINI_JMNE = os.path.join(TEST_DATA, 'jmendict_mini.xml')
-TEST_DB = os.path.join(TEST_DATA, 'jamdict_test.db')
+MY_DIR = Path(os.path.abspath(os.path.dirname(__file__)))
+TEST_DATA = MY_DIR / 'data'
+MINI_JMD = TEST_DATA / 'JMdict_mini.xml'
+MINI_KD2 = TEST_DATA / 'kanjidic2_mini.xml'
+MINI_JMNE = TEST_DATA / 'jmendict_mini.xml'
+TEST_DB = TEST_DATA / 'jamdict_test.db'
 
 
 def getLogger():
@@ -159,6 +161,59 @@ class TestJamdictXML(unittest.TestCase):
         self.assertEqual(len(result.chars), 2)
         self.assertEqual({c.literal for c in result.chars}, {'土', '産'})
 
+
+class TestConfig(unittest.TestCase):
+
+    _cfg_dir = TEST_DATA / '.jamdict'
+    _cfg_file = _cfg_dir / 'config.json'
+
+    @classmethod
+    def setUpClass(cls):
+        cls.clean_config_file()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.clean_config_file()
+
+    @classmethod
+    def clean_config_file(cls):
+        if cls._cfg_file.exists():
+            cls._cfg_file.unlink()
+        if cls._cfg_dir.exists():
+            cls._cfg_dir.rmdir()
+
+    def test_config_file(self):
+        # if configuration file doesn't exist
+        conf = config.read_config(ensure_config=False, force_refresh=True)
+        self.assertIsNotNone(conf)
+        # and force creating config
+        conf = config.read_config(ensure_config=True, force_refresh=True)
+        self.assertIsNotNone(conf)
+
+    def test_ensure_config(self):
+        self.clean_config_file()
+        self.assertFalse(self._cfg_file.is_file())
+        conf = config._ensure_config(self._cfg_dir, self._cfg_file.name)
+        self.assertTrue(self._cfg_file.is_file())
+
+    def test_home_dir(self):
+        _orig_home = ''
+        if 'JAMDICT_HOME' in os.environ:
+            _orig_home = os.environ['JAMDICT_HOME']
+        # set a new home
+        os.environ['JAMDICT_HOME'] = str(self._cfg_dir)
+        # home_dir exist ...
+        if not self._cfg_dir.is_dir():
+            self._cfg_dir.mkdir(parents=True)
+        self.assertEqual(config.home_dir(), str(self._cfg_dir))
+        # home_dir does not exist ...
+        if self._cfg_dir.is_dir():
+            self.clean_config_file()
+        self.assertEqual(config.home_dir(), "~/.jamdict")
+        # no environ
+        del os.environ['JAMDICT_HOME']
+        self.assertEqual(config.home_dir(), "~/.jamdict")
+        os.environ['JAMDICT_HOME'] = _orig_home
 
 class TestJamdictSQLite(unittest.TestCase):
 
