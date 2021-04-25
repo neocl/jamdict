@@ -76,8 +76,8 @@ def getLogger():
 
 class JMNEDictSchema(Schema):
 
-    def __init__(self, data_source=":memory:", setup_script=None, setup_file=None, *args, **kwargs):
-        super().__init__(data_source, setup_script=setup_script, setup_file=setup_file, *args, **kwargs)
+    def __init__(self, db_path, *args, **kwargs):
+        super().__init__(db_path, *args, **kwargs)
         self.add_script(JMNEDICT_SETUP_SCRIPT)
         self.add_file(JMNEDICT_SETUP_FILE)
         # Meta
@@ -96,8 +96,8 @@ class JMNEDictSchema(Schema):
 
 class JMNEDictSQLite(JMNEDictSchema):
 
-    def __init__(self, db_path, setup_script=None, setup_file=None, *args, **kwargs):
-        super().__init__(db_path, setup_script=setup_script, setup_file=setup_file, *args, **kwargs)
+    def __init__(self, db_path, *args, **kwargs):
+        super().__init__(db_path, *args, **kwargs)
 
     def search_ne(self, query, ctx=None, **kwargs):
         # ensure context

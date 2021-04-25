@@ -57,6 +57,19 @@ from jamdict import Jamdict
 jam = Jamdict()
 print("Jamdict DB file: {}".format(jam.db_file))
 
+if not jam.ready:
+    print("""Jamdict DB is not available. Database can be installed via PyPI:
+
+    pip install jamdict-data
+
+Or downloaded from: https://jamdict.readthedocs.io/en/latest/install.html
+To create a config file, run:
+
+    python3 -m jamdict config
+
+Program aborted.""")
+    exit()
+
 # Lookup by kana
 result = jam.lookup('おかえし')
 for entry in result.entries:

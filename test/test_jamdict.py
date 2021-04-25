@@ -193,7 +193,7 @@ class TestConfig(unittest.TestCase):
     def test_ensure_config(self):
         self.clean_config_file()
         self.assertFalse(self._cfg_file.is_file())
-        conf = config._ensure_config(self._cfg_dir, self._cfg_file.name)
+        conf = config._ensure_config(self._cfg_file)
         self.assertTrue(self._cfg_file.is_file())
 
     def test_home_dir(self):

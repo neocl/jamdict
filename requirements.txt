@@ -1,2 +1,2 @@
-chirptext >= 0.1a19
-puchikarui >= 0.1a3
+chirptext >= 0.1a21
+puchikarui >= 0.1a4

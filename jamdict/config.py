@@ -32,6 +32,7 @@ Latest version can be found at https://github.com/neocl/jamdict
 ########################################################################
 
 import os
+from pathlib import Path
 import logging
 
 from chirptext import AppConfig
@@ -54,29 +55,49 @@ def _get_config_manager():
     return __app_config
 
 
-def _ensure_config(config_dir='~/.jamdict/', config_filename='config.json'):
-    # need to create a config
-    config_dir = os.path.expanduser(config_dir)
-    if not os.path.exists(config_dir):
-        os.makedirs(config_dir)
-    cfg_loc = os.path.join(config_dir, config_filename)
-    if os.path.isfile(cfg_loc):
-        logging.getLogger(__name__).info(f"Jamdict configuration file exists at {cfg_loc}")
-    else:
+def _ensure_config(config_path='~/.jamdict/config.json', mkdir=True):
+    _path = Path(os.path.expanduser(config_path))
+    # auto create config dir
+    if mkdir:
+        _path.parent.mkdir(exist_ok=True)
+    if not _path.exists():
         default_config = read_file(CONFIG_TEMPLATE)
-        logging.getLogger(__name__).warning("Jamdict configuration file could not be found. A new configuration file will be generated at {}".format(cfg_loc))
-        logging.getLogger(__name__).debug("Default config: {}".format(default_config))
-        write_file(cfg_loc, default_config)
+        logging.getLogger(__name__).warning(f"Jamdict configuration file could not be found. A new configuration file will be generated at {_path}")
+        logging.getLogger(__name__).debug(f"Default config: {default_config}")
+        write_file(_path, default_config)
 
 
-def read_config(ensure_config=False, force_refresh=False):
+def read_config(config_file=None, force_refresh=False, ensure_config=False):
+    ''' Read jamdict configuration (jamdict home folder, database name, etc.) from config file.
+
+    When no configuration is available, jamdict will default JAMDICT_HOME to ``~/.jamdict``
+
+    This function should be called right after import statements (i.e. before jam = Jamdict())
+
+    The "standard" locations for configuration file include but not limited to:
+    ~/.jamdict/config.json
+    ~/.config/jamdict/config.json
+    ./data/jamdict.json
+    ./jamdict.json
+    ./data/.jamdict.json
+    ./.jamdict.json
+    
+    :param config_file: Path to configuration file. When config_file is None, jamdict will try to guess the location of the file.
+    :param force_refresh: Force to re-read configuration from file
+    :param ensure_config: Create configuration file automatically if it does not exist
+    '''
+    if ensure_config and not config_file and not __app_config.locate_config():
+        # [2021-04-15] data can be installed via PyPI
+        # configuration file can be optional now
+        # load config from default template
+        _ensure_config()
     if force_refresh or not __app_config.config:
-        if not __app_config.locate_config() and ensure_config:
-            _ensure_config()
-            # [2021-04-15] data can be installed via PyPI
-            # configuration file can be optional now
-            # load config from default template
-        __app_config.load(CONFIG_TEMPLATE)
+        if config_file and os.path.isfile(config_file):
+            __app_config.load(config_file)
+        elif not __app_config.config and not __app_config.locate_config():
+            __app_config.load()
+        else:
+            __app_config.load(CONFIG_TEMPLATE)
     # read config
     config = __app_config.config
     return config
@@ -105,7 +126,9 @@ def data_dir():
 
 
 def get_file(file_key):
+    ''' Get configured path by key '''
     _config = read_config()
     _data_dir = data_dir()
+    _home = home_dir()
     _value = _config.get(file_key)
-    return _value.format(JAMDICT_DATA=_data_dir) if _value else ''
+    return _value.format(JAMDICT_DATA=_data_dir, JAMDICT_HOME=_home) if _value else ''

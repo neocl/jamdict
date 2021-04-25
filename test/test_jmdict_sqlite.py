@@ -44,10 +44,12 @@ __license__ = "MIT"
 
 ########################################################################
 
-import sys
 import os
 import unittest
 import logging
+from pathlib import Path
+
+from chirptext.cli import setup_logging
 
 from jamdict import Jamdict
 from jamdict import JMDictXML
@@ -58,12 +60,16 @@ from jamdict import JMDictSQLite
 # Configuration
 # -------------------------------------------------------------------------------
 
-TEST_DIR = os.path.dirname(os.path.realpath(__file__))
-TEST_DATA = os.path.join(TEST_DIR, 'data')
-if not os.path.isdir(TEST_DATA):
-    os.makedirs(TEST_DATA)
-TEST_DB = os.path.join(TEST_DATA, 'test.db')
-MINI_JMD = os.path.join(TEST_DATA, 'JMdict_mini.xml')
+TEST_DIR = Path(os.path.realpath(__file__)).parent
+TEST_DATA = TEST_DIR / 'data'
+if not TEST_DATA.exists():
+    TEST_DATA.mkdir()
+TEST_DB = TEST_DATA / 'test.db'
+MINI_JMD = TEST_DATA / 'JMdict_mini.xml'
+okashi = 'お菓子'
+
+
+setup_logging(TEST_DIR / 'logging.json', 'logs')
 
 
 def getLogger():
@@ -76,9 +82,11 @@ def getLogger():
 
 class TestJamdictSQLite(unittest.TestCase):
 
-    db = JMDictSQLite(TEST_DB)
-    xdb = JMDictXML.from_file(MINI_JMD)
-    ramdb = JMDictSQLite(":memory:", auto_expand_path=False)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.db = JMDictSQLite(str(TEST_DB))
+        self.xdb = JMDictXML.from_file(str(MINI_JMD))
+        self.ramdb = JMDictSQLite(":memory:")
 
     @classmethod
     def setUpClass(cls):
@@ -90,10 +98,9 @@ class TestJamdictSQLite(unittest.TestCase):
         print("Test JMDict: XML to SQLite")
         try:
             self.db.insert_entries(self.xdb)
-        except:
+        except Exception:
             getLogger().exception("Error happened while inserting entries")
             raise
-            pass
         entries = self.db.Entry.select()
         self.assertEqual(len(entries), len(self.xdb))
         # test select entry by id
@@ -102,7 +109,7 @@ class TestJamdictSQLite(unittest.TestCase):
         self.assertEqual(ejson['kanji'][0]['text'], 'お菓子')
         getLogger().debug(e.to_json())
 
-    def test_xml2ramdb(self):
+    def test_import_to_ram(self):
         print("Testing XML to RAM")
         noe = len(self.xdb)
         with self.ramdb.ctx() as ctx:
@@ -133,10 +140,10 @@ class TestJamdictSQLite(unittest.TestCase):
             self.assertTrue(es)
             getLogger().info('%confections%: {}'.format('|'.join([str(x) for x in es])))
 
-
 # -------------------------------------------------------------------------------
 # Main
 # -------------------------------------------------------------------------------
+
 
 if __name__ == "__main__":
     unittest.main()
