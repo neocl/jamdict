@@ -47,10 +47,6 @@ __jamdict_home = os.environ.get('JAMDICT_HOME', MY_DIR)
 __app_config = AppConfig('jamdict', mode=AppConfig.JSON, working_dir=__jamdict_home)
 
 
-def getLogger():
-    return logging.getLogger(__name__)
-
-
 def _get_config_manager():
     ''' Internal function for retrieving application config manager object
     Don't use this directly, use read_config() method instead
@@ -58,24 +54,28 @@ def _get_config_manager():
     return __app_config
 
 
-def _ensure_config():
+def _ensure_config(config_dir='~/.jamdict/', config_filename='config.json'):
     # need to create a config
-    config_dir = os.path.expanduser('~/.jamdict/')
+    config_dir = os.path.expanduser(config_dir)
     if not os.path.exists(config_dir):
         os.makedirs(config_dir)
-    cfg_loc = os.path.join(config_dir, 'config.json')
-    default_config = read_file(CONFIG_TEMPLATE)
-    getLogger().warning("Jamdict configuration file could not be found. A new configuration file will be generated at {}".format(cfg_loc))
-    getLogger().debug("Default config: {}".format(default_config))
-    write_file(cfg_loc, default_config)
+    cfg_loc = os.path.join(config_dir, config_filename)
+    if os.path.isfile(cfg_loc):
+        logging.getLogger(__name__).info(f"Jamdict configuration file exists at {cfg_loc}")
+    else:
+        default_config = read_file(CONFIG_TEMPLATE)
+        logging.getLogger(__name__).warning("Jamdict configuration file could not be found. A new configuration file will be generated at {}".format(cfg_loc))
+        logging.getLogger(__name__).debug("Default config: {}".format(default_config))
+        write_file(cfg_loc, default_config)
 
 
-def read_config():
-    if not __app_config.config and not __app_config.locate_config():
-        # _ensure_config()
-        # [2021-04-15] data can be installed via PyPI
-        # configuration file can be optional now
-        # load config from default template
+def read_config(ensure_config=False, force_refresh=False):
+    if force_refresh or not __app_config.config:
+        if not __app_config.locate_config() and ensure_config:
+            _ensure_config()
+            # [2021-04-15] data can be installed via PyPI
+            # configuration file can be optional now
+            # load config from default template
         __app_config.load(CONFIG_TEMPLATE)
     # read config
     config = __app_config.config
@@ -93,7 +93,7 @@ def home_dir():
     if 'JAMDICT_HOME' in os.environ:
         _env_jamdict_home = os.path.abspath(os.path.expanduser(os.environ['JAMDICT_HOME']))
         if os.path.isdir(_env_jamdict_home):
-            getLogger().debug("JAMDICT_HOME: {}".format(_env_jamdict_home))
+            logging.getLogger(__name__).debug("JAMDICT_HOME: {}".format(_env_jamdict_home))
             return _env_jamdict_home
     return _config.get('JAMDICT_HOME', __jamdict_home)
 
