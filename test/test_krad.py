@@ -1,51 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-'''
+"""
 Script for testing KRad module library
-Latest version can be found at https://github.com/neocl/jamdict
 
 References:
      RADKFILE/KRADFILE
         This project provides a decomposition of kanji into a number of visual elements
         or radicals to support software which provides a lookup service using kanji components.
         https://www.edrdg.org/krad/kradinf.html
+"""
 
-@author: Le Tuan Anh <tuananh.ke@gmail.com>
-'''
+# This code is a part of jamdict library: https://github.com/neocl/jamdict
+# :copyright: (c) 2016 Le Tuan Anh <tuananh.ke@gmail.com>
+# :license: MIT, see LICENSE for more details.
 
-# Copyright (c) 2016, Le Tuan Anh <tuananh.ke@gmail.com>
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
-
-__author__ = "Le Tuan Anh <tuananh.ke@gmail.com>"
-__copyright__ = "Copyright 2016, jamdict"
-__license__ = "MIT"
-
-########################################################################
-
-import os
 import logging
+import os
 import unittest
+
 from jamdict import config
-from jamdict.jmdict import JMDictXMLParser
-from jamdict.kanjidic2 import Kanjidic2XMLParser
 from jamdict.krad import KRad
 
 ########################################################################

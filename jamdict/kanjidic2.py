@@ -1,25 +1,12 @@
 # -*- coding: utf-8 -*-
 
-# Python library for manipulating Jim Breen's KanjiDic2
-# Latest version can be found at https://github.com/neocl/jamdict
-# 
-# This package uses the [EDICT][1] and [KANJIDIC][2] dictionary files.
-# These files are the property of the [Electronic Dictionary Research and Development Group][3], and are used in conformance with the Group's [licence][4].
-# 
-# [1]: http://www.csse.monash.edu.au/~jwb/edict.html
-# [2]: http://www.edrdg.org/kanjidic/kanjd2index.html
-# [3]: http://www.edrdg.org/
-# [4]: http://www.edrdg.org/edrdg/licence.html
-# 
-# References:
-#     JMDict website:
-#         http://www.csse.monash.edu.au/~jwb/edict.html
-#         http://www.edrdg.org/kanjidic/kanjd2index.html
-# 
-# @author: Le Tuan Anh <tuananh.ke@gmail.com>
-# @license: MIT
+"""
+Kanjidic2 models
+"""
 
-########################################################################
+# This code is a part of jamdict library: https://github.com/neocl/jamdict
+# :copyright: (c) 2016 Le Tuan Anh <tuananh.ke@gmail.com>
+# :license: MIT, see LICENSE for more details.
 
 import os
 import logging
