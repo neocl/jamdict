@@ -10,6 +10,6 @@ __description__ = "Python library for manipulating Jim Breen's JMdict, KanjiDic2
 __url__ = "https://github.com/neocl/jamdict"
 __maintainer__ = "Le Tuan Anh"
 __version_major__ = "0.1"
-__version__ = "{}a9".format(__version_major__)
+__version__ = "{}a10".format(__version_major__)
 __version_long__ = "{} - Alpha".format(__version_major__)
 __status__ = "Prototype"
