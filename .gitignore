@@ -1,3 +1,5 @@
+.idea/
+test/data/test.db
 *.py~
 *.sh~
 # Byte-compiled / optimized / DLL files
