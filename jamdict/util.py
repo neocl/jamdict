@@ -55,6 +55,7 @@ from collections import OrderedDict
 from typing import List
 
 from chirptext.deko import HIRAGANA, KATAKANA
+from puchikarui import MemorySource
 
 from . import config
 from .jmdict import JMDictXMLParser, JMDEntry
@@ -214,6 +215,12 @@ class Jamdict(object):
     >>> for c in result.chars:
     >>>     print(repr(c))
 
+    Jamdict >= 0.1a10 support memory_mode keyword argument for reading 
+    the whole database into memory before querying to boost up search speed.
+    The database may take about a minute to load. Here is the sample code:
+
+    >>> jam = Jamdict(memory_mode=True)
+
     Jamdict will use database from jamdict-data by default.
     If there is a custom database available in configuration file,
     Jamdict will prioritise to use it over jamdict-data package.
@@ -223,7 +230,7 @@ class Jamdict(object):
                  jmd_xml_file=None, kd2_xml_file=None,
                  auto_config=True, auto_expand=True, reuse_ctx=True,
                  jmnedict_file=None, jmnedict_xml_file=None,
-                 **kwargs):
+                 memory_mode=False, **kwargs):
 
         # data sources
         self.reuse_ctx = reuse_ctx
@@ -235,6 +242,7 @@ class Jamdict(object):
         self._jmne_xml = None
         self.__krad_map = None
         self.__jm_ctx = None  # for reusing database context
+        self.__memory_mode = memory_mode
 
         # file paths configuration
         self.auto_expand = auto_expand
@@ -319,11 +327,17 @@ class Jamdict(object):
             self.__jmnedict_file = value
 
     @property
+    def memory_mode(self):
+        """ if memory_mode = True, Jamdict DB will be loaded into RAM before querying for better performance """
+        return self.__memory_mode
+
+    @property
     def jmdict(self):
         if not self._db_sqlite and self.db_file:
             with threading.Lock():
                 # Use 1 DB for all
-                self._db_sqlite = JamdictSQLite(self.db_file, auto_expand_path=self.auto_expand)
+                data_source = MemorySource(self.db_file) if self.memory_mode else self.db_file
+                self._db_sqlite = JamdictSQLite(data_source, auto_expand_path=self.auto_expand)
         return self._db_sqlite
 
     @property
@@ -331,7 +345,8 @@ class Jamdict(object):
         if self._kd2_sqlite is None:
             if self.kd2_file is not None and os.path.isfile(self.kd2_file):
                 with threading.Lock():
-                    self._kd2_sqlite = KanjiDic2SQLite(self.kd2_file, auto_expand_path=self.auto_expand)
+                    data_source = MemorySource(self.kd2_file) if self.memory_mode else self.kd2_file
+                    self._kd2_sqlite = KanjiDic2SQLite(data_source, auto_expand_path=self.auto_expand)
             elif not self.kd2_file or self.kd2_file == self.db_file:
                 self._kd2_sqlite = self.jmdict
         return self._kd2_sqlite
@@ -342,7 +357,8 @@ class Jamdict(object):
         if self._jmne_sqlite is None:
             if self.jmnedict_file is not None:
                 with threading.Lock():
-                    self._jmne_sqlite = JMNEDictSQLite(self.jmnedict_file, auto_expand_path=self.auto_expand)
+                    data_source = MemorySource(self.jmnedict_file) if self.memory_mode else self.jmnedict_file
+                    self._jmne_sqlite = JMNEDictSQLite(data_source, auto_expand_path=self.auto_expand)
             elif not self.jmnedict_file or self.jmnedict_file == self.db_file:
                 self._jmne_sqlite = self.jmdict
         return self._jmne_sqlite
@@ -403,12 +419,12 @@ class Jamdict(object):
     def has_kd2(self):
         return self.db_file is not None or self.kd2_file is not None or self.kd2_xml_file is not None
 
-    def has_jmne(self):
+    def has_jmne(self, ctx=None):
         ''' Check if current database has jmne support '''
-        if self.jmnedict is not None:
-            m = self.jmnedict.meta.select_single('key=?', ('jmnedict.version',))
-            return m is not None and len(m.value) > 0
-        return None
+        if ctx is None:
+            ctx = self.__make_db_ctx()
+        m = ctx.meta.select_single('key=?', ('jmnedict.version',))
+        return m is not None and len(m.value) > 0
 
     def is_available(self):
         # this function is for developer only
