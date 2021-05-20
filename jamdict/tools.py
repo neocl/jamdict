@@ -180,8 +180,12 @@ def show_info(cli, args):
     if not os.path.isdir(jamdict_home):
         jamdict_home += " [Missing]"
     output.print(f"JAMDICT_HOME        : {jamdict_home}")
-    data_pkg = 'Installed' if jamdict.util._JAMDICT_DATA_AVAILABLE else 'Not installed'
-    output.print(f"jamdict_data package: {data_pkg}")
+    if jamdict.util._JAMDICT_DATA_AVAILABLE:
+        import jamdict_data
+        data_pkg = f"version {jamdict_data.__version__} [OK]"
+    else:
+        data_pkg = "Not installed"
+    output.print(f"jamdict-data        : {data_pkg}")
     if args.config:
         _config_path = args.config + " [Custom]"
         if not os.path.isfile(args.config):
