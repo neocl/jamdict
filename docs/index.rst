@@ -140,9 +140,10 @@ Contributors
 ------------
 
 -  `Le Tuan Anh <https://github.com/letuananh>`__ (Maintainer)
+-  `alt-romes <https://github.com/alt-romes>`__
 -  `Matteo Fumagalli <https://github.com/matteofumagalli1275>`__
 -  `Reem Alghamdi <https://github.com/reem-codes>`__
--  `alt-romes <https://github.com/alt-romes>`__
+-  `Techno-coder <https://github.com/Techno-coder>`__
 
 Useful links
 ------------
