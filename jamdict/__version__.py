@@ -12,4 +12,4 @@ __maintainer__ = "Le Tuan Anh"
 __version_major__ = "0.1"
 __version__ = "{}a10.post2".format(__version_major__)
 __version_long__ = "{} - Alpha - Post 002".format(__version_major__)
-__status__ = "Prototype"
+__status__ = "3 - Alpha"
