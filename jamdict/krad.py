@@ -1,26 +1,12 @@
 # -*- coding: utf-8 -*-
 
-'''
+"""
 jamdict.krad is a module for retrieving kanji components (i.e. radicals)
-'''
+"""
 
-# Latest version can be found at https://github.com/neocl/jamdict
-# 
-# This package uses the RADKFILE/KRADFILE[1] file.
-# These files are the property of the [Electronic Dictionary Research and Development Group][2], and are used in conformance with the Group's [licence][3].
-# 
-# [1]: http://www.edrdg.org/krad/kradinf.html
-# [2]: http://www.edrdg.org/
-# [3]: http://www.edrdg.org/edrdg/licence.html
-# 
-# References:
-#     JMDict website:
-#         http://www.csse.monash.edu.au/~jwb/edict.html
-#
-# @author: Le Tuan Anh <tuananh.ke@gmail.com>
-# @license: MIT
-
-########################################################################
+# This code is a part of jamdict library: https://github.com/neocl/jamdict
+# :copyright: (c) 2016 Le Tuan Anh <tuananh.ke@gmail.com>
+# :license: MIT, see LICENSE for more details.
 
 import os
 import logging

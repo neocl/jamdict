@@ -1,61 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-'''
+"""
 Script for testing jamdict library
-Latest version can be found at https://github.com/neocl/jamdict
+"""
 
-References:
-    Python documentation:
-        https://docs.python.org/
-    Python unittest
-        https://docs.python.org/3/library/unittest.html
-    --
-    argparse module:
-        https://docs.python.org/3/howto/argparse.html
-    PEP 257 - Python Docstring Conventions:
-        https://www.python.org/dev/peps/pep-0257/
+# This code is a part of jamdict library: https://github.com/neocl/jamdict
+# :copyright: (c) 2016 Le Tuan Anh <tuananh.ke@gmail.com>
+# :license: MIT, see LICENSE for more details.
 
-@author: Le Tuan Anh <tuananh.ke@gmail.com>
-'''
-
-# Copyright (c) 2016, Le Tuan Anh <tuananh.ke@gmail.com>
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
-
-__author__ = "Le Tuan Anh <tuananh.ke@gmail.com>"
-__copyright__ = "Copyright 2016, jamdict"
-__license__ = "MIT"
-
-########################################################################
-
-import os
 import logging
+import os
 import unittest
 from pathlib import Path
+
+from jamdict import Jamdict, JMDictXML
 from jamdict import config
 from jamdict.jmdict import JMDictXMLParser
 from jamdict.kanjidic2 import Kanjidic2XMLParser
-from jamdict import Jamdict, JMDictXML
-from jamdict import config
 
-########################################################################
 
 MY_DIR = Path(os.path.abspath(os.path.dirname(__file__)))
 TEST_DATA = MY_DIR / 'data'
@@ -215,6 +178,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(config.home_dir(), "~/.jamdict")
         os.environ['JAMDICT_HOME'] = _orig_home
 
+
 class TestJamdictSQLite(unittest.TestCase):
 
     def test_jamdict_sqlite_all(self):
@@ -228,14 +192,60 @@ class TestJamdictSQLite(unittest.TestCase):
         jam.import_data()
         # test lookup
         result = jam.lookup('おみやげ')
-        print(result.entries)
+        self.assertIsNotNone(result.entries)
         self.assertEqual(len(result.entries), 1)
         self.assertEqual(len(result.chars), 2)
         self.assertEqual({c.literal for c in result.chars}, {'土', '産'})
+
+    def test_memory_mode(self):
+        if not os.path.isfile(TEST_DB):
+            jam = Jamdict(db_file=TEST_DB, kd2_file=TEST_DB, jmnedict_file=TEST_DB, jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2, jmnedict_xml_file=MINI_JMNE)
+            jam.import_data()
+        print("Test reading DB into RAM")
+        ram_jam = Jamdict(TEST_DB, memory_mode=True)
+        print("1st lookup")
+        result = ram_jam.lookup('おみやげ')
+        self.assertIsNotNone(result.entries)
+        self.assertEqual(len(result.entries), 1)
+        self.assertEqual(len(result.chars), 2)
+        self.assertEqual({c.literal for c in result.chars}, {'土', '産'})
+        print("2nd lookup")
+        result = ram_jam.lookup('おみやげ')
+        self.assertIsNotNone(result.entries)
+        self.assertEqual(len(result.entries), 1)
+        self.assertEqual(len(result.chars), 2)
+        self.assertEqual({c.literal for c in result.chars}, {'土', '産'})
+
+    def test_real_lookup(self):
+        # test real lookup
+        from chirptext.leutile import Timer
+        t = Timer()
+        ram_jam = Jamdict(memory_mode=True)
+        print("1st lookup")
+        t.start('Load DB into RAM')                
+        result = ram_jam.lookup('おみやげ')
+        t.stop('Load DB into RAM')
+        print(t)
+        self.assertIsNotNone(result.entries)
+        self.assertEqual(len(result.entries), 1)
+        self.assertEqual(3, len(result.chars))
+        print(result.chars)
+        self.assertEqual({c.literal for c in result.chars}, {'土', '産', '御'})
+        print("2nd lookup")
+        result = ram_jam.lookup('おみやげ')
+        self.assertIsNotNone(result.entries)
+        self.assertEqual(len(result.entries), 1)
+        self.assertEqual(3, len(result.chars))
+        self.assertEqual({c.literal for c in result.chars}, {'土', '産', '御'})
+        print("3rd lookup")
+        result = ram_jam.lookup('おみやげ')
+        self.assertIsNotNone(result.entries)
+        self.assertEqual(len(result.entries), 1)
+        self.assertEqual(3, len(result.chars))
+        self.assertEqual({c.literal for c in result.chars}, {'土', '産', '御'})
 
 
 ########################################################################
 
 if __name__ == "__main__":
-    logging.getLogger('jamdict').setLevel(logging.DEBUG)
     unittest.main()

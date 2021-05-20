@@ -16,6 +16,19 @@ All code here assumed that you have created a Jamdict object named :samp:`jam`, 
     >>> from jamdict import Jamdict
     >>> jam = Jamdict()
 
+High-performance tuning
+-----------------------
+
+When you need to do a lot of queries on the database, it is possible to load the whole database
+into memory to boost up querying performance (This will takes about 400 MB of RAM) by using the ``memory_mode``
+keyword argument, like this:
+
+>>> from jamdict import Jamdict
+>>> jam = Jamdict(memory_mode=True)
+
+The first query will be extremely slow (it may take about a minute for the whole database to be loaded into memory)
+but subsequent queries will be much faster.
+    
 Kanjis and radical/components (KRAD/RADK mappings)
 --------------------------------------------------
 

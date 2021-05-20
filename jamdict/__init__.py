@@ -15,10 +15,6 @@ These files are the property of the [Electronic Dictionary Research and Developm
 References:
     JMDict website:
         http://www.csse.monash.edu.au/~jwb/edict.html
-    Python documentation:
-        https://docs.python.org/
-    PEP 257 - Python Docstring Conventions:
-        https://www.python.org/dev/peps/pep-0257/
 
 @author: Le Tuan Anh <tuananh.ke@gmail.com>
 @license: MIT

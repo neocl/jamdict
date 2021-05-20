@@ -4,7 +4,7 @@ Tutorials
 Getting started
 ---------------
 
-Just install :keyword:`jamdict` and :keyword:`jamdict_data` packages via pip and you are ready to go.
+Just install ``jamdict`` and ``jamdict_data`` packages via pip and you are ready to go.
 
 .. code:: python
 
