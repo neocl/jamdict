@@ -1,18 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-'''
+"""
 jamdol - JAMDict OnLine (REST server)
 Latest version can be found at https://github.com/neocl/jamdict
-
-References:
-    Python documentation:
-        https://docs.python.org/
-    PEP 257 - Python Docstring Conventions:
-        https://www.python.org/dev/peps/pep-0257/
-
-@author: Le Tuan Anh <tuananh.ke@gmail.com>
-'''
+"""
 
 # Copyright (c) 2017, Le Tuan Anh <tuananh.ke@gmail.com>
 #
@@ -34,16 +26,6 @@ References:
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-__author__ = "Le Tuan Anh <tuananh.ke@gmail.com>"
-__copyright__ = "Copyright 2017, jamdict"
-__credits__ = []
-__license__ = "MIT"
-__version__ = "0.1"
-__maintainer__ = "Le Tuan Anh"
-__email__ = "<tuananh.ke@gmail.com>"
-__status__ = "Prototype"
-
-########################################################################
 
 import json
 import logging
@@ -55,6 +37,7 @@ from flask import request
 from chirptext.cli import setup_logging
 
 from jamdict import Jamdict
+from jamdict import __version__
 
 # ---------------------------------------------------------------------
 # CONFIGURATION
