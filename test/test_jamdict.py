@@ -118,10 +118,11 @@ class TestJamdictXML(unittest.TestCase):
 
     def test_jamdict_xml(self):
         print("Test Jamdict search in XML files")
-        jam = Jamdict(jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2, auto_config=False)
+        jam = Jamdict(db_file=":memory:", kd2_file=":memory:", jmnedict_file=":memory:",
+                      jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2, auto_config=False)
         result = jam.lookup('おみやげ')
-        self.assertEqual(len(result.entries), 1)
-        self.assertEqual(len(result.chars), 2)
+        self.assertEqual(1, len(result.entries))
+        self.assertEqual(2, len(result.chars))
         self.assertEqual({c.literal for c in result.chars}, {'土', '産'})
 
 
