@@ -118,8 +118,7 @@ class TestJamdictXML(unittest.TestCase):
 
     def test_jamdict_xml(self):
         print("Test Jamdict search in XML files")
-        jam = Jamdict(db_file=":memory:", kd2_file=":memory:", jmnedict_file=":memory:",
-                      jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2, auto_config=False)
+        jam = Jamdict(jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2, auto_config=False)
         result = jam.lookup('おみやげ')
         self.assertEqual(1, len(result.entries))
         self.assertEqual(2, len(result.chars))
@@ -185,7 +184,8 @@ class TestJamdictSQLite(unittest.TestCase):
     def test_jamdict_sqlite_all(self):
         if os.path.isfile(TEST_DB):
             os.unlink(TEST_DB)
-        jam = Jamdict(db_file=TEST_DB, kd2_file=TEST_DB, jmnedict_file=TEST_DB, jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2, jmnedict_xml_file=MINI_JMNE)
+        jam = Jamdict(db_file=TEST_DB, kd2_file=TEST_DB, jmnedict_file=TEST_DB,
+                      jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2, jmnedict_xml_file=MINI_JMNE)
         # Lookup using XML
         result = jam.jmdict_xml.lookup('おみやげ')
         getLogger().debug("Results: {}".format(result))
@@ -216,34 +216,12 @@ class TestJamdictSQLite(unittest.TestCase):
         self.assertEqual(len(result.entries), 1)
         self.assertEqual(len(result.chars), 2)
         self.assertEqual({c.literal for c in result.chars}, {'土', '産'})
-
-    def test_real_lookup(self):
-        # test real lookup
-        from chirptext.leutile import Timer
-        t = Timer()
-        ram_jam = Jamdict(memory_mode=True)
-        print("1st lookup")
-        t.start('Load DB into RAM')                
-        result = ram_jam.lookup('おみやげ')
-        t.stop('Load DB into RAM')
-        print(t)
-        self.assertIsNotNone(result.entries)
-        self.assertEqual(len(result.entries), 1)
-        self.assertEqual(3, len(result.chars))
-        print(result.chars)
-        self.assertEqual({c.literal for c in result.chars}, {'土', '産', '御'})
-        print("2nd lookup")
-        result = ram_jam.lookup('おみやげ')
-        self.assertIsNotNone(result.entries)
-        self.assertEqual(len(result.entries), 1)
-        self.assertEqual(3, len(result.chars))
-        self.assertEqual({c.literal for c in result.chars}, {'土', '産', '御'})
         print("3rd lookup")
         result = ram_jam.lookup('おみやげ')
         self.assertIsNotNone(result.entries)
         self.assertEqual(len(result.entries), 1)
-        self.assertEqual(3, len(result.chars))
-        self.assertEqual({c.literal for c in result.chars}, {'土', '産', '御'})
+        self.assertEqual(2, len(result.chars))
+        self.assertEqual({c.literal for c in result.chars}, {'土', '産'})
 
 
 ########################################################################
