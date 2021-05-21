@@ -212,19 +212,19 @@ class Jamdict(object):
         self.jmnedict_xml_file = jmnedict_xml_file if jmnedict_xml_file else config.get_file('JMNEDICT_XML') if auto_config else None
 
         self.db_file = db_file if db_file else config.get_file('JAMDICT_DB') if auto_config else None
-        if not self.db_file or not os.path.isfile(self.db_file):
+        if not self.db_file or (self.db_file != ':memory:' and not os.path.isfile(self.db_file)):
             if _JAMDICT_DATA_AVAILABLE:
                 self.db_file = jamdict_data.JAMDICT_DB_PATH
             elif self.jmd_xml_file and os.path.isfile(self.jmd_xml_file):
                 getLogger().warning("JAMDICT_DB could NOT be found. Searching will be extremely slow. Please run `python3 -m jamdict import` first")
         self.kd2_file = kd2_file if kd2_file else self.db_file if auto_config else None
-        if not self.kd2_file or not os.path.isfile(self.kd2_file):
+        if not self.kd2_file or (self.kd2_file != ':memory:' and not os.path.isfile(self.kd2_file)):
             if _JAMDICT_DATA_AVAILABLE:
                 self.kd2_file = None  # jamdict_data.JAMDICT_DB_PATH
             elif self.kd2_xml_file and os.path.isfile(self.kd2_xml_file):
                 getLogger().warning("Kanjidic2 database could NOT be found. Searching will be extremely slow. Please run `python3 -m jamdict import` first")
         self.jmnedict_file = jmnedict_file if jmnedict_file else self.db_file if auto_config else None
-        if not self.jmnedict_file or not os.path.isfile(self.jmnedict_file):
+        if not self.jmnedict_file or (self.jmnedict_file != ':memory:' and not os.path.isfile(self.jmnedict_file)):
             if _JAMDICT_DATA_AVAILABLE:
                 self.jmnedict_file = None  # jamdict_data.JAMDICT_DB_PATH
             elif self.jmnedict_xml_file and os.path.isfile(self.jmnedict_xml_file):
@@ -384,7 +384,7 @@ class Jamdict(object):
         ''' Check if current database has jmne support '''
         if ctx is None:
             ctx = self.__make_db_ctx()
-        m = ctx.meta.select_single('key=?', ('jmnedict.version',))
+        m = ctx.meta.select_single('key=?', ('jmnedict.version',)) if ctx is not None else None
         return m is not None and len(m.value) > 0
 
     def is_available(self):

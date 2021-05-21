@@ -45,7 +45,7 @@ setup(
         "Bug Tracker": "https://github.com/neocl/jamdict/issues",
         "Source Code": "https://github.com/neocl/jamdict/"
     },
-    keywords="nlp",
+    keywords=['dictionary', 'japanese', 'kanji', 'japanese-language', 'jmdict', 'japanese-study', 'kanjidic2', 'japanese-dictionary', 'jamdict'],
     license=pkg_info['__license__'],
     author=pkg_info['__author__'],
     tests_require=requirements,
@@ -61,8 +61,9 @@ setup(
     test_suite='test',
     # Reference: https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=['Programming Language :: Python',
-                 'Development Status :: 2 - Pre-Alpha',
+                 'Development Status :: {}'.format(pkg_info['__status__']),
                  'Natural Language :: Japanese',
+                 'Natural Language :: English',
                  'Environment :: Plugins',
                  'Intended Audience :: Developers',
                  'License :: OSI Approved :: {}'.format(pkg_info['__license__']),
