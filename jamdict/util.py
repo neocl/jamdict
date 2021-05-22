@@ -248,7 +248,7 @@ class Jamdict(object):
         try:
             if not self.reuse_ctx:
                 return self.jmdict.ctx()
-            elif self.__jm_ctx is None and self.db_file and os.path.isfile(self.db_file):
+            elif self.__jm_ctx is None and self.db_file and (self.db_file == ":memory:" or os.path.isfile(self.db_file)):
                 self.__jm_ctx = self.jmdict.ctx()
         except Exception:
             getLogger().warning("JMdict data could not be accessed.")
@@ -397,25 +397,31 @@ class Jamdict(object):
 
     def import_data(self):
         ''' Import JMDict and KanjiDic2 data from XML to SQLite '''
+        ctx = self.__make_db_ctx()
+        ctx.buckmode()
         if self.jmdict and self.jmdict_xml:
             getLogger().info("Importing JMDict data")
-            self.jmdict.insert_entries(self.jmdict_xml, ctx=self.__make_db_ctx())
+            self.jmdict.insert_entries(self.jmdict_xml, ctx=ctx)
         # import KanjiDic2
         if self.kd2 is not None and self.kd2_xml and os.path.isfile(self.kd2_xml_file):
             getLogger().info("Importing KanjiDic2 data")
-            if self.jmdict is not None and id(self.kd2) == id(self.jmdict):
-                self.kd2.insert_chars(self.kd2_xml, ctx=self.__make_db_ctx())
+            if self.jmdict is not None and self.kd2_file == self.db_file:
+                self.jmdict.insert_chars(self.kd2_xml, ctx=ctx)
             else:
-                self.kd2.insert_chars(self.kd2_xml)
+                getLogger().warning(f"Building Kanjidic2 DB using a different DB context {self.kd2_file} vs {self.db_file}")
+                with self.kd2.ctx() as kd_ctx:
+                    self.kd2.insert_chars(self.kd2_xml, ctx=kd_ctx)
         else:
             getLogger().warning("KanjiDic2 XML data is not available - skipped!")
         # import JMNEdict
         if self.jmnedict is not None and self.jmne_xml and os.path.isfile(self.jmnedict_xml_file):
             getLogger().info("Importing JMNEdict data")
-            if self.jmdict is not None and id(self.jmnedict) == id(self.jmdict):
-                self.jmnedict.insert_name_entities(self.jmne_xml, ctx=self.__make_db_ctx())
+            if self.jmdict is not None and self.jmnedict_file == self.db_file:
+                self.jmnedict.insert_name_entities(self.jmne_xml, ctx=ctx)
             else:
-                self.jmnedict.insert_name_entities(self.jmne_xml)
+                getLogger().warning(f"Building Kanjidic2 DB using a different DB context {self.jmne_file} vs {self.db_file}")
+                with self.jmnedict.ctx() as ne_ctx:
+                    self.jmnedict.insert_name_entities(self.jmne_xml, ctx=ne_ctx)
         else:
             getLogger().warning("JMNEdict XML data is not available - skipped!")
 
@@ -448,7 +454,8 @@ class Jamdict(object):
         else:
             raise LookupError("There is no backend data available")
 
-    def lookup(self, query, strict_lookup=False, lookup_chars=True, ctx=None, lookup_ne=True, **kwargs):
+    def lookup(self, query, strict_lookup=False, lookup_chars=True, ctx=None, lookup_ne=True,
+               pos=None, name_type=None, **kwargs):
         ''' Search words, characters, and characters.
 
         Keyword arguments:
@@ -496,7 +503,7 @@ class Jamdict(object):
                 if result is not None:
                     chars.append(result)
         # lookup name-entities
-        if lookup_ne and self.has_jmne():
+        if lookup_ne and self.has_jmne(ctx=ctx):
             names = self.jmnedict.search_ne(query, ctx=ctx)
         # finish
         return LookupResult(entries, chars, names)
