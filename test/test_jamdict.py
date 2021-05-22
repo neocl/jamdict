@@ -118,7 +118,10 @@ class TestJamdictXML(unittest.TestCase):
 
     def test_jamdict_xml(self):
         print("Test Jamdict search in XML files")
-        jam = Jamdict(jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2, auto_config=False)
+        jam = Jamdict(":memory:", jmd_xml_file=MINI_JMD,
+                      kd2_xml_file=MINI_KD2,
+                      jmnedict_xml_file=MINI_JMNE, auto_config=True)
+        jam.import_data()
         result = jam.lookup('おみやげ')
         self.assertEqual(1, len(result.entries))
         self.assertEqual(2, len(result.chars))
@@ -181,10 +184,16 @@ class TestConfig(unittest.TestCase):
 
 class TestJamdictSQLite(unittest.TestCase):
 
+    @classmethod
+    def tearDownClass(cls):
+        if os.path.isfile(TEST_DB):
+            os.unlink(TEST_DB)        
+
     def test_jamdict_sqlite_all(self):
         if os.path.isfile(TEST_DB):
             os.unlink(TEST_DB)
-        jam = Jamdict(db_file=TEST_DB, kd2_file=TEST_DB, jmnedict_file=TEST_DB,
+        TEST_DB.touch()
+        jam = Jamdict(db_file=TEST_DB,
                       jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2, jmnedict_xml_file=MINI_JMNE)
         # Lookup using XML
         result = jam.jmdict_xml.lookup('おみやげ')
@@ -197,11 +206,6 @@ class TestJamdictSQLite(unittest.TestCase):
         self.assertEqual(len(result.entries), 1)
         self.assertEqual(len(result.chars), 2)
         self.assertEqual({c.literal for c in result.chars}, {'土', '産'})
-
-    def test_memory_mode(self):
-        if not os.path.isfile(TEST_DB):
-            jam = Jamdict(db_file=TEST_DB, kd2_file=TEST_DB, jmnedict_file=TEST_DB, jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2, jmnedict_xml_file=MINI_JMNE)
-            jam.import_data()
         print("Test reading DB into RAM")
         ram_jam = Jamdict(TEST_DB, memory_mode=True)
         print("1st lookup")

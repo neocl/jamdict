@@ -63,7 +63,8 @@ class TestJMendictModels(unittest.TestCase):
 
     def test_jmne_support(self):
         ''' Test metadata '''
-        with self.ramdb.ctx() as ctx:
+        ramdb = JMNEDictSQLite(":memory:", auto_expand_path=False)
+        with ramdb.ctx() as ctx:
             self.ramdb.insert_name_entities(self.xdb, ctx=ctx)
             m = ctx.meta.select_single('key=?', ('jmnedict.version',))
             self.assertEqual(m.key, 'jmnedict.version')
@@ -71,24 +72,25 @@ class TestJMendictModels(unittest.TestCase):
 
     def test_xml2ramdb(self):
         print("Testing XML to RAM")
-        with self.ramdb.ctx() as ctx:
-            self.ramdb.insert_name_entities(self.xdb, ctx=ctx)
+        ramdb = JMNEDictSQLite(":memory:", auto_expand_path=False)
+        with ramdb.ctx() as ctx:
+            ramdb.insert_name_entities(self.xdb, ctx=ctx)
             # all entries were inserted
             expected_idseqs = {int(e.idseq) for e in self.xdb}
-            inserted_idseqs = {e.idseq for e in self.ramdb.NEEntry.select(ctx=ctx)}
+            inserted_idseqs = {e.idseq for e in ramdb.NEEntry.select(ctx=ctx)}
             getLogger().info("Inserted entries: {}".format(len(inserted_idseqs)))
             self.assertEqual(expected_idseqs, inserted_idseqs)
             # make sure that the kanjis are inserted
             expected_kanjis = set()
             for e in self.xdb.entries:
                 expected_kanjis.update(k.text for k in e.kanji_forms)
-            kanjis = {k.text for k in self.ramdb.NEKanji.select(ctx=ctx)}
+            kanjis = {k.text for k in ctx.NEKanji.select()}
             self.assertEqual(expected_kanjis, kanjis)
             # make sure that the kanas were inserted
             expected_readings = set()
             for e in self.xdb.entries:
                 expected_readings.update(k.text for k in e.kana_forms)
-            readings = {k.text for k in self.ramdb.NEKana.select(ctx=ctx)}
+            readings = {k.text for k in ctx.NEKana.select()}
             self.assertEqual(expected_readings, readings)
             # make sure that the definitions were inserted
             expected_glosses = set()
@@ -102,36 +104,46 @@ class TestJMendictModels(unittest.TestCase):
                 ne_xml = self.xdb.lookup("id#{}".format(idseq))[0]
                 ne_xml.idseq = int(ne_xml.idseq)
                 getLogger().debug(ne_xml.to_json())
-                ne = self.ramdb.get_ne(idseq, ctx=ctx)
+                ne = ramdb.get_ne(idseq, ctx=ctx)
                 getLogger().debug(ne.to_json())
                 self.assertEqual(ne_xml.to_json(), ne.to_json())
             # test search by idseq
-            shenron = self.ramdb.search_ne('id#5741815', ctx=ctx)
+            shenron = ramdb.search_ne('id#5741815', ctx=ctx)
             self.assertEqual(len(shenron), 1)
             self.assertEqual(shenron[0].idseq, 5741815)
             # test exact search
-            shenron2 = self.ramdb.search_ne('神龍', ctx=ctx)
+            shenron2 = ramdb.search_ne('神龍', ctx=ctx)
             self.assertEqual(len(shenron2), 1)
             self.assertEqual(shenron2[0].idseq, 5741815)
             # test search by kana
-            shenron3 = self.ramdb.search_ne('シェンロン', ctx=ctx)
+            shenron3 = ramdb.search_ne('シェンロン', ctx=ctx)
             self.assertEqual(len(shenron3), 1)
             self.assertEqual(shenron3[0].idseq, 5741815)
             # test search by definition
-            shenron4 = self.ramdb.search_ne('%spiritual%', ctx=ctx)
+            shenron4 = ramdb.search_ne('%spiritual%', ctx=ctx)
             self.assertEqual(len(shenron4), 1)
             self.assertEqual(shenron4[0].idseq, 5741815)
             # test search by wild card
-            all_shime_names = self.ramdb.search_ne('しめ%', ctx=ctx)
+            all_shime_names = ramdb.search_ne('しめ%', ctx=ctx)
             expected_idseqs = [5000001, 5000002, 5000003, 5000004, 5000005, 5000006, 5000007, 5000008, 5000009]
             actual = [x.idseq for x in all_shime_names]
             print(actual)
             self.assertEqual(expected_idseqs, actual)
             # test search by name_type
-            all_fems = self.ramdb.search_ne('person', ctx=ctx)
+            all_fems = ramdb.search_ne('person', ctx=ctx)
             expected_idseqs = [2831743, 5001644]
             actual = [x.idseq for x in all_fems]
             self.assertEqual(expected_idseqs, actual)
+
+    def test_query_netype(self):
+        ramdb = JMNEDictSQLite(":memory:", auto_expand_path=False)
+        ctx = ramdb.ctx()
+        ramdb.insert_name_entities(self.xdb, ctx=ctx)
+        shenron = ctx.search_ne('id#5741815', ctx=ctx)[0]
+        print(shenron)
+        print(shenron.to_json())
+        
+            
 
 
 # -------------------------------------------------------------------------------
