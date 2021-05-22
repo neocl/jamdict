@@ -76,6 +76,12 @@ class JMNEDictSQLite(JMNEDictSchema):
     def __init__(self, db_path, *args, **kwargs):
         super().__init__(db_path, *args, **kwargs)
 
+    def all_ne_type(self, ctx=None):
+        if ctx is None:
+            return self.all_ne_type(ctx=self.ctx())
+        else:
+            return [x['text'] for x in ctx.select("SELECT DISTINCT text FROM NETransType")]
+        
     def search_ne(self, query, ctx=None, **kwargs):
         # ensure context
         if ctx is None:
