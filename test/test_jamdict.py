@@ -16,8 +16,9 @@ from pathlib import Path
 
 from jamdict import Jamdict, JMDictXML
 from jamdict import config
-from jamdict.jmdict import JMDictXMLParser
+from jamdict.jmdict import JMDictXMLParser, JMDEntry
 from jamdict.kanjidic2 import Kanjidic2XMLParser
+from jamdict.util import _JAMDICT_DATA_AVAILABLE
 
 
 MY_DIR = Path(os.path.abspath(os.path.dirname(__file__)))
@@ -30,6 +31,22 @@ TEST_DB = TEST_DATA / 'jamdict_test.db'
 
 def getLogger():
     return logging.getLogger(__name__)
+
+
+def all_kana(result, forms=None):
+    if forms is None:
+        forms = set()
+    for e in result.entries:
+        forms.update(f.text for f in e.kana_forms)
+    return forms
+
+
+def all_kanji(result, forms=None):
+    if forms is None:
+        forms = set()
+    for e in result.entries:
+        forms.update(f.text for f in e.kanji_forms)
+    return forms
 
 
 class TestConfig(unittest.TestCase):
@@ -58,7 +75,6 @@ class TestModels(unittest.TestCase):
     def test_lookup_result(self):
         jam = Jamdict(jmd_xml_file=MINI_JMD, kd2_xml_file=MINI_KD2, auto_config=False, auto_expand=False)
         result = jam.lookup('おみやげ')
-        print(repr(result))
         self.assertTrue(result.entries)
         self.assertEqual(result.entries[0].kana_forms[0].text, 'おみやげ')
         # test lookup by ID
@@ -86,7 +102,8 @@ class TestJamdictXML(unittest.TestCase):
         entries = parser.parse_file(MINI_JMD)
         jmd = JMDictXML(entries)
         results = jmd.lookup(u'おてんき')
-        print(results)
+        self.assertTrue(results)
+        self.assertIsInstance(results[0], JMDEntry)
 
     def test_jmdict_json(self):
         print("Test JMDict - XML to JSON")
@@ -187,7 +204,120 @@ class TestJamdictSQLite(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         if os.path.isfile(TEST_DB):
-            os.unlink(TEST_DB)        
+            os.unlink(TEST_DB)
+
+    def test_search_by_pos(self):
+        print("Test Jamdict search in XML files")
+        jam = Jamdict(":memory:", jmd_xml_file=MINI_JMD,
+                      kd2_xml_file=MINI_KD2,
+                      jmnedict_xml_file=MINI_JMNE, auto_config=True)
+        jam.import_data()
+        # test get all pos
+        poses = jam.all_pos()
+        expected = {'Godan verb - -aru special class',
+                    "Godan verb with `ku' ending",
+                    "Godan verb with `ru' ending",
+                    "Godan verb with `su' ending",
+                    "Godan verb with `u' ending",
+                    'Ichidan verb',
+                    'adjectival nouns or quasi-adjectives (keiyodoshi)',
+                    'adjective (keiyoushi)',
+                    'adverb (fukushi)',
+                    "adverb taking the `to' particle",
+                    'auxiliary verb',
+                    'conjunction',
+                    'expressions (phrases, clauses, etc.)',
+                    'interjection (kandoushi)',
+                    'intransitive verb',
+                    'noun (common) (futsuumeishi)',
+                    'noun or participle which takes the aux. verb suru',
+                    'noun or verb acting prenominally',
+                    "nouns which may take the genitive case particle `no'",
+                    'pre-noun adjectival (rentaishi)',
+                    'pronoun',
+                    'transitive verb'}
+        self.assertEqual(expected, set(poses))
+        result = jam.lookup('おみやげ', pos=['noun (common) (futsuumeishi)'])
+        self.assertEqual(1, len(result.entries))
+        with self.assertLogs('jamdict.jmdict_sqlite', level="WARNING") as cm:
+            result = jam.lookup('おみやげ', pos='noun (common) (futsuumeishi)')
+            self.assertEqual(1, len(result.entries))
+            warned_pos_as_str = False
+            for line in cm.output:
+                if "POS filter should be a collection, not a string" in line:
+                    warned_pos_as_str = True
+                    break
+            self.assertTrue(warned_pos_as_str)
+        result = jam.lookup('おみやげ', pos=['intransitive verb'])
+        self.assertFalse(result.entries)
+        result = jam.lookup('おみやげ', pos=['intransitive verb', 'noun (common) (futsuumeishi)'])
+        self.assertTrue(result.entries)
+
+    def test_search_by_ne_type(self):
+        print("Test Jamdict search in XML files")
+        jam = Jamdict(":memory:", jmd_xml_file=MINI_JMD,
+                      kd2_xml_file=MINI_KD2,
+                      jmnedict_xml_file=MINI_JMNE, auto_config=True)
+        jam.import_data()
+        netypes = jam.all_ne_type()
+        expected = ['company', 'fem', 'given', 'organization', 'person', 'place', 'surname', 'unclass']
+        self.assertEqual(expected, netypes)
+        res = jam.lookup("place")
+        actual = set()
+        for n in res.names:
+            actual.update(k.text for k in n.kanji_forms)
+        self.assertIn("厦門", actual)
+        res = jam.lookup("company")
+        actual = set()
+        for n in res.names:
+            actual.update(k.text for k in n.kanji_forms)
+        expected = {'埼銀', 'ＩＫＥＡ'}
+        self.assertTrue(expected.issubset(actual))
+
+    def test_find_all_verbs(self):
+        jam = Jamdict(":memory:", jmd_xml_file=MINI_JMD,
+                      kd2_xml_file=MINI_KD2,
+                      jmnedict_xml_file=MINI_JMNE, auto_config=True)
+        jam.import_data()
+        # cannot search for everything
+        self.assertRaises(ValueError, lambda: jam.lookup(""))
+        self.assertRaises(ValueError, lambda: jam.lookup("%"))
+        self.assertRaises(ValueError, lambda: jam.lookup("%", pos=""))
+        res = jam.lookup("", pos="pronoun")
+        actual = all_kana(res)
+        pronouns = {'おい', 'おまい', 'おたく', 'あのひと', 'かしこ', 'あのかた', 'おめえ',
+                    'おまえ', 'おおい', 'おーい', 'あそこ', 'あこ', 'あしこ', 'あすこ'}
+        self.assertTrue(pronouns.issubset(actual))
+        result = jam.lookup("%", pos=["intransitive verb", 'pronoun'])
+        forms = all_kana(result)
+        iverbs = {'いじける', 'イカす', 'うろたえる', 'いかす', 'おっこちる',
+                  'いらっしゃる', 'あぶれる', 'いななく', 'いちゃつく'}
+        self.assertTrue(iverbs.issubset(forms))
+        self.assertTrue(pronouns.issubset(forms))
+
+    @unittest.skipIf(not _JAMDICT_DATA_AVAILABLE, "Jamdict data is not available. Data test is skipped")
+    def test_jamdict_data(self):
+        jam = Jamdict()
+        # search verb kaeru
+        res = jam.lookup("かえる", pos="transitive verb")
+        actual = [e.idseq for e in res.entries]
+        self.assertIn(1510650, actual)
+        self.assertIn(1589780, actual)
+        forms = all_kanji(res)
+        expected = {'変える', '代える', '換える', '替える'}
+        self.assertTrue(expected.issubset(forms))
+        # search by noun kaeru
+        res2 = jam.lookup("かえる", pos='noun (common) (futsuumeishi)')
+        actual2 = [e.idseq for e in res2.entries]
+        forms2 = all_kanji(res2)
+        self.assertIn(1577460, actual2)
+        expected2 = {'蛙', '蛤', '蝦'}
+        self.assertTrue(expected2.issubset(forms2))
+        # search both noun and verb
+        res3 = jam.lookup("かえる", pos=['noun (common) (futsuumeishi)', "transitive verb"])
+        forms3 = all_kanji(res3)
+        self.assertTrue(expected.issubset(forms3))            
+        self.assertTrue(expected2.issubset(forms3))
 
     def test_jamdict_sqlite_all(self):
         if os.path.isfile(TEST_DB):

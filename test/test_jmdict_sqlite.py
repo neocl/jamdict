@@ -91,7 +91,6 @@ class TestJamdictSQLite(unittest.TestCase):
         with self.ramdb.ds.open() as ctx:
             self.ramdb.insert_entries(self.xdb, ctx=ctx)
             entries = ctx.Entry.select()
-            print(len(entries))
             # Search by kana
             es = self.ramdb.search('あの', ctx)
             self.assertEqual(len(es), 2)

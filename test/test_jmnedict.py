@@ -127,7 +127,6 @@ class TestJMendictModels(unittest.TestCase):
             all_shime_names = ramdb.search_ne('しめ%', ctx=ctx)
             expected_idseqs = [5000001, 5000002, 5000003, 5000004, 5000005, 5000006, 5000007, 5000008, 5000009]
             actual = [x.idseq for x in all_shime_names]
-            print(actual)
             self.assertEqual(expected_idseqs, actual)
             # test search by name_type
             all_fems = ramdb.search_ne('person', ctx=ctx)
@@ -140,10 +139,7 @@ class TestJMendictModels(unittest.TestCase):
         ctx = ramdb.ctx()
         ramdb.insert_name_entities(self.xdb, ctx=ctx)
         shenron = ctx.search_ne('id#5741815', ctx=ctx)[0]
-        print(shenron)
-        print(shenron.to_json())
-        
-            
+        self.assertTrue(shenron)
 
 
 # -------------------------------------------------------------------------------
