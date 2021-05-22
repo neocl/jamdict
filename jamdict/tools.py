@@ -12,6 +12,8 @@ import os
 import json
 import logging
 
+from chirptext import __version__ as chirptext_version
+from puchikarui import __version__ as puchikarui_version
 from chirptext import confirm, TextReport, Timer
 from chirptext.cli import CLIApp, setup_logging
 
@@ -211,7 +213,10 @@ def show_info(cli, args):
             print(e)
             output.print("Error happened while retrieving database meta data")
     output.header("Others")
-    output.print(f"lxml availability: {jamdict.jmdict._LXML_AVAILABLE}")
+    output.print(f"puchikarui: version {puchikarui_version}")
+    output.print(f"chirptext : version {chirptext_version}")
+    output.print(f"lxml      : {jamdict.jmdict._LXML_AVAILABLE}")
+    
 
 
 def show_version(cli, args):
