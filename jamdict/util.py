@@ -454,8 +454,27 @@ class Jamdict(object):
         else:
             raise LookupError("There is no backend data available")
 
-    def lookup(self, query, strict_lookup=False, lookup_chars=True, ctx=None, lookup_ne=True,
-               pos=None, name_type=None, **kwargs):
+    def all_pos(self, ctx=None):
+        """ Find all available part-of-speeches 
+
+        :returns: A list of part-of-speeches (a list of strings)
+        """
+        if ctx is None:
+            ctx = self.__make_db_ctx()
+        return self.jmdict.all_pos(ctx=ctx)
+
+    def all_ne_type(self, ctx=None):
+        """ Find all available named-entity types
+
+        :returns: A list of named-entity types (a list of strings)
+        """
+        if ctx is None:
+            ctx = self.__make_db_ctx()
+        return self.jmnedict.all_ne_type(ctx=ctx)
+        
+
+    def lookup(self, query, strict_lookup=False, lookup_chars=True, ctx=None,
+               lookup_ne=True, pos=None, **kwargs):
         ''' Search words, characters, and characters.
 
         Keyword arguments:
@@ -465,7 +484,9 @@ class Jamdict(object):
         :type strict_lookup: bool
         :param: lookup_chars: set lookup_chars to False to disable character lookup
         :type lookup_chars: bool
-        :param: ctx: database access context, can be reused for better performance. Normally users do not have to touch this and database connections will be reused by default.
+        :param pos: Filter words by part-of-speeches
+        :type pos: list of strings
+        :param ctx: database access context, can be reused for better performance. Normally users do not have to touch this and database connections will be reused by default.
         :param lookup_ne: set lookup_ne to False to disable name-entities lookup
         :type lookup_ne: bool
         :returns: Return a LookupResult object.
@@ -476,8 +497,8 @@ class Jamdict(object):
         '''
         if not self.is_available():
             raise LookupError("There is no backend data available")
-        elif not query:
-            raise ValueError("Query cannot be empty")
+        elif (not query or query == "%") and not pos:
+            raise ValueError("Query and POS filter cannot be both empty")
         if ctx is None:
             ctx = self.__make_db_ctx()
         # Lookup words
@@ -485,7 +506,7 @@ class Jamdict(object):
         chars = []
         names = []
         if self.jmdict is not None:
-            entries = self.jmdict.search(query, ctx=ctx)
+            entries = self.jmdict.search(query, pos=pos, ctx=ctx)
         elif self.jmdict_xml:
             entries = self.jmdict_xml.lookup(query)
         if lookup_chars and self.has_kd2():
