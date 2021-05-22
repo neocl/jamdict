@@ -179,15 +179,17 @@ def show_info(cli, args):
     jam = get_jam(cli, args)
     output.header("Basic configuration")
     jamdict_home = jamdict.config.home_dir()
-    if not os.path.isdir(jamdict_home):
+    if not os.path.isdir(os.path.expanduser(jamdict_home)):
         jamdict_home += " [Missing]"
-    output.print(f"JAMDICT_HOME        : {jamdict_home}")
+    else:
+        jamdict_home += " [OK]"
+    output.print(f"JAMDICT_HOME: {jamdict_home}")
     if jamdict.util._JAMDICT_DATA_AVAILABLE:
         import jamdict_data
         data_pkg = f"version {jamdict_data.__version__} [OK]"
     else:
         data_pkg = "Not installed"
-    output.print(f"jamdict-data        : {data_pkg}")
+    output.print(f"jamdict-data: {data_pkg}")
     if args.config:
         _config_path = args.config + " [Custom]"
         if not os.path.isfile(args.config):
@@ -196,13 +198,13 @@ def show_info(cli, args):
         _config_path = jamdict.config._get_config_manager().locate_config()
     if not _config_path:
         _config_path = "Not available.\n     Run `python3 -m jamdict config` to create configuration file if needed."
-    output.print(f"Config file location: {_config_path}")
+    output.print(f"Config file : {_config_path}")
 
     output.header("Data files")
     output.print(f"Jamdict DB location: {jam.db_file} - {file_status(jam.db_file)}")
     output.print(f"JMDict XML file    : {jam.jmd_xml_file} - {file_status(jam.jmd_xml_file)}")
     output.print(f"KanjiDic2 XML file : {jam.kd2_xml_file} - {file_status(jam.kd2_xml_file)}")
-    output.print(f"JMnedict XML file : {jam.jmnedict_xml_file} - {file_status(jam.jmnedict_xml_file)}")
+    output.print(f"JMnedict XML file  : {jam.jmnedict_xml_file} - {file_status(jam.jmnedict_xml_file)}")
 
     if jam.ready:
         output.header("Jamdict database metadata")
