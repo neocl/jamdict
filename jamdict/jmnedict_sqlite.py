@@ -80,7 +80,7 @@ class JMNEDictSQLite(JMNEDictSchema):
         # ensure context
         if ctx is None:
             with self.ctx() as ctx:
-                return self.search(query, ctx=ctx)
+                return self.search_ne(query, ctx=ctx)
         _is_wildcard_search = '_' in query or '@' in query or '%' in query
         if _is_wildcard_search:
             where = "idseq IN (SELECT idseq FROM NEKanji WHERE text like ?) OR idseq IN (SELECT idseq FROM NEKana WHERE text like ?) OR idseq IN (SELECT idseq FROM NETranslation JOIN NETransGloss ON NETranslation.ID == NETransGloss.tid WHERE NETransGloss.text like ?) OR idseq IN (SELECT idseq FROM NETranslation JOIN NETransType ON NETranslation.ID == NETransType.tid WHERE NETransType.text like ?)"
