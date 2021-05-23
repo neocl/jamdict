@@ -104,6 +104,18 @@ class TestJamdictSQLite(unittest.TestCase):
             self.assertTrue(es)
             getLogger().info('%confections%: {}'.format('|'.join([str(x) for x in es])))
 
+    def test_iter_search(self):
+        with self.ramdb.ds.open() as ctx:
+            self.ramdb.insert_entries(self.xdb, ctx=ctx)
+            # search iter
+            res = self.ramdb.search_iter("%あの%", iter_mode=True, ctx=ctx)
+            forms = set()
+            for e in res:
+                forms.update(f.text for f in e.kana_forms)
+            expected = {'あのー', 'あのう', 'あの', 'かの', 'あのかた', 'あのひと'}
+            self.assertTrue(expected.issubset(forms))
+
+
 # -------------------------------------------------------------------------------
 # Main
 # -------------------------------------------------------------------------------

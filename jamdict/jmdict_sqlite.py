@@ -116,12 +116,7 @@ class JMDictSQLite(JMDictSchema):
         else:
             return [x['text'] for x in ctx.select("SELECT DISTINCT text FROM pos")]
 
-    def search(self, query, ctx=None, pos=None, **kwargs):
-        # ensure context
-        if ctx is None:
-            with self.ctx() as ctx:
-                return self.search(query, ctx=ctx)
-
+    def _build_search_query(self, query, pos=None):
         where = []
         params = []
         if query.startswith('id#'):
@@ -149,11 +144,31 @@ class JMDictSQLite(JMDictSchema):
             params += pos
         # else (a context is provided)
         logging.getLogger(__name__).debug(f"Search query: {where} -- Params: {params}")
-        eids = self.Entry.select(' '.join(where), params, ctx=ctx)
+        return where, params
+        
+    def search(self, query, ctx=None, pos=None, **kwargs):
+        # ensure context
+        if ctx is None:
+            with self.ctx() as ctx:
+                return self.search(query, ctx=ctx, pos=pos)
+        where, params = self._build_search_query(query, pos=pos)
+        where.insert(0, 'SELECT idseq FROM Entry WHERE ')
+        idseqs = tuple(x['idseq'] for x in ctx.execute(' '.join(where), params))
         entries = []
-        for e in eids:
-            entries.append(self.get_entry(e.idseq, ctx=ctx))
+        for idseq in idseqs:
+            entries.append(self.get_entry(idseq, ctx=ctx))
         return entries
+
+    def search_iter(self, query, ctx=None, pos=None, **kwargs):
+        # ensure context
+        if ctx is None:
+            with self.ctx() as ctx:
+                return self.search(query, ctx=ctx, pos=pos, iter_mode=iter_mode)
+        where, params = self._build_search_query(query, pos=pos)
+        where.insert(0, 'SELECT idseq FROM Entry WHERE ')
+        idseqs = tuple(x['idseq'] for x in ctx.execute(' '.join(where), params))
+        for idseq in idseqs:
+            yield self.get_entry(idseq, ctx=ctx)
 
     def get_entry(self, idseq, ctx=None):
         # ensure context
