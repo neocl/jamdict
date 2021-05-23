@@ -17,7 +17,7 @@ from collections import OrderedDict
 from typing import List, Sequence
 
 from chirptext.deko import HIRAGANA, KATAKANA
-from puchikarui import MemorySource
+from puchikarui import MemorySource, ExecutionContext
 
 from . import config
 from .jmdict import JMDictXMLParser, JMDEntry
@@ -152,7 +152,7 @@ class LookupResult(object):
                       DeprecationWarning, stacklevel=2)
         return self.to_dict()
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {'entries': [e.to_dict() for e in self.entries],
                 'chars': [c.to_dict() for c in self.chars],
                 'names': [n.to_dict() for n in self.names]}
@@ -233,7 +233,7 @@ class Jamdict(object):
                 getLogger().warning("JMNE database could NOT be found. Searching will be extremely slow. Please run `python3 -m jamdict import` first")
 
     @property
-    def ready(self):
+    def ready(self) -> bool:
         """ Check if Jamdict database is available """
         return os.path.isfile(self.db_file) and self.jmdict is not None
 
@@ -245,7 +245,7 @@ class Jamdict(object):
             except Exception:
                 pass
 
-    def __make_db_ctx(self):
+    def __make_db_ctx(self) -> ExecutionContext:
         """ Try to reuse context if allowed """
         try:
             if not self.reuse_ctx:
@@ -379,17 +379,17 @@ class Jamdict(object):
                 getLogger().info("Loaded JMnedict entries: {}".format(len(self._jmne_xml)))
         return self._jmne_xml
 
-    def has_kd2(self):
+    def has_kd2(self) -> bool:
         return self.db_file is not None or self.kd2_file is not None or self.kd2_xml_file is not None
 
-    def has_jmne(self, ctx=None):
+    def has_jmne(self, ctx=None) -> bool:
         """ Check if current database has jmne support """
         if ctx is None:
             ctx = self.__make_db_ctx()
         m = ctx.meta.select_single('key=?', ('jmnedict.version',)) if ctx is not None else None
         return m is not None and len(m.value) > 0
 
-    def is_available(self):
+    def is_available(self) -> bool:
         # this function is for developer only
         # don't expose it to the public
         # ready should be used instead
@@ -427,7 +427,7 @@ class Jamdict(object):
         else:
             getLogger().warning("JMNEdict XML data is not available - skipped!")
 
-    def get_ne(self, idseq, ctx=None):
+    def get_ne(self, idseq, ctx=None) -> JMDEntry:
         """ Get name entity by idseq in JMNEdict """
         if self.jmnedict is not None:
             if ctx is None:
@@ -438,7 +438,7 @@ class Jamdict(object):
         else:
             raise LookupError("There is no JMnedict data source available")
 
-    def get_char(self, literal, ctx=None):
+    def get_char(self, literal, ctx=None) -> Character:
         if self.kd2 is not None:
             if ctx is None:
                 ctx = self.__make_db_ctx()
@@ -448,7 +448,7 @@ class Jamdict(object):
         else:
             raise LookupError("There is no KanjiDic2 data source available")
 
-    def get_entry(self, idseq):
+    def get_entry(self, idseq) -> JMDEntry:
         if self.jmdict:
             return self.jmdict.get_entry(idseq)
         elif self.jmdict_xml:
@@ -456,7 +456,7 @@ class Jamdict(object):
         else:
             raise LookupError("There is no backend data available")
 
-    def all_pos(self, ctx=None):
+    def all_pos(self, ctx=None) -> List[str]:
         """ Find all available part-of-speeches 
 
         :returns: A list of part-of-speeches (a list of strings)
@@ -465,7 +465,7 @@ class Jamdict(object):
             ctx = self.__make_db_ctx()
         return self.jmdict.all_pos(ctx=ctx)
 
-    def all_ne_type(self, ctx=None):
+    def all_ne_type(self, ctx=None) -> List[str]:
         """ Find all available named-entity types
 
         :returns: A list of named-entity types (a list of strings)
@@ -476,7 +476,7 @@ class Jamdict(object):
         
 
     def lookup(self, query, strict_lookup=False, lookup_chars=True, ctx=None,
-               lookup_ne=True, pos=None, **kwargs):
+               lookup_ne=True, pos=None, **kwargs) -> LookupResult:
         """ Search words, characters, and characters.
 
         Keyword arguments:
