@@ -70,9 +70,9 @@ class TestJamdictSQLite(unittest.TestCase):
         self.assertEqual(len(entries), len(self.xdb))
         # test select entry by id
         e = self.db.get_entry(1001710)
-        ejson = e.to_json()
+        ejson = e.to_dict()
         self.assertEqual(ejson['kanji'][0]['text'], 'お菓子')
-        getLogger().debug(e.to_json())
+        getLogger().debug(e.to_dict())
 
     def test_import_to_ram(self):
         print("Testing XML to RAM")

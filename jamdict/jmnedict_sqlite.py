@@ -14,6 +14,7 @@ References:
 
 import os
 import logging
+from typing import Sequence
 
 from puchikarui import Schema
 from . import __version__ as JAMDICT_VERSION, __url__ as JAMDICT_URL
@@ -82,7 +83,7 @@ class JMNEDictSQLite(JMNEDictSchema):
         else:
             return [x['text'] for x in ctx.select("SELECT DISTINCT text FROM NETransType")]
         
-    def search_ne(self, query, ctx=None, **kwargs):
+    def search_ne(self, query, ctx=None, **kwargs) -> Sequence[JMDEntry]:
         # ensure context
         if ctx is None:
             with self.ctx() as ctx:
@@ -110,7 +111,7 @@ class JMNEDictSQLite(JMNEDictSchema):
             entries.append(self.get_ne(e.idseq, ctx=ctx))
         return entries
 
-    def get_ne(self, idseq, ctx=None):
+    def get_ne(self, idseq, ctx=None) -> JMDEntry:
         # ensure context
         if ctx is None:
             with self.ctx() as new_context:

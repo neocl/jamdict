@@ -11,9 +11,10 @@ Jamdict public APIs
 import os
 import logging
 import threading
+import warnings
 from collections import defaultdict as dd
 from collections import OrderedDict
-from typing import List
+from typing import List, Sequence
 
 from chirptext.deko import HIRAGANA, KATAKANA
 from puchikarui import MemorySource
@@ -41,76 +42,72 @@ def getLogger():
 
 ########################################################################
 
-
-EntryList = List[JMDEntry]
-CharacterList = List[Character]
-
-
 class LookupResult(object):
 
-    ''' Contain lookup results (words, Kanji characters, or named entities) from Jamdict.
+    """ Contain lookup results (words, Kanji characters, or named entities) from Jamdict.
 
     A typical jamdict lookup is like this:
 
+    >>> jam = Jamdict()
     >>> result = jam.lookup('食べ%る')
 
     The command above returns a :any:`LookupResult` object which contains found words (:any:`entries`),
     kanji characters (:any:`chars`), and named entities (:any:`names`).
-    '''
+    """
 
     def __init__(self, entries, chars, names=None):
-        self.__entries = entries if entries else []
-        self.__chars = chars if chars else []
-        self.__names = names if names else []
+        self.__entries: Sequence[JMDEntry] = entries if entries else []
+        self.__chars: Sequence[Character] = chars if chars else []
+        self.__names: Sequence[JMDEntry] = names if names else []
 
     @property
-    def entries(self):
-        ''' A list of words entries
+    def entries(self) -> Sequence[JMDEntry]:
+        """ A list of words entries
 
         :returns: a list of :class:`JMDEntry <jamdict.jmdict.JMDEntry>` object
-        :rtype: EntryList
-        '''
+        :rtype: List[JMDEntry]
+        """
         return self.__entries
 
     @entries.setter
-    def entries(self, values):
+    def entries(self, values: Sequence[JMDEntry]):
         self.__entries = values
 
     @property
-    def chars(self):
-        ''' A list of found kanji characters
+    def chars(self) -> Sequence[Character]:
+        """ A list of found kanji characters
 
         :returns: a list of :class:`Character <jamdict.kanjidic2.Character>` object
-        :rtype: CharacterList
-        '''
+        :rtype: Sequence[Character]
+        """
         return self.__chars
 
     @chars.setter
-    def chars(self, values):
+    def chars(self, values: Sequence[Character]):
         self.__chars = values
 
     @property
-    def names(self):
-        ''' A list of found named entities
+    def names(self) -> Sequence[JMDEntry]:
+        """ A list of found named entities
 
         :returns: a list of :class:`JMDEntry <jamdict.jmdict.JMDEntry>` object
-        :rtype: EntryList
-        '''
+        :rtype: Sequence[JMDEntry]
+        """
         return self.__names
 
     @names.setter
-    def names(self, values):
+    def names(self, values: Sequence[JMDEntry]):
         self.__names = values
 
-
-    def text(self, compact=True, entry_sep='。', separator=' | ', no_id=False, with_chars=True):
-        ''' Generate a text string that contains all found words, characters, and named entities.
+    def text(self, compact=True, entry_sep='。', separator=' | ', no_id=False, with_chars=True) -> str:
+        """ Generate a text string that contains all found words, characters, and named entities.
 
         :param compact: Make the output string more compact (fewer info, fewer whitespaces, etc.)
         :param no_id: Do not include jamdict's internal object IDs (for direct query via API)
+        :param entry_sep: The text to separate entries
         :param with_chars: Include characters information
         :returns: A formatted string ready for display
-        '''
+        """
         output = []
         if self.entries:
             entry_txts = []
@@ -128,7 +125,7 @@ class LookupResult(object):
             else:
                 chars_txt = ', '.join(repr(c) for c in self.chars)
             if output:
-                output.append(separator)
+                output.append(separator)  # TODO: section separator?
             output.append("[Chars]")
             output.append(entry_sep)
             output.append(chars_txt)
@@ -151,9 +148,14 @@ class LookupResult(object):
         return self.text(compact=False)
 
     def to_json(self):
-        return {'entries': [e.to_json() for e in self.entries],
-                'chars': [c.to_json() for c in self.chars],
-                'names': [n.to_json() for n in self.names]}
+        warnings.warn("to_json() is deprecated and will be removed in the next major release. Use to_dict() instead.",
+                      DeprecationWarning, stacklevel=2)
+        return self.to_dict()
+
+    def to_dict(self):
+        return {'entries': [e.to_dict() for e in self.entries],
+                'chars': [c.to_dict() for c in self.chars],
+                'names': [n.to_dict() for n in self.names]}
 
 
 class JamdictSQLite(KanjiDic2SQLite, JMNEDictSQLite, JMDictSQLite):
@@ -164,7 +166,7 @@ class JamdictSQLite(KanjiDic2SQLite, JMNEDictSQLite, JMDictSQLite):
 
 class Jamdict(object):
 
-    ''' Main entry point to access all available dictionaries in jamdict.
+    """ Main entry point to access all available dictionaries in jamdict.
 
     >>> from jamdict import Jamdict
     >>> jam = Jamdict()
@@ -176,7 +178,7 @@ class Jamdict(object):
     >>> for c in result.chars:
     >>>     print(repr(c))
 
-    Jamdict >= 0.1a10 support memory_mode keyword argument for reading 
+    Jamdict >= 0.1a10 support memory_mode keyword argument for reading
     the whole database into memory before querying to boost up search speed.
     The database may take about a minute to load. Here is the sample code:
 
@@ -185,7 +187,7 @@ class Jamdict(object):
     Jamdict will use database from jamdict-data by default.
     If there is a custom database available in configuration file,
     Jamdict will prioritise to use it over jamdict-data package.
-    '''
+    """
 
     def __init__(self, db_file=None, kd2_file=None,
                  jmd_xml_file=None, kd2_xml_file=None,
@@ -232,7 +234,7 @@ class Jamdict(object):
 
     @property
     def ready(self):
-        ''' Check if Jamdict database is available '''
+        """ Check if Jamdict database is available """
         return os.path.isfile(self.db_file) and self.jmdict is not None
 
     def __del__(self):
@@ -244,7 +246,7 @@ class Jamdict(object):
                 pass
 
     def __make_db_ctx(self):
-        ''' Try to reuse context if allowed '''
+        """ Try to reuse context if allowed """
         try:
             if not self.reuse_ctx:
                 return self.jmdict.ctx()
@@ -314,7 +316,7 @@ class Jamdict(object):
 
     @property
     def jmnedict(self):
-        ''' JM NE SQLite database access object '''
+        """ JM NE SQLite database access object """
         if self._jmne_sqlite is None:
             if self.jmnedict_file is not None:
                 with threading.Lock():
@@ -335,12 +337,12 @@ class Jamdict(object):
 
     @property
     def krad(self):
-        ''' Break a kanji down to writing components
+        """ Break a kanji down to writing components
 
         >>> jam = Jamdict()
         >>> print(jam.krad['雲'])
         ['一', '雨', '二', '厶']
-        '''
+        """
         if not self.__krad_map:
             with threading.Lock():
                 self.__krad_map = KRad()
@@ -348,12 +350,12 @@ class Jamdict(object):
 
     @property
     def radk(self):
-        ''' Find all kanji with a writing component
+        """ Find all kanji with a writing component
 
         >>> jam = Jamdict()
         >>> print(jam.radk['鼎'])
         {'鼏', '鼒', '鼐', '鼎', '鼑'}
-        '''
+        """
         if not self.__krad_map:
             with threading.Lock():
                 self.__krad_map = KRad()
@@ -381,7 +383,7 @@ class Jamdict(object):
         return self.db_file is not None or self.kd2_file is not None or self.kd2_xml_file is not None
 
     def has_jmne(self, ctx=None):
-        ''' Check if current database has jmne support '''
+        """ Check if current database has jmne support """
         if ctx is None:
             ctx = self.__make_db_ctx()
         m = ctx.meta.select_single('key=?', ('jmnedict.version',)) if ctx is not None else None
@@ -396,7 +398,7 @@ class Jamdict(object):
                 self.jmnedict_file is not None or self.jmnedict_xml_file is not None)
 
     def import_data(self):
-        ''' Import JMDict and KanjiDic2 data from XML to SQLite '''
+        """ Import JMDict and KanjiDic2 data from XML to SQLite """
         ctx = self.__make_db_ctx()
         ctx.buckmode()
         if self.jmdict and self.jmdict_xml:
@@ -426,7 +428,7 @@ class Jamdict(object):
             getLogger().warning("JMNEdict XML data is not available - skipped!")
 
     def get_ne(self, idseq, ctx=None):
-        ''' Get name entity by idseq in JMnedict '''
+        """ Get name entity by idseq in JMNEdict """
         if self.jmnedict is not None:
             if ctx is None:
                 ctx = self.__make_db_ctx()
@@ -475,7 +477,7 @@ class Jamdict(object):
 
     def lookup(self, query, strict_lookup=False, lookup_chars=True, ctx=None,
                lookup_ne=True, pos=None, **kwargs):
-        ''' Search words, characters, and characters.
+        """ Search words, characters, and characters.
 
         Keyword arguments:
 
@@ -493,8 +495,9 @@ class Jamdict(object):
         :rtype: :class:`jamdict.util.LookupResult`
 
         >>> # match any word that starts with "食べ" and ends with "る" (anything from between is fine)
+        >>> jam = Jamdict()
         >>> results = jam.lookup('食べ%る')
-        '''
+        """
         if not self.is_available():
             raise LookupError("There is no backend data available")
         elif (not query or query == "%") and not pos:
@@ -531,8 +534,8 @@ class Jamdict(object):
 
 
 class JMDictXML(object):
-    ''' JMDict API for looking up information in XML
-    '''
+    """ JMDict API for looking up information in XML
+    """
     def __init__(self, entries):
         self.entries = entries
         self._seqmap = {}  # entryID - entryObj map
@@ -551,7 +554,7 @@ class JMDictXML(object):
     def __getitem__(self, idx):
         return self.entries[idx]
 
-    def lookup(self, a_query):
+    def lookup(self, a_query) -> Sequence[JMDEntry]:
         if a_query in self._textmap:
             return tuple(self._textmap[a_query])
         elif a_query.startswith('id#'):

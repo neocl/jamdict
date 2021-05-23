@@ -10,6 +10,9 @@ JMdict Models
 
 import os
 import logging
+import warnings
+from typing import List
+
 try:
     from lxml import etree
     _LXML_AVAILABLE = True
@@ -37,10 +40,10 @@ class JMDEntry(object):
     def __init__(self, idseq=''):
         # A unique numeric sequence number for each entry
         self.idseq = idseq     # ent_seq
-        self.kanji_forms = []  # k_ele*  => KanjiForm[]
-        self.kana_forms = []   # r_ele+  => KanaForm[]
-        self.info = None       # info?   => EntryInfo
-        self.senses = []       # sense+
+        self.kanji_forms: List[KanjiForm] = []  # k_ele*
+        self.kana_forms: List[KanaForm] = []   # r_ele+  => KanaForm[]
+        self.info: EntryInfo = None       # info?   => EntryInfo
+        self.senses: List[Sense] = []       # sense+
 
     def __len__(self):
         return len(self.senses)
@@ -77,12 +80,17 @@ class JMDEntry(object):
         return self.text(compact=False)
 
     def to_json(self):
+        warnings.warn("to_json() is deprecated and will be removed in the next major release. Use to_dict() instead.",
+                      DeprecationWarning, stacklevel=2)
+        return self.to_dict()
+
+    def to_dict(self):
         ed = {'idseq': self.idseq,
-              'kanji': [x.to_json() for x in self.kanji_forms],
-              'kana': [x.to_json() for x in self.kana_forms],
-              'senses': [x.to_json() for x in self.senses]}
+              'kanji': [x.to_dict() for x in self.kanji_forms],
+              'kana': [x.to_dict() for x in self.kana_forms],
+              'senses': [x.to_dict() for x in self.senses]}
         if self.info:
-            ed['info'] = self.info.to_json()
+            ed['info'] = self.info.to_dict()
         return ed
 
 
@@ -153,6 +161,11 @@ class KanjiForm(object):
         self.text = text
 
     def to_json(self):
+        warnings.warn("to_json() is deprecated and will be removed in the next major release. Use to_dict() instead.",
+                      DeprecationWarning, stacklevel=2)
+        return self.to_dict()
+
+    def to_dict(self):
         kjd = {'text': self.text}
         if self.info:
             kjd['info'] = self.info
@@ -216,6 +229,11 @@ class KanaForm(object):
         self.text = text
 
     def to_json(self):
+        warnings.warn("to_json() is deprecated and will be removed in the next major release. Use to_dict() instead.",
+                      DeprecationWarning, stacklevel=2)
+        return self.to_dict()
+
+    def to_dict(self):
         knd = {'text': self.text,
                'nokanji': self.nokanji}
         if self.restr:
@@ -234,23 +252,28 @@ class KanaForm(object):
 
 
 class EntryInfo(object):
-    '''General coded information relating to the entry as a whole.
+    """General coded information relating to the entry as a whole.
     DTD: <!ELEMENT info (links*, bibl*, etym*, audit*)>
-    '''
+    """
     def __init__(self):
-        self.links = []    # link* => Link[]
-        self.bibinfo = []  # bibl* => BibInfo[]
+        self.links: List[Link] = []    # link*
+        self.bibinfo: List[BibInfo] = []  # bibl*
         '''This field is used to hold information about the etymology
         of the kanji or kana parts of the entry. For gairaigo,
         etymological information may also be in the <lsource> element.'''
         self.etym = []     # <!ELEMENT etym (#PCDATA)>*
-        self.audit = []    # audit* => Audit[]
+        self.audit: List[Audit] = []    # audit*
 
     def to_json(self):
-        return {'links': [x.to_json() for x in self.links],
-                'bibinfo': [x.to_json() for x in self.bibinfo],
+        warnings.warn("to_json() is deprecated and will be removed in the next major release. Use to_dict() instead.",
+                      DeprecationWarning, stacklevel=2)
+        return self.to_dict()
+
+    def to_dict(self):
+        return {'links': [x.to_dict() for x in self.links],
+                'bibinfo': [x.to_dict() for x in self.bibinfo],
                 'etym': self.etym,
-                'audit': [x.to_json() for x in self.audit]}
+                'audit': [x.to_dict() for x in self.audit]}
 
 
 class Link(object):
@@ -261,11 +284,16 @@ class Link(object):
     link_uri contains the actual URI.
     <!ELEMENT links (link_tag, link_desc, link_uri)>'''
     def __init__(self, tag, desc, uri):
-        self.tag = tag    # <!ELEMENT link_tag (#PCDATA)>
-        self.desc = desc  # <!ELEMENT link_desc (#PCDATA)>
-        self.uri = uri    # <!ELEMENT link_uri (#PCDATA)>
+        self.tag: str = tag    # <!ELEMENT link_tag (#PCDATA)>
+        self.desc: str = desc  # <!ELEMENT link_desc (#PCDATA)>
+        self.uri: str = uri    # <!ELEMENT link_uri (#PCDATA)>
 
     def to_json(self):
+        warnings.warn("to_json() is deprecated and will be removed in the next major release. Use to_dict() instead.",
+                      DeprecationWarning, stacklevel=2)
+        return self.to_dict()
+
+    def to_dict(self):
         return {'tag': self.tag,
                 'desc': self.desc,
                 'uri': self.uri}
@@ -280,8 +308,8 @@ class BibInfo(object):
     <!ELEMENT bib_txt (#PCDATA)>
     '''
     def __init__(self, tag='', text=''):
-        self.tag = tag
-        self.text = text
+        self.tag: str = tag
+        self.text: str = text
 
     def set_tag(self, tag):
         if self.tag:
@@ -294,6 +322,11 @@ class BibInfo(object):
         self.text = text
 
     def to_json(self):
+        warnings.warn("to_json() is deprecated and will be removed in the next major release. Use to_dict() instead.",
+                      DeprecationWarning, stacklevel=2)
+        return self.to_dict()
+
+    def to_dict(self):
         return {'tag': self.tag, 'text': self.text}
 
 
@@ -307,6 +340,11 @@ class Audit(object):
         self.upd_detl = upd_detl  # <!ELEMENT upd_detl (#PCDATA)>
 
     def to_json(self):
+        warnings.warn("to_json() is deprecated and will be removed in the next major release. Use to_dict() instead.",
+                      DeprecationWarning, stacklevel=2)
+        return self.to_dict()
+
+    def to_dict(self):
         return {'upd_date': self.upd_date, 'upd_detl': self.upd_detl}
 
 
@@ -360,13 +398,13 @@ class Sense(object):
         regional variations, etc.'''
         self.info = []  # <!ELEMENT s_inf (#PCDATA)>
 
-        self.lsource = []  # <!ELEMENT lsource (#PCDATA)>
+        self.lsource: List[LSource] = []  # <!ELEMENT lsource (#PCDATA)>
 
         '''For words specifically associated with regional dialects in
         Japanese, the entity code for that dialect, e.g. ksb for Kansaiben.'''
         self.dialect = []  # <!ELEMENT dial (#PCDATA)>
 
-        self.gloss = []  # <!ELEMENT gloss (#PCDATA | pri)*>
+        self.gloss: List[SenseGloss] = []  # <!ELEMENT gloss (#PCDATA | pri)*>
 
         '''The example elements provide for pairs of short Japanese and
         target-language phrases or sentences which exemplify the usage of the
@@ -389,6 +427,11 @@ class Sense(object):
             return '/'.join(tmp)
 
     def to_json(self):
+        warnings.warn("to_json() is deprecated and will be removed in the next major release. Use to_dict() instead.",
+                      DeprecationWarning, stacklevel=2)
+        return self.to_dict()
+
+    def to_dict(self):
         sd = {}
         if self.stagk:
             sd['stagk'] = self.stagk
@@ -407,11 +450,11 @@ class Sense(object):
         if self.info:
             sd['SenseInfo'] = self.info
         if self.lsource:
-            sd['SenseSource'] = [x.to_json() for x in self.lsource]
+            sd['SenseSource'] = [x.to_dict() for x in self.lsource]
         if self.dialect:
             sd['dialect'] = self.dialect
         if self.gloss:
-            sd['SenseGloss'] = [x.to_json() for x in self.gloss]
+            sd['SenseGloss'] = [x.to_dict() for x in self.gloss]
         return sd
 
 
@@ -434,7 +477,12 @@ class Translation(Sense):
         return '{gloss} ({types})'.format(gloss='/'.join(tmp), types=types)
 
     def to_json(self):
-        sd = super().to_json()
+        warnings.warn("to_json() is deprecated and will be removed in the next major release. Use to_dict() instead.",
+                      DeprecationWarning, stacklevel=2)
+        return self.to_dict()
+
+    def to_dict(self):
+        sd = super().to_dict()
         sd['name_type'] = self.name_type
         return sd
 
@@ -478,6 +526,11 @@ class SenseGloss(object):
         return ' '.join(tmp)
 
     def to_json(self):
+        warnings.warn("to_json() is deprecated and will be removed in the next major release. Use to_dict() instead.",
+                      DeprecationWarning, stacklevel=2)
+        return self.to_dict()
+
+    def to_dict(self):
         gd = {}
         if self.lang:
             gd['lang'] = self.lang
@@ -516,6 +569,11 @@ class LSource:
         self.text = text
 
     def to_json(self):
+        warnings.warn("to_json() is deprecated and will be removed in the next major release. Use to_dict() instead.",
+                      DeprecationWarning, stacklevel=2)
+        return self.to_dict()
+
+    def to_dict(self):
         return {'lang': self.lang,
                 'lstype': self.lstype,
                 'wasei': self.wasei,

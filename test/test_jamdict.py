@@ -111,8 +111,8 @@ class TestJamdictXML(unittest.TestCase):
         jmd = JMDictXML.from_file(MINI_JMD)
         e = jmd[10]
         self.assertIsNotNone(e)
-        self.assertTrue(e.to_json())
-        self.assertTrue(jmd[-1].to_json())
+        self.assertTrue(e.to_dict())
+        self.assertTrue(jmd[-1].to_dict())
 
     def test_kanjidic2_xml(self):
         print("Test KanjiDic2 XML")
@@ -131,7 +131,7 @@ class TestJamdictXML(unittest.TestCase):
         parser = Kanjidic2XMLParser()
         kd2 = parser.parse_file(MINI_KD2)
         for c in kd2:
-            self.assertIsNotNone(c.to_json())
+            self.assertIsNotNone(c.to_dict())
 
     def test_jamdict_xml(self):
         print("Test Jamdict search in XML files")
@@ -197,6 +197,22 @@ class TestConfig(unittest.TestCase):
         del os.environ['JAMDICT_HOME']
         self.assertEqual(config.home_dir(), "~/.jamdict")
         os.environ['JAMDICT_HOME'] = _orig_home
+
+
+class TestAPIWarning(unittest.TestCase):
+
+    def test_warn_to_json_deprecated(self):
+        print("Test Jamdict search in XML files")
+        jam = Jamdict(":memory:", jmd_xml_file=MINI_JMD,
+                      kd2_xml_file=MINI_KD2,
+                      jmnedict_xml_file=MINI_JMNE)
+        jam.import_data()
+        with self.assertWarns(DeprecationWarning):
+            r = jam.lookup("おみやげ")
+            self.assertTrue(r.to_json())
+        with self.assertWarns(DeprecationWarning):
+            r2 = jam.lookup("シェンロン")
+            self.assertTrue(r2.to_json())
 
 
 class TestJamdictSQLite(unittest.TestCase):
@@ -316,7 +332,7 @@ class TestJamdictSQLite(unittest.TestCase):
         # search both noun and verb
         res3 = jam.lookup("かえる", pos=['noun (common) (futsuumeishi)', "transitive verb"])
         forms3 = all_kanji(res3)
-        self.assertTrue(expected.issubset(forms3))            
+        self.assertTrue(expected.issubset(forms3))
         self.assertTrue(expected2.issubset(forms3))
 
     def test_jamdict_sqlite_all(self):

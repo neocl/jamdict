@@ -103,10 +103,10 @@ class TestJMendictModels(unittest.TestCase):
             for idseq in inserted_idseqs:
                 ne_xml = self.xdb.lookup("id#{}".format(idseq))[0]
                 ne_xml.idseq = int(ne_xml.idseq)
-                getLogger().debug(ne_xml.to_json())
+                getLogger().debug(ne_xml.to_dict())
                 ne = ramdb.get_ne(idseq, ctx=ctx)
-                getLogger().debug(ne.to_json())
-                self.assertEqual(ne_xml.to_json(), ne.to_json())
+                getLogger().debug(ne.to_dict())
+                self.assertEqual(ne_xml.to_dict(), ne.to_dict())
             # test search by idseq
             shenron = ramdb.search_ne('id#5741815', ctx=ctx)
             self.assertEqual(len(shenron), 1)

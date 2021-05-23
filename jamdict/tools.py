@@ -139,7 +139,7 @@ def lookup(cli, args):
         results = jam.lookup(args.query, strict_lookup=args.strict)
         report = TextReport(args.output)
         if args.format == 'json':
-            report.print(json.dumps(results.to_json(),
+            report.print(json.dumps(results.to_dict(),
                                     ensure_ascii=args.ensure_ascii,
                                     indent=args.indent if args.indent else None))
         else:
