@@ -79,7 +79,7 @@ class KanjiDic2(object):
 
 class Character(object):
     """ Represent a kanji character.
-    
+
     <!ELEMENT character (literal,codepoint, radical, misc, dic_number?, query_code?, reading_meaning?)*>"""
 
     def __init__(self):
@@ -102,6 +102,10 @@ class Character(object):
         self.query_codes: List[QueryCode] = []  # QueryCode[]
         self.rm_groups: List[RMGroup] = []  # reading_meaning groups
         self.nanoris = []  # a list of strings
+
+    @property
+    def text(self):
+        return self.literal
 
     def __repr__(self):
         meanings = self.meanings(english_only=True)
