@@ -17,7 +17,13 @@ from collections import OrderedDict
 from typing import List, Sequence
 
 from chirptext.deko import HIRAGANA, KATAKANA
-from puchikarui import MemorySource, ExecutionContext
+_MEMORY_MODE = False
+try:
+    from puchikarui import MemorySource
+    _MEMORY_MODE = True
+except ImportError:
+    pass
+from puchikarui import ExecutionContext
 
 from . import config
 from .jmdict import JMDictXMLParser, JMDEntry
@@ -299,7 +305,12 @@ class Jamdict(object):
         if not self._db_sqlite and self.db_file:
             with threading.Lock():
                 # Use 1 DB for all
-                data_source = MemorySource(self.db_file) if self.memory_mode else self.db_file
+                if self.memory_mode and _MEMORY_MODE:
+                    data_source = MemorySource(self.db_file)
+                else:
+                    if self.memory_mode and not _MEMORY_MODE:
+                        logging.getLogger(__name__).error("Memory mode could not be enabled because puchikarui version is too old. Fallback to normal file DB mode")
+                    data_source = self.db_file
                 self._db_sqlite = JamdictSQLite(data_source, auto_expand_path=self.auto_expand)
         return self._db_sqlite
 
@@ -308,7 +319,12 @@ class Jamdict(object):
         if self._kd2_sqlite is None:
             if self.kd2_file is not None and os.path.isfile(self.kd2_file):
                 with threading.Lock():
-                    data_source = MemorySource(self.kd2_file) if self.memory_mode else self.kd2_file
+                    if self.memory_mode and _MEMORY_MODE:
+                        data_source = MemorySource(self.kd2_file)
+                    else:
+                        if self.memory_mode and not _MEMORY_MODE:
+                            logging.getLogger(__name__).error("Memory mode could not be enabled because puchikarui version is too old. Fallback to normal file DB mode")
+                        data_source = self.kd2_file
                     self._kd2_sqlite = KanjiDic2SQLite(data_source, auto_expand_path=self.auto_expand)
             elif not self.kd2_file or self.kd2_file == self.db_file:
                 self._kd2_sqlite = self.jmdict
@@ -320,7 +336,12 @@ class Jamdict(object):
         if self._jmne_sqlite is None:
             if self.jmnedict_file is not None:
                 with threading.Lock():
-                    data_source = MemorySource(self.jmnedict_file) if self.memory_mode else self.jmnedict_file
+                    if self.memory_mode and _MEMORY_MODE:
+                        data_source = MemorySource(self.jmnedict_file)
+                    else:
+                        if self.memory_mode and not _MEMORY_MODE:
+                            logging.getLogger(__name__).error("Memory mode could not be enabled because puchikarui version is too old. Fallback to normal file DB mode")
+                        data_source = self.jmnedict_file
                     self._jmne_sqlite = JMNEDictSQLite(data_source, auto_expand_path=self.auto_expand)
             elif not self.jmnedict_file or self.jmnedict_file == self.db_file:
                 self._jmne_sqlite = self.jmdict

@@ -166,8 +166,7 @@ class JMDictSQLite(JMDictSchema):
                 return self.search(query, ctx=ctx, pos=pos, iter_mode=iter_mode)
         where, params = self._build_search_query(query, pos=pos)
         where.insert(0, 'SELECT idseq FROM Entry WHERE ')
-        ctx_id = ctx.double(row_factory=None)
-        for (idseq,) in ctx_id.execute(' '.join(where), params):
+        for (idseq,) in ctx.conn.cursor().execute(' '.join(where), params):
             yield self.get_entry(idseq, ctx=ctx)
 
     def get_entry(self, idseq, ctx=None):
