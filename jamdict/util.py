@@ -164,6 +164,41 @@ class LookupResult(object):
                 'names': [n.to_dict() for n in self.names]}
 
 
+class IterLookupResult(object):
+
+    """ Contain lookup results (words, Kanji characters, or named entities) from Jamdict.
+
+    A typical jamdict lookup is like this:
+
+    >>> jam = Jamdict()
+    >>> result = jam.lookup_iter('食べ%る')
+
+    The command above returns a :class:`IterLookupResult` object which contains iterators
+    to scan through found words (``entries``), kanji characters (``chars``),
+    and named entities (:any:`names`) one by one.
+    """
+
+    def __init__(self, entries, chars=None, names=None):
+        self.__entries = entries if entries is not None else []
+        self.__chars = chars if chars is not None else []
+        self.__names = names if names is not None else []
+
+    @property
+    def entries(self):
+        """ Iterator for looping one by one through all found entries, can only be used once """
+        return self.__entries
+
+    @property
+    def chars(self):
+        """ Iterator for looping one by one through all found kanji characters, can only be used once """
+        return self.__chars
+
+    @property
+    def names(self):
+        """ Iterator for looping one by one through all found named entities, can only be used once """
+        return self.__names
+
+
 class JamdictSQLite(KanjiDic2SQLite, JMNEDictSQLite, JMDictSQLite):
 
     def __init__(self, db_file, *args, **kwargs):
@@ -478,7 +513,7 @@ class Jamdict(object):
             raise LookupError("There is no backend data available")
 
     def all_pos(self, ctx=None) -> List[str]:
-        """ Find all available part-of-speeches 
+        """ Find all available part-of-speeches
 
         :returns: A list of part-of-speeches (a list of strings)
         """
@@ -494,7 +529,6 @@ class Jamdict(object):
         if ctx is None:
             ctx = self.__make_db_ctx()
         return self.jmnedict.all_ne_type(ctx=ctx)
-        
 
     def lookup(self, query, strict_lookup=False, lookup_chars=True, ctx=None,
                lookup_ne=True, pos=None, **kwargs) -> LookupResult:
@@ -525,7 +559,6 @@ class Jamdict(object):
             raise ValueError("Query and POS filter cannot be both empty")
         if ctx is None:
             ctx = self.__make_db_ctx()
-        # Lookup words
         entries = []
         chars = []
         names = []
@@ -552,6 +585,51 @@ class Jamdict(object):
             names = self.jmnedict.search_ne(query, ctx=ctx)
         # finish
         return LookupResult(entries, chars, names)
+
+    def lookup_iter(self, query, strict_lookup=False,
+                    lookup_chars=True, lookup_ne=True,
+                    ctx=None, pos=None, **kwargs) -> LookupResult:
+        """ Search words, characters, and characters.
+
+        Keyword arguments:
+
+        :param query: Text to query, may contains wildcard characters. Use `?` for 1 exact character and `%` to match any number of characters.
+        :param strict_lookup: only look up the Kanji characters in query (i.e. discard characters from variants)
+        :type strict_lookup: bool
+        :param: lookup_chars: set lookup_chars to False to disable character lookup
+        :type lookup_chars: bool
+        :param pos: Filter words by part-of-speeches
+        :type pos: list of strings
+        :param ctx: database access context, can be reused for better performance. Normally users do not have to touch this and database connections will be reused by default.
+        :param lookup_ne: set lookup_ne to False to disable name-entities lookup
+        :type lookup_ne: bool
+        :returns: Return an IterLookupResult object.
+        :rtype: :class:`jamdict.util.IterLookupResult`
+
+        >>> # match any word that starts with "食べ" and ends with "る" (anything from between is fine)
+        >>> jam = Jamdict()
+        >>> results = jam.lookup_iter('食べ%る')
+        """
+        if not self.is_available():
+            raise LookupError("There is no backend data available")
+        elif (not query or query == "%") and not pos:
+            raise ValueError("Query and POS filter cannot be both empty")
+        if ctx is None:
+            ctx = self.__make_db_ctx()
+        # Lookup entries, chars, and names
+        entries = None
+        chars = None
+        names = None
+        if self.jmdict is not None:
+            entries = self.jmdict.search_iter(query, pos=pos, ctx=ctx)
+        if lookup_chars and self.has_kd2():
+            chars_to_search = OrderedDict({c: c for c in query if c not in HIRAGANA and c not in KATAKANA})
+            chars = self.kd2.search_chars_iter(chars_to_search, ctx=ctx)
+        # lookup name-entities
+        if lookup_ne and self.has_jmne(ctx=ctx):
+            names = self.jmnedict.search_ne_iter(query, ctx=ctx)
+        # finish
+        return IterLookupResult(entries, chars, names)
 
 
 class JMDictXML(object):
