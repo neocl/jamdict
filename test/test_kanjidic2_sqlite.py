@@ -64,7 +64,8 @@ class TestJamdictSQLite(unittest.TestCase):
                 c2 = db.char_by_id(c.ID, ctx)
                 getLogger().debug("c-xml", c.to_dict())
                 getLogger().debug("c-sqlite", c2.to_dict())
-                self.assertEqual(c.to_json(), c2.to_dict())
+                with self.assertWarns(DeprecationWarning):
+                    self.assertEqual(c.to_json(), c2.to_dict())
             # test searching
             # by id
             c = ctx.char.select_single()

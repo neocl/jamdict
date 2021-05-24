@@ -114,7 +114,7 @@ class JMDictSQLite(JMDictSchema):
         if ctx is None:
             return self.all_pos(ctx=self.ctx())
         else:
-            return [x['text'] for x in ctx.select("SELECT DISTINCT text FROM pos")]
+            return [x['text'] for x in ctx.execute("SELECT DISTINCT text FROM pos")]
 
     def _build_search_query(self, query, pos=None):
         where = []
@@ -166,8 +166,8 @@ class JMDictSQLite(JMDictSchema):
                 return self.search(query, ctx=ctx, pos=pos, iter_mode=iter_mode)
         where, params = self._build_search_query(query, pos=pos)
         where.insert(0, 'SELECT idseq FROM Entry WHERE ')
-        idseqs = tuple(x['idseq'] for x in ctx.execute(' '.join(where), params))
-        for idseq in idseqs:
+        ctx_id = ctx.double(row_factory=None)
+        for (idseq,) in ctx_id.execute(' '.join(where), params):
             yield self.get_entry(idseq, ctx=ctx)
 
     def get_entry(self, idseq, ctx=None):
