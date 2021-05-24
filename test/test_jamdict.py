@@ -373,6 +373,37 @@ class TestJamdictSQLite(unittest.TestCase):
         self.assertEqual(2, len(result.chars))
         self.assertEqual({c.literal for c in result.chars}, {'土', '産'})
 
+    def test_lookup_iter(self):
+        jam = Jamdict(":memory:", jmd_xml_file=MINI_JMD,
+                      kd2_xml_file=MINI_KD2,
+                      jmnedict_xml_file=MINI_JMNE, auto_config=True)
+        jam.import_data()
+        # verify entries
+        res = jam.lookup_iter("おこ%", pos="noun (common) (futsuumeishi)")
+        entries = [e.text() for e in res.entries]
+        expected = ['おこのみやき (お好み焼き) : okonomiyaki/savoury pancake containing meat or seafood and '
+                    'vegetables',
+                    'おこさん (お子さん) : child',
+                    "おこさま (お子様) : child (someone else's)"]
+        self.assertEqual(expected, entries)
+        # verify characters
+        res = jam.lookup_iter("お土産")
+        self.assertIsNotNone(res.entries)
+        self.assertIsNotNone(res.chars)
+        self.assertIsNotNone(res.names)
+        # verify characters
+        chars = [repr(c) for c in res.chars]
+        expected = ['土:3:soil,earth,ground,Turkey',
+                    '産:11:products,bear,give birth,yield,childbirth,native,property']
+        self.assertEqual(expected, chars)
+        # verify names
+        res = jam.lookup_iter("surname")
+        names = [n.text() for n in res.names]
+        expected = ['しめたに (〆谷) : Shimetani (surname)',
+                    'しめき (〆木) : Shimeki (surname)',
+                    'しめの (〆野) : Shimeno (surname)']
+        self.assertEqual(expected, names)
+
 
 ########################################################################
 
