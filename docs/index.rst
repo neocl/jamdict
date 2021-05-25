@@ -139,6 +139,7 @@ Documentation
    recipes
    api
    contributing
+   updates
 
 Other info
 ==========
