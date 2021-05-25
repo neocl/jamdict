@@ -12,6 +12,7 @@ Are you new to this documentation? Here are some useful pages:
 - Want to try out Jamdict package? Try `Jamdict online demo <https://replit.com/@tuananhle/jamdict-demo>`_
 - Want some useful code samples? See :ref:`recipes`.
 - Want to look deeper into the package? See :ref:`api_index`.
+- If you want to help developing Jamdict, please visit :ref:`contributing` page.
 
 Main features
 -------------
