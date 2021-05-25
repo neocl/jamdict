@@ -9,6 +9,7 @@ jamdict 0.1a11
 - Added ``lookup_iter()`` for iteration search
 - Added ``pos`` filter for filtering words by part-of-speeches
 - Added ``all_pos()`` and ``all_ne_type()`` to Jamdict to list part-of-speeches and named-entity types
+- Better version checking in ``__version__.py``
 - Improved documentation
 
 jamdict 0.1a10
