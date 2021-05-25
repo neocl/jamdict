@@ -36,7 +36,7 @@ If you want to help developing Jamdict, please visit :ref:`contributing` page.
 Installation
 ------------
 
-Jamdict is `available on PyPI <https://pypi.org/project/jamdict/>`_ and
+Jamdict and `jamdict-data <https://pypi.org/project/jamdict/>`_ are both `available on PyPI <https://pypi.org/project/jamdict/>`_ and
 can be installed using pip.
 For more information please see :ref:`installpage` page.
 
@@ -44,7 +44,7 @@ For more information please see :ref:`installpage` page.
 
    pip install jamdict jamdict-data
 
-There is a demo Jamdict virtual machine to try out online on Repl.it
+Also, there is an online demo Jamdict virtual machine to try out on Repl.it
 
 https://replit.com/@tuananhle/jamdict-demo
 
