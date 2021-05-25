@@ -4,6 +4,15 @@ Jamdict's documentation!
 
 `Jamdict <https://github.com/neocl/jamdict>`_ is a Python 3 library for manipulating Jim Breen's JMdict, KanjiDic2, JMnedict and kanji-radical mappings.
 
+Welcome
+-------
+
+Are you new to this documentation? Here are some useful pages:
+
+- Want to try out Jamdict package? Try `Jamdict online demo <https://replit.com/@tuananhle/jamdict-demo>`_
+- Want some useful code samples? See :ref:`recipes`.
+- Want to look deeper into the package? See :ref:`api_index`.
+
 Main features
 -------------
 
@@ -34,6 +43,10 @@ For more information please see :ref:`installpage` page.
 .. code:: bash
 
    pip install jamdict jamdict-data
+
+There is a demo Jamdict virtual machine to try out online on Repl.it
+
+https://replit.com/@tuananhle/jamdict-demo
 
 Sample jamdict Python code
 --------------------------
