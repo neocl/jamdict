@@ -3,10 +3,9 @@
 Common Recipes
 ==============
 
-- Search words using wildcards.
-- Searching for kanji characters.
-- Decomposing kanji characters into components, or search kanji characters by components.
-- Search for named entities.
+.. contents::
+    :local: 
+    :depth: 2
 
 .. warning::
     👉 ⚠️ THIS SECTION IS STILL UNDER CONSTRUCTION ⚠️
@@ -20,7 +19,7 @@ High-performance tuning
 -----------------------
 
 When you need to do a lot of queries on the database, it is possible to load the whole database
-into memory to boost up querying performance (This will takes about 400 MB of RAM) by using the ``memory_mode``
+into memory to boost up querying performance (This will takes about 400 MB of RAM) by using the :class:`memory_mode <jamdict.util.Jamdict>`
 keyword argument, like this:
 
 >>> from jamdict import Jamdict
@@ -28,6 +27,47 @@ keyword argument, like this:
 
 The first query will be extremely slow (it may take about a minute for the whole database to be loaded into memory)
 but subsequent queries will be much faster.
+
+Iteration search
+----------------
+
+Sometimes people want to look through a set of search results only once and determine which items to keep
+and then discard the rest. In these cases :func:`lookup_iter <jamdict.util.Jamdict.lookup_iter>` should be used.
+This function returns an :class:`IterLookupResult <jamdict.util.IterLookupResult>` object immediately after called.
+Users may loop through ``result.entries``, ``result.chars``, and ``result.names`` exact one loop for each
+set to find the items that they want. Users will have to store the desired word entries, characters, and names 
+by themselves since they are discarded after yield.
+
+>>> res = jam.lookup_iter("花見")
+>>> for word in res.entries:
+...     print(word)  # do somethign with the word
+>>> for c in res.chars:
+...     print(c)
+>>> for name in res.names:
+...     print(name)
+
+Part-of-speeches and named-entity types
+---------------------------------------
+
+Use :func:`Jamdict.all_pos <jamdict.util.Jamdict.all_pos>` to list all available part-of-speeches
+and :func:`Jamdict.all_ne_type <jamdict.util.Jamdict.all_pos>` named-entity types:
+
+>>> for pos in jam.all_pos():
+...     print(pos)  # pos is a string
+>>> for ne_type in jam.all_ne_type():
+...     print(ne_type)  # ne_type is a string
+
+To filter words by part-of-speech use the keyword argument ``pos``
+in :func:`loookup() <jamdict.util.Jamdict.lookup>` or :func:`lookup_iter() <jamdict.util.Jamdict.lookup_iter>`
+functions.
+
+For example to look for all "かえる" that are nouns use:
+
+>>> result = jam.lookup("かえる", pos=["noun (common) (futsuumeishi)"])
+
+To search for all named-entities that are "surname" use:
+
+>>> result = jam.lookup("surname")
     
 Kanjis and radical/components (KRAD/RADK mappings)
 --------------------------------------------------
