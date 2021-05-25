@@ -6,15 +6,15 @@ __email__ = "tuananh.ke@gmail.com"
 __copyright__ = "Copyright (c) 2016, Le Tuan Anh"
 __credits__ = []
 __license__ = "MIT License"
-__description__ = "Python library for manipulating Jim Breen's JMdict, KanjiDic2, KRADFILE and JMnedict"
+__description__ = "Python library for using Japanese dictionaries and resources (Jim Breen's JMdict, KanjiDic2, KRADFILE, JMnedict)"
 __url__ = "https://github.com/neocl/jamdict"
 __maintainer__ = "Le Tuan Anh"
 # ------------------------------------------------------------------------------
 # Version configuration (enforcing PEP 440)
 # ------------------------------------------------------------------------------
 __status__ = "3 - Alpha"
-__version_tuple__ = (0, 1, 0, 10, 6)
-__version_status__ = '' # a specific value ('rc', 'dev', etc.) or leave blank to be auto-filled
+__version_tuple__ = (0, 1, 0, 11)
+__version_status__ = ''  # a specific value ('rc', 'dev', etc.) or leave blank to be auto-filled
 # ------------------------------------------------------------------------------
 __status_map__ = {'3 - Alpha': 'a', '4 - Beta': 'b', '5 - Production/Stable': '', '6 - Mature': ''}
 if not __version_status__:
