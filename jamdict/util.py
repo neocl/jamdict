@@ -170,12 +170,18 @@ class IterLookupResult(object):
 
     A typical jamdict lookup is like this:
 
-    >>> jam = Jamdict()
-    >>> result = jam.lookup_iter('食べ%る')
+    >>> res = jam.lookup_iter("花見")
 
-    The command above returns a :class:`IterLookupResult` object which contains iterators
+    ``res`` is an :class:`IterLookupResult` object which contains iterators
     to scan through found words (``entries``), kanji characters (``chars``),
     and named entities (:any:`names`) one by one.
+
+    >>> for word in res.entries:
+    ...     print(word)  # do somethign with the word
+    >>> for c in res.chars:
+    ...     print(c)
+    >>> for name in res.names:
+    ...     print(name)
     """
 
     def __init__(self, entries, chars=None, names=None):
@@ -219,15 +225,29 @@ class Jamdict(object):
     >>> for c in result.chars:
     >>>     print(repr(c))
 
-    Jamdict >= 0.1a10 support memory_mode keyword argument for reading
+    To filter results by ``pos``, for example look for all "かえる" that are nouns, use:
+
+    >>> result = jam.lookup("かえる", pos=["noun (common) (futsuumeishi)"])
+
+    To search for named-entities by type, use the type string as query.
+    For example to search for all "surname" use:
+
+    >>> result = jam.lookup("surname")
+
+    To find out which part-of-speeches or named-entities types are available in the 
+    dictionary, use :func:`Jamdict.all_pos <jamdict.util.Jamdict.all_pos>`
+    and :func:`Jamdict.all_ne_type <jamdict.util.Jamdict.all_pos>`.
+
+    Jamdict >= 0.1a10 support ``memory_mode`` keyword argument for reading
     the whole database into memory before querying to boost up search speed.
     The database may take about a minute to load. Here is the sample code:
 
     >>> jam = Jamdict(memory_mode=True)
 
-    Jamdict will use database from jamdict-data by default.
+    When there is no suitable database available, Jamdict will try to use database 
+    from `jamdict-data <https://pypi.org/project/jamdict-data/>`_ package by default.
     If there is a custom database available in configuration file,
-    Jamdict will prioritise to use it over jamdict-data package.
+    Jamdict will prioritise to use it over the ``jamdict-data`` package.
     """
 
     def __init__(self, db_file=None, kd2_file=None,
@@ -593,7 +613,19 @@ class Jamdict(object):
     def lookup_iter(self, query, strict_lookup=False,
                     lookup_chars=True, lookup_ne=True,
                     ctx=None, pos=None, **kwargs) -> LookupResult:
-        """ Search words, characters, and characters.
+        """ Search for words, characters, and characters iteratively.
+
+        An :class:`IterLookupResult` object will be returned instead of the normal ``LookupResult``.
+        ``res.entries``, ``res.chars``, ``res.names`` are iterators instead of lists and each of them
+        can only be looped through once. Users have to store the results manually.
+        
+        >>> res = jam.lookup_iter("花見")
+        >>> for word in res.entries:
+        ...     print(word)  # do somethign with the word
+        >>> for c in res.chars:
+        ...     print(c)
+        >>> for name in res.names:
+        ...     print(name)
 
         Keyword arguments:
 
@@ -609,10 +641,6 @@ class Jamdict(object):
         :type lookup_ne: bool
         :returns: Return an IterLookupResult object.
         :rtype: :class:`jamdict.util.IterLookupResult`
-
-        >>> # match any word that starts with "食べ" and ends with "る" (anything from between is fine)
-        >>> jam = Jamdict()
-        >>> results = jam.lookup_iter('食べ%る')
         """
         if not self.is_available():
             raise LookupError("There is no backend data available")
