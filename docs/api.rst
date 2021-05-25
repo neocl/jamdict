@@ -5,6 +5,9 @@ jamdict APIs
 
 An overview of jamdict modules.
 
+.. warning::
+    👉 ⚠️ THIS SECTION IS STILL UNDER CONSTRUCTION ⚠️ Help is much needed.
+
 .. module:: jamdict
 
 .. autoclass:: jamdict.util.Jamdict
