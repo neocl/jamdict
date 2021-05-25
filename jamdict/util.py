@@ -482,6 +482,9 @@ class Jamdict(object):
                     self.jmnedict.insert_name_entities(self.jmne_xml, ctx=ne_ctx)
         else:
             getLogger().warning("JMNEdict XML data is not available - skipped!")
+        _buckmode_off = getattr(ctx, "buckmode_off", None)
+        if _buckmode_off is not None:
+            _buckmode_off()
         ctx.commit()
 
     def get_ne(self, idseq, ctx=None) -> JMDEntry:
