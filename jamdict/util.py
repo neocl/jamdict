@@ -482,6 +482,7 @@ class Jamdict(object):
                     self.jmnedict.insert_name_entities(self.jmne_xml, ctx=ne_ctx)
         else:
             getLogger().warning("JMNEdict XML data is not available - skipped!")
+        ctx.commit()
 
     def get_ne(self, idseq, ctx=None) -> JMDEntry:
         """ Get name entity by idseq in JMNEdict """
