@@ -10,6 +10,9 @@ Kanjidic2 models
 
 import os
 import logging
+import warnings
+from typing import List
+
 try:
     from lxml import etree
     _LXML_AVAILABLE = True
@@ -76,7 +79,7 @@ class KanjiDic2(object):
 
 class Character(object):
     """ Represent a kanji character.
-    
+
     <!ELEMENT character (literal,codepoint, radical, misc, dic_number?, query_code?, reading_meaning?)*>"""
 
     def __init__(self):
@@ -85,20 +88,24 @@ class Character(object):
         """
         self.ID = None
         self.literal = ''  # <!ELEMENT literal (#PCDATA)> The character itself in UTF8 coding.
-        self.codepoints = []  # <!ELEMENT codepoint (cp_value+)>
-        self.radicals = []  # <!ELEMENT radical (rad_value+)>
+        self.codepoints: List[CodePoint] = []  # <!ELEMENT codepoint (cp_value+)>
+        self.radicals: List[Radical] = []  # <!ELEMENT radical (rad_value+)>
         self.__canon_radical = None
         self.stroke_count = None  # first stroke_count in misc
         self.grade = None  # <misc>/<grade>
         self.stroke_miscounts = []  # <misc>/stroke_count[1:]
-        self.variants = []  # <misc>/<variant>
+        self.variants: List[Variant] = []  # <misc>/<variant>
         self.freq = None  # <misc>/<freq>
         self.rad_names = []  # <misc>/<rad_name> a list of strings
         self.jlpt = None  # <misc>/<jlpt>
-        self.dic_refs = []  # DicRef[]
-        self.query_codes = []  # QueryCode[]
-        self.rm_groups = []  # reading_meaning groups
+        self.dic_refs: List[DicRef] = []  # DicRef[]
+        self.query_codes: List[QueryCode] = []  # QueryCode[]
+        self.rm_groups: List[RMGroup] = []  # reading_meaning groups
         self.nanoris = []  # a list of strings
+
+    @property
+    def text(self):
+        return self.literal
 
     def __repr__(self):
         meanings = self.meanings(english_only=True)
@@ -134,19 +141,24 @@ class Character(object):
         return self.__canon_radical
 
     def to_json(self):
+        warnings.warn("to_json() is deprecated and will be removed in the next major release. Use to_dict() instead.",
+                      DeprecationWarning, stacklevel=2)
+        return self.to_dict()
+
+    def to_dict(self):
         return {'literal': self.literal,
-                'codepoints': [cp.to_json() for cp in self.codepoints],
-                'radicals': [r.to_json() for r in self.radicals],
+                'codepoints': [cp.to_dict() for cp in self.codepoints],
+                'radicals': [r.to_dict() for r in self.radicals],
                 'stroke_count': self.stroke_count,
                 'grade': self.grade if self.grade else '',
                 'stroke_miscounts': self.stroke_miscounts,
-                'variants': [v.to_json() for v in self.variants],
+                'variants': [v.to_dict() for v in self.variants],
                 'freq': self.freq if self.freq else 0,
                 'rad_names': self.rad_names,
                 'jlpt': self.jlpt if self.jlpt else '',
-                'dic_refs': [r.to_json() for r in self.dic_refs],
-                'q_codes': [q.to_json() for q in self.query_codes],
-                'rm': [rm.to_json() for rm in self.rm_groups],
+                'dic_refs': [r.to_dict() for r in self.dic_refs],
+                'q_codes': [q.to_dict() for q in self.query_codes],
+                'rm': [rm.to_dict() for rm in self.rm_groups],
                 'nanoris': list(self.nanoris)}
 
 
@@ -173,6 +185,11 @@ class CodePoint(object):
         return self.value
 
     def to_json(self):
+        warnings.warn("to_json() is deprecated and will be removed in the next major release. Use to_dict() instead.",
+                      DeprecationWarning, stacklevel=2)
+        return self.to_dict()
+
+    def to_dict(self):
         return {'type': self.cp_type, 'value': self.value}
 
 
@@ -199,6 +216,11 @@ class Radical(object):
         return self.value
 
     def to_json(self):
+        warnings.warn("to_json() is deprecated and will be removed in the next major release. Use to_dict() instead.",
+                      DeprecationWarning, stacklevel=2)
+        return self.to_dict()
+
+    def to_dict(self):
         return {'type': self.rad_type, 'value': self.value}
 
 
@@ -241,6 +263,11 @@ class Variant(object):
         return self.value
 
     def to_json(self):
+        warnings.warn("to_json() is deprecated and will be removed in the next major release. Use to_dict() instead.",
+                      DeprecationWarning, stacklevel=2)
+        return self.to_dict()
+
+    def to_dict(self):
         return {'type': self.var_type, 'value': self.value}
 
 
@@ -307,6 +334,11 @@ class DicRef(object):
         return self.value
 
     def to_json(self):
+        warnings.warn("to_json() is deprecated and will be removed in the next major release. Use to_dict() instead.",
+                      DeprecationWarning, stacklevel=2)
+        return self.to_dict()
+
+    def to_dict(self):
         return {'type': self.dr_type,
                 'value': self.value,
                 "m_vol": self.m_vol,
@@ -380,6 +412,11 @@ S    --> """
         return self.value
 
     def to_json(self):
+        warnings.warn("to_json() is deprecated and will be removed in the next major release. Use to_dict() instead.",
+                      DeprecationWarning, stacklevel=2)
+        return self.to_dict()
+
+    def to_dict(self):
         return {'type': self.qc_type, 'value': self.value, "skip_misclass": self.skip_misclass}
 
 
@@ -397,8 +434,8 @@ class RMGroup(object):
         """
         self.ID = None
         self.cid = None
-        self.readings = readings if readings else []
-        self.meanings = meanings if meanings else []
+        self.readings: List[Reading] = readings if readings else []
+        self.meanings: List[Meaning] = meanings if meanings else []
 
     def __repr__(self):
         return "R: {} | M: {}".format(
@@ -409,8 +446,13 @@ class RMGroup(object):
         return repr(self)
 
     def to_json(self):
-        return {'readings': [r.to_json() for r in self.readings],
-                'meanings': [m.to_json() for m in self.meanings]}
+        warnings.warn("to_json() is deprecated and will be removed in the next major release. Use to_dict() instead.",
+                      DeprecationWarning, stacklevel=2)
+        return self.to_dict()
+
+    def to_dict(self):
+        return {'readings': [r.to_dict() for r in self.readings],
+                'meanings': [m.to_dict() for m in self.meanings]}
 
 
 class Reading(object):
@@ -470,6 +512,11 @@ class Reading(object):
         return self.value
 
     def to_json(self):
+        warnings.warn("to_json() is deprecated and will be removed in the next major release. Use to_dict() instead.",
+                      DeprecationWarning, stacklevel=2)
+        return self.to_dict()
+
+    def to_dict(self):
         return {'type': self.r_type,
                 'value': self.value,
                 'on_type': self.on_type,
@@ -503,12 +550,17 @@ class Meaning(object):
         return self.value
 
     def to_json(self):
+        warnings.warn("to_json() is deprecated and will be removed in the next major release. Use to_dict() instead.",
+                      DeprecationWarning, stacklevel=2)
+        return self.to_dict()
+
+    def to_dict(self):
         return {'m_lang': self.m_lang, 'value': self.value}
 
 
 class Kanjidic2XMLParser(object):
-    '''JMDict XML parser
-    '''
+    """ JMDict XML parser
+    """
 
     def __init__(self):
         pass

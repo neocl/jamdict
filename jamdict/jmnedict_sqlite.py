@@ -14,6 +14,7 @@ References:
 
 import os
 import logging
+from typing import Sequence
 
 from puchikarui import Schema
 from . import __version__ as JAMDICT_VERSION, __url__ as JAMDICT_URL
@@ -76,35 +77,51 @@ class JMNEDictSQLite(JMNEDictSchema):
     def __init__(self, db_path, *args, **kwargs):
         super().__init__(db_path, *args, **kwargs)
 
-    def search_ne(self, query, ctx=None, **kwargs):
-        # ensure context
+    def all_ne_type(self, ctx=None):
         if ctx is None:
-            with self.ctx() as ctx:
-                return self.search(query, ctx=ctx)
+            return self.all_ne_type(ctx=self.ctx())
+        else:
+            return [x['text'] for x in ctx.execute("SELECT DISTINCT text FROM NETransType")]
+
+    def _build_ne_search_query(self, query):
         _is_wildcard_search = '_' in query or '@' in query or '%' in query
         if _is_wildcard_search:
             where = "idseq IN (SELECT idseq FROM NEKanji WHERE text like ?) OR idseq IN (SELECT idseq FROM NEKana WHERE text like ?) OR idseq IN (SELECT idseq FROM NETranslation JOIN NETransGloss ON NETranslation.ID == NETransGloss.tid WHERE NETransGloss.text like ?) OR idseq IN (SELECT idseq FROM NETranslation JOIN NETransType ON NETranslation.ID == NETransType.tid WHERE NETransType.text like ?)"
         else:
             where = "idseq IN (SELECT idseq FROM NEKanji WHERE text == ?) OR idseq IN (SELECT idseq FROM NEKana WHERE text == ?) OR idseq IN (SELECT idseq FROM NETranslation JOIN NETransGloss ON NETranslation.ID == NETransGloss.tid WHERE NETransGloss.text == ?) or idseq in (SELECT idseq FROM NETranslation JOIN NETransType ON NETranslation.ID == NETransType.tid WHERE NETransType.text == ?)"
-        getLogger().debug(where)
         params = [query, query, query, query]
         try:
             if query.startswith('id#'):
                 query_int = int(query[3:])
                 if query_int >= 0:
-                    getLogger().debug("Searching NE by ID: {}".format(query_int))
                     where = "idseq = ?"
                     params = [query_int]
         except Exception:
             pass
-        # else (a context is provided)
-        eids = self.NEEntry.select(where, params, ctx=ctx)
+        getLogger().debug(f"where={where} | params={params}")
+        return where, params
+
+    def search_ne(self, query, ctx=None, **kwargs) -> Sequence[JMDEntry]:
+        if ctx is None:
+            with self.ctx() as ctx:
+                return self.search_ne(query, ctx=ctx)
+        where, params = self._build_ne_search_query(query)
+        where = 'SELECT idseq FROM NEEntry WHERE ' + where
         entries = []
-        for e in eids:
-            entries.append(self.get_ne(e.idseq, ctx=ctx))
+        for (idseq,) in ctx.conn.cursor().execute(where, params):
+            entries.append(self.get_ne(idseq, ctx=ctx))
         return entries
 
-    def get_ne(self, idseq, ctx=None):
+    def search_ne_iter(self, query, ctx=None, **kwargs):
+        if ctx is None:
+            with self.ctx() as ctx:
+                return self.search_ne(query, ctx=ctx)
+        where, params = self._build_ne_search_query(query)
+        where = 'SELECT idseq FROM NEEntry WHERE ' + where
+        for (idseq,) in ctx.conn.cursor().execute(where, params):
+            yield self.get_ne(idseq, ctx=ctx)
+
+    def get_ne(self, idseq, ctx=None) -> JMDEntry:
         # ensure context
         if ctx is None:
             with self.ctx() as new_context:

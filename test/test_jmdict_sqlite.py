@@ -70,9 +70,9 @@ class TestJamdictSQLite(unittest.TestCase):
         self.assertEqual(len(entries), len(self.xdb))
         # test select entry by id
         e = self.db.get_entry(1001710)
-        ejson = e.to_json()
+        ejson = e.to_dict()
         self.assertEqual(ejson['kanji'][0]['text'], 'お菓子')
-        getLogger().debug(e.to_json())
+        getLogger().debug(e.to_dict())
 
     def test_import_to_ram(self):
         print("Testing XML to RAM")
@@ -91,7 +91,6 @@ class TestJamdictSQLite(unittest.TestCase):
         with self.ramdb.ds.open() as ctx:
             self.ramdb.insert_entries(self.xdb, ctx=ctx)
             entries = ctx.Entry.select()
-            print(len(entries))
             # Search by kana
             es = self.ramdb.search('あの', ctx)
             self.assertEqual(len(es), 2)
@@ -104,6 +103,16 @@ class TestJamdictSQLite(unittest.TestCase):
             es = self.db.search('%confections%', ctx, exact_match=False)
             self.assertTrue(es)
             getLogger().info('%confections%: {}'.format('|'.join([str(x) for x in es])))
+
+    def test_iter_search(self):
+        with self.ramdb.open() as ctx:
+            self.ramdb.insert_entries(self.xdb, ctx=ctx)
+            forms = set()
+            for e in self.ramdb.search_iter("%あの%", iter_mode=True, ctx=ctx):
+                forms.update(f.text for f in e.kana_forms)
+            expected = {'あのー', 'あのう', 'あの', 'かの', 'あのかた', 'あのひと'}
+            self.assertTrue(expected.issubset(forms))
+
 
 # -------------------------------------------------------------------------------
 # Main

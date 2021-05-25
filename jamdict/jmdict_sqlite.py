@@ -110,33 +110,63 @@ class JMDictSQLite(JMDictSchema):
             ju.value = url
             ctx.meta.save(ju)
 
-    def search(self, query, ctx=None, **kwargs):
+    def all_pos(self, ctx=None):
+        if ctx is None:
+            return self.all_pos(ctx=self.ctx())
+        else:
+            return [x['text'] for x in ctx.execute("SELECT DISTINCT text FROM pos")]
+
+    def _build_search_query(self, query, pos=None):
+        where = []
+        params = []
+        if query.startswith('id#'):
+            query_int = int(query[3:])
+            if query_int >= 0:
+                getLogger().debug("Searching by ID: {}".format(query_int))
+                where.append("idseq = ?")
+                params.append(query_int)
+        elif query and query != "%":
+            _is_wildcard_search = '_' in query or '@' in query or '%' in query
+            if _is_wildcard_search:
+                where.append("(idseq IN (SELECT idseq FROM Kanji WHERE text like ?) OR idseq IN (SELECT idseq FROM Kana WHERE text like ?) OR idseq IN (SELECT idseq FROM sense JOIN sensegloss ON sense.ID == sensegloss.sid WHERE text like ?))")
+            else:
+                where.append("(idseq IN (SELECT idseq FROM Kanji WHERE text == ?) OR idseq IN (SELECT idseq FROM Kana WHERE text == ?) OR idseq IN (SELECT idseq FROM sense JOIN sensegloss ON sense.ID == sensegloss.sid WHERE text == ?))")
+            params += (query, query, query)
+        if pos:
+            if isinstance(pos, str):
+                getLogger().warning("POS filter should be a collection, not a string")
+                pos = [pos]
+            # allow to search by POS
+            slots = len(pos)
+            if where:
+                where.append("AND")
+            where.append(f"idseq IN (SELECT idseq FROM Sense WHERE ID IN (SELECT sid FROM pos WHERE text IN ({','.join('?' * slots)})))")
+            params += pos
+        # else (a context is provided)
+        logging.getLogger(__name__).debug(f"Search query: {where} -- Params: {params}")
+        return where, params
+
+    def search(self, query, ctx=None, pos=None, **kwargs):
         # ensure context
         if ctx is None:
             with self.ctx() as ctx:
-                return self.search(query, ctx=ctx)
-        _is_wildcard_search = '_' in query or '@' in query or '%' in query
-        if _is_wildcard_search:
-            where = "idseq IN (SELECT idseq FROM Kanji WHERE text like ?) OR idseq IN (SELECT idseq FROM Kana WHERE text like ?) OR idseq IN (SELECT idseq FROM sense JOIN sensegloss ON sense.ID == sensegloss.sid WHERE text like ?)"
-        else:
-            where = "idseq IN (SELECT idseq FROM Kanji WHERE text == ?) OR idseq IN (SELECT idseq FROM Kana WHERE text == ?) OR idseq IN (SELECT idseq FROM sense JOIN sensegloss ON sense.ID == sensegloss.sid WHERE text == ?)"
-        getLogger().debug(where)
-        params = [query, query, query]
-        try:
-            if query.startswith('id#'):
-                query_int = int(query[3:])
-                if query_int >= 0:
-                    getLogger().debug("Searching by ID: {}".format(query_int))
-                    where = "idseq = ?"
-                    params = [query_int]
-        except Exception:
-            pass
-        # else (a context is provided)
-        eids = self.Entry.select(where, params, ctx=ctx)
+                return self.search(query, ctx=ctx, pos=pos)
+        where, params = self._build_search_query(query, pos=pos)
+        where.insert(0, 'SELECT idseq FROM Entry WHERE ')
         entries = []
-        for e in eids:
-            entries.append(self.get_entry(e.idseq, ctx=ctx))
+        for (idseq,) in ctx.conn.cursor().execute(' '.join(where), params):
+            entries.append(self.get_entry(idseq, ctx=ctx))
         return entries
+
+    def search_iter(self, query, ctx=None, pos=None, **kwargs):
+        # ensure context
+        if ctx is None:
+            with self.ctx() as ctx:
+                return self.search(query, ctx=ctx, pos=pos, iter_mode=iter_mode)
+        where, params = self._build_search_query(query, pos=pos)
+        where.insert(0, 'SELECT idseq FROM Entry WHERE ')
+        for (idseq,) in ctx.conn.cursor().execute(' '.join(where), params):
+            yield self.get_entry(idseq, ctx=ctx)
 
     def get_entry(self, idseq, ctx=None):
         # ensure context

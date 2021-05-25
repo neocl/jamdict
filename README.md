@@ -16,8 +16,6 @@
 * Fast look up (dictionaries are stored in SQLite databases)
 * Command-line lookup tool [(Example)](#command-line-tools)
 
-Homepage: [https://github.com/neocl/jamdict](https://github.com/neocl/jamdict)
-
 [Contributors](#contributors) are welcome! 🙇. If you want to help, please see [Contributing](https://jamdict.readthedocs.io/en/latest/contributing.html) page.
 
 # Try Jamdict out

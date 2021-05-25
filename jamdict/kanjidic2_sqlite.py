@@ -172,6 +172,15 @@ class KanjiDic2SQLite(KanjiDic2Schema):
                 m.gid = rmg.ID
                 ctx.meaning.save(m)
 
+    def search_chars_iter(self, chars, ctx=None):
+        if ctx is None:
+            with self.ctx() as ctx:
+                return self.search_chars_iter(chars, ctx=ctx)
+        for c in chars:
+            res = self.get_char(c, ctx=ctx)
+            if res is not None:
+                yield res
+
     def get_char(self, literal, ctx=None):
         if ctx is None:
             with self.ctx() as ctx:

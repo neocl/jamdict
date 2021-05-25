@@ -12,6 +12,7 @@ import os
 import logging
 import threading
 from collections import defaultdict as dd
+from typing import Mapping
 
 from chirptext import chio
 
@@ -29,13 +30,13 @@ logger = logging.getLogger(__name__)
 ########################################################################
 
 class KRad:
-    ''' This class contains mapping from radicals to kanjis (radk) and kanjis to radicals (krad) 
+    ''' This class contains mapping from radicals to kanjis (radk) and kanjis to radicals (krad)
 
     '''
     def __init__(self, **kwargs):
         """ Kanji-Radical mapping """
-        self.__krad_map = None
-        self.__radk_map = None
+        self.__krad_map: Mapping = None
+        self.__radk_map: Mapping = None
         self.__rads = {}
         self.lock = threading.Lock()
 
@@ -58,13 +59,13 @@ class KRad:
                             self.__radk_map[rad].add(char_literal)
 
     @property
-    def radk(self):
+    def radk(self) -> Mapping:
         if self.__radk_map is None:
             self._build_krad_map()
         return self.__radk_map
 
     @property
-    def krad(self):
+    def krad(self) -> Mapping:
         if self.__krad_map is None:
             self._build_krad_map()
         return self.__krad_map
