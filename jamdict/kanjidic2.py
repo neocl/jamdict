@@ -445,13 +445,28 @@ class RMGroup(object):
     def __str__(self):
         return repr(self)
 
+    @property
+    def on_readings(self):
+        return [r for r in self.readings if r.r_type == 'ja_on']
+
+    @property
+    def kun_readings(self):
+        return [r for r in self.readings if r.r_type == 'ja_kun']
+
+    @property
+    def other_readings(self):
+        return [r for r in self.readings if r.r_type not in('ja_kun', 'ja_on')]
+
     def to_json(self):
         warnings.warn("to_json() is deprecated and will be removed in the next major release. Use to_dict() instead.",
                       DeprecationWarning, stacklevel=2)
         return self.to_dict()
 
     def to_dict(self):
-        return {'readings': [r.to_dict() for r in self.readings],
+        sorted_readings = sorted(self.readings,
+                                 key=lambda x: x.r_type.startswith('ja_'),
+                                 reverse=True)
+        return {'readings': [r.to_dict() for r in sorted_readings],
                 'meanings': [m.to_dict() for m in self.meanings]}
 
 

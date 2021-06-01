@@ -79,6 +79,34 @@ class TestJamdictSQLite(unittest.TestCase):
             self.assertTrue(c.rm_groups[0].readings)
             self.assertTrue(c.rm_groups[0].meanings)
 
+    def test_reading_order(self):
+        db = self.ramdb
+        with db.ctx() as ctx:
+            fv = self.xdb.kd2.file_version
+            dv = self.xdb.kd2.database_version
+            doc = self.xdb.kd2.date_of_creation
+            db.update_kd2_meta(fv, dv, doc, ctx)
+            metas = ctx.meta.select()
+            getLogger().debug("KanjiDic2 meta: {}".format(metas))
+            for c in self.xdb:
+                db.insert_char(c, ctx)
+            c = db.get_char('持', ctx=ctx)
+            rmg = c.rm_groups[0]
+            self.assertEqual(["ジ"], [x.value for x in rmg.on_readings])
+            self.assertEqual(['も.つ', '-も.ち', 'も.てる'], [k.value for k in rmg.kun_readings])
+            self.assertEqual([('chi2', 'pinyin'), ('ji', 'korean_r'), ('지', 'korean_h'), ('Trì', 'vietnam')],
+                             [(x.value, x.r_type) for x in rmg.other_readings])
+            expected = [{'type': 'ja_on', 'value': 'ジ', 'on_type': '', 'r_status': ''},
+                        {'type': 'ja_kun', 'value': 'も.つ', 'on_type': '', 'r_status': ''},
+                        {'type': 'ja_kun', 'value': '-も.ち', 'on_type': '', 'r_status': ''},
+                        {'type': 'ja_kun', 'value': 'も.てる', 'on_type': '', 'r_status': ''},
+                        {'type': 'pinyin', 'value': 'chi2', 'on_type': '', 'r_status': ''},
+                        {'type': 'korean_r', 'value': 'ji', 'on_type': '', 'r_status': ''},
+                        {'type': 'korean_h', 'value': '지', 'on_type': '', 'r_status': ''},
+                        {'type': 'vietnam', 'value': 'Trì', 'on_type': '', 'r_status': ''}]
+            actual = c.rm_groups[0].to_dict()['readings']
+            self.assertEqual(expected, actual)
+
 
 # -------------------------------------------------------------------------------
 # Main

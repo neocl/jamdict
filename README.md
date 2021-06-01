@@ -20,7 +20,12 @@
 
 # Try Jamdict out
 
-There is a demo Jamdict virtual machine to try out online on Repl.it:
+Jamdict is used in [Jamdict-web](https://jamdict.herokuapp.com/) - a web-based free and open-source Japanese reading assistant software.
+Please try out the demo instance online at:
+
+https://jamdict.herokuapp.com/
+
+There also is a demo [Jamdict virtual machine](https://replit.com/@tuananhle/jamdict-demo) online for trying out Jamdict Python code on Repl.it:
 
 https://replit.com/@tuananhle/jamdict-demo
 

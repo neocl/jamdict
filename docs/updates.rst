@@ -14,6 +14,11 @@ jamdict 0.1a11
   - Better version checking in ``__version__.py``
   - Improved documentation
 
+-  2021-05-29
+
+   - (.post1) Sorted kanji readings to have on & kun readings listed first
+   - (.post1) Add ``on_readings``, ``kun_readings``, and ``other_readings`` filter to ``kanjidic2.RMGroup``
+
 jamdict 0.1a10
 --------------
 
