@@ -12,6 +12,7 @@ import os
 import logging
 import threading
 import warnings
+from pathlib import Path
 from collections import defaultdict as dd
 from collections import OrderedDict
 from typing import List, Sequence
@@ -273,6 +274,13 @@ class Jamdict(object):
         self.jmd_xml_file = jmd_xml_file if jmd_xml_file else config.get_file('JMDICT_XML') if auto_config else None
         self.kd2_xml_file = kd2_xml_file if kd2_xml_file else config.get_file('KD2_XML') if auto_config else None
         self.jmnedict_xml_file = jmnedict_xml_file if jmnedict_xml_file else config.get_file('JMNEDICT_XML') if auto_config else None
+        if auto_expand:
+            if self.jmd_xml_file:
+                self.jmd_xml_file = os.path.expanduser(self.jmd_xml_file)
+            if self.kd2_xml_file:
+                self.kd2_xml_file = os.path.expanduser(self.kd2_xml_file)
+            if self.jmnedict_xml_file:
+                self.jmnedict_xml_file = os.path.expanduser(self.jmnedict_xml_file)
 
         self.db_file = db_file if db_file else config.get_file('JAMDICT_DB') if auto_config else None
         if not self.db_file or (self.db_file != ':memory:' and not os.path.isfile(self.db_file)):
@@ -475,31 +483,40 @@ class Jamdict(object):
 
     def import_data(self):
         """ Import JMDict and KanjiDic2 data from XML to SQLite """
+        if self.db_file and not os.path.exists(self.db_file):
+            Path(self.db_file).touch()
         ctx = self.__make_db_ctx()
         ctx.buckmode()
+        ctx.auto_commit = False
         if self.jmdict and self.jmdict_xml:
             getLogger().info("Importing JMDict data")
             self.jmdict.insert_entries(self.jmdict_xml, ctx=ctx)
         # import KanjiDic2
-        if self.kd2 is not None and self.kd2_xml and os.path.isfile(self.kd2_xml_file):
+        if self.kd2_xml is not None and os.path.isfile(self.kd2_xml_file):
             getLogger().info("Importing KanjiDic2 data")
             if self.jmdict is not None and self.kd2_file == self.db_file:
                 self.jmdict.insert_chars(self.kd2_xml, ctx=ctx)
-            else:
+            elif self.kd2 is not None:
                 getLogger().warning(f"Building Kanjidic2 DB using a different DB context {self.kd2_file} vs {self.db_file}")
                 with self.kd2.ctx() as kd_ctx:
                     self.kd2.insert_chars(self.kd2_xml, ctx=kd_ctx)
+            else:
+                getLogger().warning(f"Kanjidic2 DB path could not be found")
         else:
+            print(f"kd2_xml: {self.kd2_xml}")
+            print(f"kd2_xml_file: {self.kd2_xml_file}")
             getLogger().warning("KanjiDic2 XML data is not available - skipped!")
         # import JMNEdict
-        if self.jmnedict is not None and self.jmne_xml and os.path.isfile(self.jmnedict_xml_file):
+        if self.jmne_xml is not None and os.path.isfile(self.jmnedict_xml_file):
             getLogger().info("Importing JMNEdict data")
             if self.jmdict is not None and self.jmnedict_file == self.db_file:
                 self.jmnedict.insert_name_entities(self.jmne_xml, ctx=ctx)
-            else:
+            elif self.jmnedict is not None:
                 getLogger().warning(f"Building Kanjidic2 DB using a different DB context {self.jmne_file} vs {self.db_file}")
                 with self.jmnedict.ctx() as ne_ctx:
                     self.jmnedict.insert_name_entities(self.jmne_xml, ctx=ne_ctx)
+            else:
+                getLogger().warning(f"JMNE DB path could not be found")
         else:
             getLogger().warning("JMNEdict XML data is not available - skipped!")
         _buckmode_off = getattr(ctx, "buckmode_off", None)

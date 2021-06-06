@@ -67,22 +67,21 @@ def import_data(cli, args):
     '''Generate Jamdict SQLite database from XML data files'''
     rp = TextReport()
     t = Timer(report=rp)
-    db_loc = os.path.abspath(os.path.expanduser(args.jdb))
     show_info(cli, args)
     jam = get_jam(cli, args)
-    if args and (args.jdb or args.kd2):
-        if os.path.isfile(db_loc):
-            if not confirm("Database file exists. Do you want to overwite (This action cannot be undone! yes/no?) "):
-                cli.logger.warning("Program aborted.")
-                exit()
-            else:
-                os.unlink(db_loc)
-        # perform input
-        t.start("Creating Jamdict SQLite database. This process may take very long time ...")
-        jam.import_data()
-        t.stop()
-    else:
-        print("Database paths were not provided. Process aborted.")
+    if not jam.db_file:
+        print("Database path is not available")
+    elif os.path.isfile(jam.db_file):
+        if not confirm("Database file exists. Do you want to overwite (This action cannot be undone! yes/no?) "):
+            cli.logger.warning("Program aborted.")
+            exit()
+        else:
+            os.unlink(jam.db_file)
+    # perform input
+    print(f"Importing data to: {jam.db_file}")
+    t.start("Creating Jamdict SQLite database. This process may take very long time ...")
+    jam.import_data()
+    t.stop()
 
 
 def dump_result(results, report=None):
